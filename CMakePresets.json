@@ -1,0 +1,28 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 19,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "linux-aarch64",
+            "description": "Cross compile to Linux ARM64 using Linaro GCC",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-aarch64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-aarch64-linux.cmake",
+                "CMAKE_BUILD_TYPE": "Debug"
+                // "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "linux-aarch64",
+            "configurePreset": "linux-aarch64",
+            "description": "Build for Linux ARM64"
+        }
+    ]
+}

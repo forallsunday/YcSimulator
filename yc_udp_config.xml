@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<udp>
+    <udp_icp ip="192.168.1.1" port="1234" />
+    <udp_control ip="192.168.1.2" port="4567" />
+    <udp_camera ip="192.168.1.3" port="7890" />
+</udp>
