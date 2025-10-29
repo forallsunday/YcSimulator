@@ -31,11 +31,20 @@ void ControlSimulator::init() {
     udp_camera_ = std::unique_ptr<UdpConnect>(new UdpConnect(
         this->addr_camera_.ip, this->addr_camera_.port, -1,
         [this](char *data, int size) { this->dataHandlerCamera(data, size); }));
+
     // udp连接 初始化
-    if (!udp_icp_->Init()) {
+    if (udp_icp_->Init()) {
+        printf("[Initilize] UDP ICP init,   ip:%s, port:%d\n",
+               this->addr_icp_.ip.c_str(), this->addr_icp_.port);
+    } else {
         printf("Connect UDP ICP ERROR\n");
+
+        return;
     }
-    if (!udp_camera_->Init()) {
+    if (udp_camera_->Init()) {
+        printf("[Initilize] UDP Camera init, ip:%s, port:%d\n",
+               this->addr_camera_.ip.c_str(), this->addr_camera_.port);
+    } else {
         printf("Connect UDP Camera ERROR\n");
     }
 
