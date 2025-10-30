@@ -7,22 +7,91 @@
     },
     "configurePresets": [
         {
-            "name": "linux-aarch64",
-            "description": "Cross compile to Linux ARM64 using Linaro GCC",
+            "name": "linux-aarch64-debug",
+            "description": "Cross compile to Linux ARM64 (Debug)",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/linux-aarch64",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-debug",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-aarch64-linux.cmake",
-                "CMAKE_BUILD_TYPE": "Debug"
-                // "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "TARGET_PLATFORM": "linux-arm64"
             }
+        },
+        {
+            "name": "linux-aarch64-release",
+            "description": "Cross compile to Linux ARM64 (Release)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-release",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-aarch64-linux.cmake",
+                "CMAKE_BUILD_TYPE": "Release",
+                "TARGET_PLATFORM": "linux-arm64"
+            }
+        },
+        {
+            "name": "linux-x64-debug",
+            "description": "Build Linux x64 (Debug)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-x64-debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "TARGET_PLATFORM": "linux-x64"
+            }
+        },
+        {
+            "name": "linux-x64-release",
+            "description": "Build Linux x64 (Release)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-x64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "TARGET_PLATFORM": "linux-x64"
+            }
+        },
+        {
+            "name": "windows-msvc",
+            "description": "Configure using MSVC on Windows (multi-config)",
+            "generator": "Visual Studio 17 2022",
+            "binaryDir": "${sourceDir}/build/windows-msvc",
+            "architecture": "x64"
         }
     ],
     "buildPresets": [
         {
-            "name": "linux-aarch64",
-            "configurePreset": "linux-aarch64",
-            "description": "Build for Linux ARM64"
+            "name": "linux-aarch64-debug",
+            "configurePreset": "linux-aarch64-debug",
+            "description": "Build Debug for Linux ARM64",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-aarch64-release",
+            "configurePreset": "linux-aarch64-release",
+            "description": "Build Release for Linux ARM64",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-x64-debug",
+            "configurePreset": "linux-x64-debug",
+            "description": "Build Debug for Linux x64",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-x64-release",
+            "configurePreset": "linux-x64-release",
+            "description": "Build Release for Linux x64",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-msvc-debug",
+            "configurePreset": "windows-msvc",
+            "description": "Build Debug for Windows with MSVC",
+            "configuration": "Debug"
+        },
+        {
+            "name": "windows-msvc-release",
+            "configurePreset": "windows-msvc",
+            "description": "Build Release for Windows with MSVC",
+            "configuration": "Release"
         }
     ]
 }

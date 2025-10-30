@@ -13,12 +13,12 @@ std::map<std::string, node> g_udp_ndd;
 
 typedef std::map<std::string, node>::iterator NODE_ITR;
 
-void udp_node_insert_d(char *topic, const int idx) {
+void udp_node_insert_d(const char *topic, const int idx) {
     std::string tmp(topic);
     g_udp_ndd[tmp].idx = idx;
 }
 
-int find_node_d(char *topic) {
+int find_node_d(const char *topic) {
     int         res = -1;
     NODE_ITR    itr;
     std::string tmp(topic);
@@ -35,14 +35,14 @@ int find_node_d(char *topic) {
 std::map<std::string, entry>                   g_udp_tp_d;
 typedef std::map<std::string, entry>::iterator UDP_ITR_D;
 
-void udp_topic_insert_d(char *topic, const int offset, const int len /*, const int udp_idx*/) {
+void udp_topic_insert_d(const char *topic, const int offset, const int len /*, const int udp_idx*/) {
     std::string tmp(topic);
     g_udp_tp_d[tmp].offset = offset;
     g_udp_tp_d[tmp].len    = len;
     //	g_udp_tp_d[tmp].udp_idx = udp_idx;
 }
 
-entry *find_udp_d(char *topic) {
+entry *find_udp_d(const char *topic) {
     entry      *res = NULL;
     UDP_ITR_D   itr;
     std::string tmp(topic);
@@ -55,7 +55,8 @@ entry *find_udp_d(char *topic) {
     return res;
 }
 
-void tcp_udp_parse_d(char *file_path, SOCKET_PARSE *socket_data) {
+// 在解析后, 可以使用 find_node_d 来查找node_id对应的idx
+void tcp_udp_parse_d(const char *file_path, SOCKET_PARSE *socket_data) {
     int  temp_num     = 1;
     int  icp_num      = 0;
     int  sim_num      = 0;
@@ -137,12 +138,12 @@ void tcp_udp_parse_d(char *file_path, SOCKET_PARSE *socket_data) {
         ip_idx++;
     }
 
-    int   len            = 0;
-    int   offset         = 0;
-    char  Module_sel[50] = {0};
-    char *msg_type;
-    int   count_sub = 0;
-    int   count_pub = 0;
+    int         len            = 0;
+    int         offset         = 0;
+    char        Module_sel[50] = {0};
+    const char *msg_type;
+    int         count_sub = 0;
+    int         count_pub = 0;
 
     xml_node_type MNum_node = get_first_child_node(simulator_node, "ModelNum");
     int           model_num = atoi(get_first_attribute_value(MNum_node, "ModelNum"));

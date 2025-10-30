@@ -1,8 +1,7 @@
 #include <AppTopicIdDef.h>
 #include <control_sim.h>
 #include <cstring>
-
-#define TEST_MODE_CONTROL_SIM
+#include <udp_packet_log.h>
 
 ControlSimulator::ControlSimulator(
     UdpAddress addr_icp, UdpAddress addr_camera, IcpNodeMap icp_node_map)
@@ -34,18 +33,18 @@ void ControlSimulator::init() {
 
     // udp连接 初始化
     if (udp_icp_->Init()) {
-        printf("[Initilize] UDP ICP init,   ip:%s, port:%d\n",
+        printf("[Initilize] UDP ICP init, ip = %s, port = %d\n",
                this->addr_icp_.ip.c_str(), this->addr_icp_.port);
     } else {
-        printf("Connect UDP ICP ERROR\n");
-
+        printf("[ERR] UDP ICP receive bind failed.\n");
         return;
     }
     if (udp_camera_->Init()) {
-        printf("[Initilize] UDP Camera init, ip:%s, port:%d\n",
+        printf("[Initilize] UDP Camera init, ip = %s, port = %d\n",
                this->addr_camera_.ip.c_str(), this->addr_camera_.port);
     } else {
-        printf("Connect UDP Camera ERROR\n");
+        printf("[ERR] UDP Camera receive bind failed.\n");
+        return;
     }
 
     // 开启发送线程
@@ -65,7 +64,7 @@ void ControlSimulator::dataHandlerICP(char *data, int size) {
     std::memcpy(ptr_packet.get(), data, size);
     q_from_icp_.push(std::move(ptr_packet));
 
-#ifdef TEST_MODE_CONTROL_SIM
+#if PRINTF_UDP_PACKET_RECV
     printf("[Recv] From ICP %s:%d | src=0x%08X dst=0x%08X topicId=0x%08X payloadLen=%u bytes\n",
            this->addr_icp_.ip.c_str(),
            this->addr_icp_.port,
@@ -84,7 +83,7 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
     std::memcpy(ptr_packet.get(), data, size);
     q_from_camera_.push(std::move(ptr_packet));
 
-#ifdef TEST_MODE_CONTROL_SIM
+#if PRINTF_UDP_PACKET_RECV
     printf("[Recv] From Camera %s:%d | src=0x%08X dst=0x%08X topicId=0x%08X payloadLen=%u bytes\n",
            this->addr_camera_.ip.c_str(),
            this->addr_camera_.port,

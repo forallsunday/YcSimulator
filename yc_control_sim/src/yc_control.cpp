@@ -25,29 +25,27 @@ int main() {
     UdpAddress addr_camera; // 相机仿真 地址
 
     // 从xml配置文件获取ICP和机载主控模拟器的地
-    if (parseYcUdpXml("yc_udp_config.xml", "udp_icp", &addr_icp.ip, &addr_icp.port)) {
-        printf("ERR: parse yc_udp_config.xml for udp_icp failed\n");
+    if (parseYcUdpXml("./yc_udp_config.xml", "udp_icp", &addr_icp.ip, &addr_icp.port)) {
+        printf("[INFO] udp_icp address = %s : %d\n", addr_icp.ip.c_str(), addr_icp.port);
+    } else {
+        printf("[ERR] parse yc_udp_config.xml for udp_icp failed\n");
         return 0;
     }
-
-    if (parseYcUdpXml("yc_udp_config.xml", "udp_camera", &addr_camera.ip, &addr_camera.port)) {
-        printf("ERR: parse yc_udp_config.xml failed for udp_camera\n");
+    if (parseYcUdpXml("./yc_udp_config.xml", "udp_camera", &addr_camera.ip, &addr_camera.port)) {
+        printf("[INFO] udp_camera address = %s : %d\n", addr_camera.ip.c_str(), addr_camera.port);
+    } else {
+        printf("[ERR] parse yc_udp_config.xml failed for udp_camera\n");
         return 0;
     }
-
-    // // Note: 调试时手动指定ip和端口 (假定)
-    // addr_icp.ip      = "192.168.1.111";
-    // addr_icp.port    = 10000;
-    // addr_camera.ip   = "192.168.1.222";
-    // addr_camera.port = 10001;
 
     // 解析xml文件 获取icp节点(V_NODE_XXX)对应的所有地址
     SOCKET_PARSE data; // xml解析的数据
+    // Note: 没有文件时需要注释掉下面这行
     tcp_udp_parse_d("./ModuleConfig.xml", &data);
 
     IcpNodeMap icp_node_map; // icp节点对应的端口
 
-    // 需要解析的icp节点
+    // 需要发送的icp节点
     std::vector<FUNCTION_NODE_TYPE> node_vec = {
         V_NODE_SYMM,
         V_NODE_IRRM,
@@ -59,9 +57,10 @@ int main() {
         // 查询node对应的idx
         int idx = find_node_d((char *)node_str.c_str());
         if (idx < 0) {
-            printf("icp uiDest = %s idx = %d no dest\n", node_str.c_str(), idx);
+            printf("[WARN] ICP Node = %s, idx = %d, no dest\n", node_str.c_str(), idx);
         } else {
-            printf(" addr is %s, port is %d \n", data.all_ip[idx], data.all_port[idx]);
+            printf("[INFO] ICP Node = %s, ip = %s, port = %d \n",
+                   node_str.c_str(), data.all_ip[idx], data.all_port[idx]);
             // 放入map中
             icp_node_map[node] = {data.all_ip[idx], data.all_port[idx]};
         }

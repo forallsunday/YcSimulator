@@ -100,8 +100,8 @@ bool UdpConnect::Init() {
     //     return bResult;
     // }
 
-    // ✅ 若 port_send_ < 1，则绑定固定端口；否则不绑定（使用系统分配的随机端口）
-    if (port_send < 1) {
+    // ✅ 若 port_send_ > 0，则绑定固定端口；否则不绑定（使用系统分配的随机端口）
+    if (port_send > 0) {
         nRes = this->pSocketWrapper_->bind(this->socketWrapperHandle_send, inet_addr(ip_.c_str()), port_send);
         if (nRes < 0) {
             printf("UDP Send Bind Failed (port=%d)\n", port_send);
