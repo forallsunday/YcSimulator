@@ -98,6 +98,16 @@ class ThreadSafeQueue {
         return queue_.empty();
     }
 
+    /**
+     * @brief 获取队列中元素的数量
+     *
+     * @return 队列中元素的数量
+     */
+    size_t size() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return queue_.size();
+    }
+
   private:
     std::queue<T>           queue_;     // 底层存储队列
     mutable std::mutex      mutex_;     // 保护队列的互斥锁

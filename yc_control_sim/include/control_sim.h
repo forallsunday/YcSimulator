@@ -25,7 +25,10 @@ using IcpNodeMap = std::map<FUNCTION_NODE_TYPE, UdpAddress>;
 class ControlSimulator {
 
   public:
-    ControlSimulator(UdpAddress addr_icp, UdpAddress addr_camera, IcpNodeMap icp_node_map);
+    ControlSimulator(
+        int port_on_icp, int port_on_camera, UdpAddress addr_icp, UdpAddress addr_camera,
+        IcpNodeMap icp_node_map);
+
     ~ControlSimulator();
 
     void init();
@@ -39,6 +42,9 @@ class ControlSimulator {
     void startSend2IcpNodes();
     // 发送数据到相机仿真模型
     void startSend2Camera();
+
+    // 数据监听端口
+    int port_on_icp_, port_on_camera_;
 
     // udp地址 icp 和 相机仿真模型
     UdpAddress addr_icp_, addr_camera_;

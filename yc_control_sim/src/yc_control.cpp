@@ -21,27 +21,25 @@ std::string hexString(int value) {
 
 int main() {
 
-    UdpAddress addr_icp;    // icp server 地址
-    UdpAddress addr_camera; // 相机仿真 地址
+    // 从自己写的xml配置文件获取ip和端口
+    // ip: ICP、机载主控模拟器、相机仿真模型
+    std::string ip_icp, ip_control, ip_camera;
+    // port: ICP、机载主控接收ICP、机载主控接收相机、相机仿真模型
+    int port_icp, port_control_on_icp, port_control_on_camera, port_camera;
 
-    // 从xml配置文件获取ICP和机载主控模拟器的地
-    if (parseYcUdpXml("./yc_udp_config.xml", "udp_icp", &addr_icp.ip, &addr_icp.port)) {
-        printf("[INFO] udp_icp address = %s : %d\n", addr_icp.ip.c_str(), addr_icp.port);
+    // if (parseXmlYcUdpConfig("./yc_udp_config.xml",
+    if (parseXmlYcUdpConfig("/mnt/d/Documents/C-Project/YcSimulator/yc_udp_config.xml",
+                            &ip_icp, &port_icp,
+                            &ip_control, &port_control_on_icp, &port_control_on_camera,
+                            &ip_camera, &port_camera)) {
     } else {
-        printf("[ERR] parse yc_udp_config.xml for udp_icp failed\n");
-        return 0;
-    }
-    if (parseYcUdpXml("./yc_udp_config.xml", "udp_camera", &addr_camera.ip, &addr_camera.port)) {
-        printf("[INFO] udp_camera address = %s : %d\n", addr_camera.ip.c_str(), addr_camera.port);
-    } else {
-        printf("[ERR] parse yc_udp_config.xml failed for udp_camera\n");
-        return 0;
+        printf("[ERR] failed to parse yc_udp_config.xml\n");
     }
 
     // 解析xml文件 获取icp节点(V_NODE_XXX)对应的所有地址
     SOCKET_PARSE data; // xml解析的数据
     // Note: 没有文件时需要注释掉下面这行
-    tcp_udp_parse_d("./ModuleConfig.xml", &data);
+    // tcp_udp_parse_d("./ModuleConfig.xml", &data);
 
     IcpNodeMap icp_node_map; // icp节点对应的端口
 
@@ -66,8 +64,12 @@ int main() {
         }
     }
 
+    UdpAddress addr_icp    = {ip_icp, port_icp};       // icp server 地址
+    UdpAddress addr_camera = {ip_camera, port_camera}; // 相机仿真 地址
+
     // 机载主控模拟器
-    ControlSimulator ctrl_sim(addr_icp, addr_camera, icp_node_map);
+    ControlSimulator ctrl_sim(
+        port_control_on_icp, port_control_on_camera, addr_icp, addr_camera, icp_node_map);
     // 初始化 建立udp连接 接收从icp和相机仿真发来的数据
     ctrl_sim.init();
 

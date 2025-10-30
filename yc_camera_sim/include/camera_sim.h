@@ -12,14 +12,8 @@
 
 class CameraSimulator {
   public:
-    CameraSimulator(std::string ip, int port);
+    CameraSimulator(int port, std::string ip_dst, int port_dst);
     ~CameraSimulator();
-
-    // 设置UDP地址
-    void setUdpAddress(std::string ip, int port) {
-        this->ip_  = ip;
-        this->port = port;
-    }
 
     // 初始化 建立与ControlSimulator的udp连接
     void init();
@@ -33,9 +27,10 @@ class CameraSimulator {
     SharedMemoryOutput shm_output_;
 
     // udp
-    std::unique_ptr<UdpConnect> udp_control_; // udp 连接 从机载主控模拟器接收数据
-    std::string                 ip_;          // udp ip
-    int                         port;         // udp 接收端口
+    std::unique_ptr<UdpConnect> udp_;      // udp 连接 接收数据
+    int                         port_;     // udp 本类监听端口
+    std::string                 ip_dst_;   // udp 机载主控模拟器ip
+    int                         port_dst_; // udp 要发送到的端口
 
     std::mutex mtx_send_; // 发送锁
 
@@ -73,6 +68,12 @@ class CameraSimulator {
 
     // 超时时间 (子线程阻塞时间)
     std::chrono::milliseconds timeout = std::chrono::milliseconds(100);
+
+    // 功能函数
+    // 得到系统RTC TODO: How? 原来为fc函数
+    uint64_t getSystemRealTimeClock();
+    // 上电
+    void startPowerOn(int delay);
 };
 
 #endif // CAMERA_SIM_H

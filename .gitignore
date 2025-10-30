@@ -1,4 +1,4 @@
 /.vscode
 /bin
 /build
-yc_udp_config.xml
+./yc_udp_config.xml

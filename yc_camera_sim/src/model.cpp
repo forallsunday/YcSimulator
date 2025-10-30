@@ -96,19 +96,25 @@ void usrmode_init() {
     //    printf("Usr_ModeInit data is NULL \n");
 
     // Note: 2025-10-28 LCY
-    std::string ip_control;   // 机载主控模拟器的ip
-    int         port_control; // 机载主控模拟器的端口
 
-    // 解析yc_udp_config.xml 获取机载主控模拟器的ip和端口
-    if (parseYcUdpXml("yc_udp_config.xml", "udp_control", &ip_control, &port_control)) {
-        printf("ERR: parse yc_udp_config.xml for udp_control failed\n");
-        return;
+    // 从自己写的xml配置文件获取ip和端口
+    // ip: ICP、机载主控模拟器、相机仿真模型
+    std::string ip_icp, ip_control, ip_camera;
+    // port: ICP、机载主控接收ICP、机载主控接收相机、相机仿真模型
+    int port_icp, port_control_on_icp, port_control_on_camera, port_camera;
+
+    if (parseXmlYcUdpConfig("./yc_udp_config.xml",
+                            &ip_icp, &port_icp,
+                            &ip_control, &port_control_on_icp, &port_control_on_camera,
+                            &ip_camera, &port_camera)) {
+    } else {
+        printf("[ERR] failed to parse yc_udp_config.xml\n");
     }
 
-    cam_sim = std::unique_ptr<CameraSimulator>(new CameraSimulator(ip_control, port_control));
+    cam_sim = std::unique_ptr<CameraSimulator>(
+        new CameraSimulator(port_camera, ip_control, port_control_on_camera));
 
     cam_sim->init();
-
     return;
 }
 

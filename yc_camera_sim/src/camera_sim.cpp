@@ -5,14 +5,14 @@
 
 #define SEND_TOPIC (0xd6 << 24)
 
-CameraSimulator::CameraSimulator(std::string ip, int port) {
-    this->setUdpAddress(ip, port);
+CameraSimulator::CameraSimulator(int port_, std::string ip_send2, int port_send2)
+    : port_(port_), ip_dst_(ip_send2), port_dst_(port_send2) {
 }
 
 CameraSimulator::~CameraSimulator() {
     // 关闭udp连接 (子线程1停止)
-    udp_control_->Close();
-    udp_control_.reset();
+    udp_->Close();
+    udp_.reset();
 
     // 子线程内不循环
     running_act_req_       = false;
@@ -33,12 +33,12 @@ CameraSimulator::~CameraSimulator() {
 
 void CameraSimulator::init() {
     // udp连接
-    udp_control_ = std::unique_ptr<UdpConnect>(new UdpConnect(
-        this->ip_, this->port, -1,
+    udp_ = std::unique_ptr<UdpConnect>(new UdpConnect(
+        "0.0.0.0", this->port_, -1,
         [this](char *data, int size) { this->dataHandlerReceive(data, size); }));
 
     // 开启udp连接 (子线程1启动)
-    udp_control_->Init();
+    udp_->Init();
 
     // 子线程3 启动
     this->running_other_process_ = true;
@@ -64,10 +64,10 @@ void CameraSimulator::udpSend(uint32_t topic_id, uint8_t *msg, uint32_t msg_len)
     packet.payloadLen = msg_len;
     std::memcpy(packet.pPayload, msg, msg_len);
 
-    this->udp_control_->SendData(
+    this->udp_->SendData(
         reinterpret_cast<const char *>(&packet),
         sizeof(UdpPacket),
-        this->ip_.c_str(), this->port);
+        this->ip_dst_.c_str(), this->port_dst_);
 }
 
 void CameraSimulator::dataHandlerReceive(char *data, int size) {

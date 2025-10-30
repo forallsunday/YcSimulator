@@ -6,38 +6,42 @@ set(CMAKE_CXX_STANDARD 11)
 
 # 输出路径
 if(NOT DEFINED TARGET_PLATFORM)
-    set(TARGET_PLATFORM "windows-msvc")
+  set(TARGET_PLATFORM "windows-msvc")
 endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${TARGET_PLATFORM}/$<CONFIG>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${TARGET_PLATFORM}/$<CONFIG>")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${TARGET_PLATFORM}/$<CONFIG>")
 
-
-# 头文件路径
+# 共用的
 set(INCLUDE_DEPS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/deps/include")
 set(INCLUDE_DEPS ${INCLUDE_DEPS_ROOT} "${INCLUDE_DEPS_ROOT}/ICD" "${INCLUDE_DEPS_ROOT}/Def")
+aux_source_directory("deps/src" SRCS_DEPS)
 
 # ==================================================
 # 库: 相机仿真模型
 # ==================================================
-set(LIB_NAME "ycSim")
 
-set(INCLUDE_YCSIM "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/include")
-aux_source_directory("deps/src" SRCS_DEPS)
-aux_source_directory("yc_camera_sim/src" SRCS_YCSIM)
+# 如果不是linux-x64平台，则编译ycSim
+if(NOT ${TARGET_PLATFORM} STREQUAL "linux-x64")
 
-add_library(${LIB_NAME} SHARED ${SRCS_YCSIM} ${SRCS_DEPS})
-target_include_directories(${LIB_NAME} PUBLIC ${INCLUDE_DEPS} ${INCLUDE_YCSIM})
-target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/include)
-target_link_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/lib)
-target_link_libraries(${LIB_NAME} PRIVATE cadi_user rt)
+  set(LIB_NAME "ycSim")
 
-# Debug/Release 后缀（libycSimd.so / libycSim.so）
-set_target_properties(${LIB_NAME} PROPERTIES DEBUG_POSTFIX "d" RELEASE_POSTFIX "")
+  set(INCLUDE_YCSIM "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/include")
+  aux_source_directory("yc_camera_sim/src" SRCS_YCSIM)
 
-# 安装路径
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install")
-install(TARGETS ${LIB_NAME})
+  add_library(${LIB_NAME} SHARED ${SRCS_YCSIM} ${SRCS_DEPS})
+  target_include_directories(${LIB_NAME} PUBLIC ${INCLUDE_DEPS} ${INCLUDE_YCSIM})
+  target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/include)
+  target_link_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/lib)
+  target_link_libraries(${LIB_NAME} PRIVATE cadi_user rt)
+
+  # Debug/Release 后缀（libycSimd.so / libycSim.so）
+  set_target_properties(${LIB_NAME} PROPERTIES DEBUG_POSTFIX "d" RELEASE_POSTFIX "")
+
+  # # 安装路径 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install") install(TARGETS
+  # ${LIB_NAME})
+
+endif()
 
 # ==================================================
 # 可执行文件: 机载主控模拟器
@@ -61,12 +65,19 @@ set_target_properties(${EXE_NAME} PROPERTIES DEBUG_POSTFIX "d" RELEASE_POSTFIX "
 set(XML_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/yc_udp_config.xml")
 
 # 如果文件存在，则复制到输出目录
-if (EXISTS "${XML_CONFIG_FILE}")
-    add_custom_command(
-        TARGET ${EXE_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${XML_CONFIG_FILE}"
+if(EXISTS "${XML_CONFIG_FILE}")
+  add_custom_command(
+    TARGET ${EXE_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XML_CONFIG_FILE}"
             "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/yc_udp_config.xml"
-        COMMENT "Copying yc_udp_config.xml to bin directory"
-    )
+    COMMENT "Copying yc_udp_config.xml to bin directory")
 endif()
+
+# ==================================================
+# 可执行文件: 测试发送UDP包
+# ==================================================
+set(TEST_EXE_NAME "TestUdpSend")
+add_executable(${TEST_EXE_NAME} "./yc_test_send_udp_packet/main.cpp" ${SRCS_DEPS})
+target_include_directories(${TEST_EXE_NAME} PRIVATE ${INCLUDE_DEPS})
+target_link_libraries(${TEST_EXE_NAME} PRIVATE pthread)
