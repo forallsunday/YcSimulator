@@ -3,6 +3,8 @@
 #include <cstring>
 #include <udp_packet_log.h>
 
+#define SEND_TOPIC (0xd6 << 24)
+
 ControlSimulator::ControlSimulator(
     int port_on_icp, int port_on_camera,
     UdpAddress addr_icp, UdpAddress addr_camera,
@@ -149,20 +151,15 @@ void ControlSimulator::startSend2IcpNodes() {
         while (running_send2nodes_) {
             PtrUdpPacket ptr_packet;
             if (q_from_camera_.waitForAndPop(ptr_packet, this->timeout)) {
-                // 没有竞争条件 不用加锁
-                // // Note: 临时 发送到所有节点
-                // for (const auto &pair : map_node_adrr_) {
-                //     const FUNCTION_NODE_TYPE &node = pair.first;
-                //     const UdpAddress         &addr = pair.second;
-                //     INFO_UDP_PACKET_SEND("ICP Node", addr.ip.c_str(), *ptr_packet);
-                //     udp_icp_->SendData(
-                //         reinterpret_cast<const char *>(ptr_packet.get()),
-                //         sizeof(UdpPacket),
-                //         addr.ip.c_str(),
-                //         addr.port);
-                // }
+                // 只发送camera 发送过来的包
+                if (ptr_packet->source != V_NODE_IRRM)
+                    continue;
+
                 // Note: 根据topic 发送到不同的节点
-                auto iter_topic = map_topic_nodes_.find(ptr_packet->topicId);
+                // uint32_t topic_id   = ptr_packet->topicId & 0x00FFFFFF; // 打上发送标记的情况: 保留低 24 位
+                // 现在camera 发送过来的包没有发送标记了, 在这里打发送标记
+                uint32_t topic_id   = ptr_packet->topicId;
+                auto     iter_topic = map_topic_nodes_.find(topic_id);
                 if (iter_topic == map_topic_nodes_.end())
                     continue; // topic 未注册
 
@@ -173,6 +170,10 @@ void ControlSimulator::startSend2IcpNodes() {
 
                     const std::string &ip   = iter_node->second.ip;
                     int                port = iter_node->second.port;
+
+                    // 修改 packet
+                    ptr_packet->topicId = SEND_TOPIC | topic_id;
+                    ptr_packet->dest    = node;
 
                     INFO_UDP_PACKET_SEND("ICP Nodes", ip.c_str(), *ptr_packet);
 

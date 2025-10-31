@@ -7,8 +7,6 @@
 #include <chrono>
 #include <cstring>
 
-#define SEND_TOPIC (0xd6 << 24)
-
 Timestamp getCurrentTimestamp() {
     using namespace std::chrono;
 
@@ -70,7 +68,7 @@ void CameraSimulator::init() {
 
 void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output) {
     // 上锁
-    std::lock_guard<std::mutex> lock(this->mtx_shm_);
+    // std::lock_guard<std::mutex> lock(this->mtx_shm_);
 
     // TODO: 实现相机模拟器的步进逻辑
     // 复制共享内存输入
@@ -162,7 +160,7 @@ void CameraSimulator::udpSend(uint32_t topic_id, uint8_t *msg, uint32_t msg_len)
     // Note: 没有设置目标V_NODE_XXX 改逻辑放在 ControlSimulator 里实现
     packet.time_tag   = time_stamp;
     packet.source     = FUNCTION_NODE_TYPE::V_NODE_IRRM; // 我们发送的永远是这个
-    packet.topicId    = SEND_TOPIC | topic_id;           // 在topic_id前加上发送标记
+    packet.topicId    = topic_id;
     packet.payloadLen = msg_len;
     std::memcpy(packet.pPayload, msg, msg_len);
 

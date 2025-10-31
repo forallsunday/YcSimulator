@@ -12,7 +12,7 @@ typedef struct {
     uint32_t source;         /* source function node ID */
     uint32_t dest;           /* destination function node address */
     uint32_t msgSpec;        /* msg transfer specification */
-    uint32_t topicId;        /* normally: first byte - physical block, second byte - logical block */
+    uint32_t topicId;        // 会打上 0xd6 的发送标记
     uint64_t time_tag;       /* time tag when sending message */
     uint32_t uiQos;          /* quality of service */
     uint32_t payloadLen;     /* length of pPayload, UNIT: bytes */
