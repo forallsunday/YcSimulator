@@ -10,11 +10,14 @@
             "name": "linux-aarch64-debug",
             "description": "Cross compile to Linux ARM64 (Debug)",
             "generator": "Ninja",
+            // "generator": "MinGW Makefiles",
             "binaryDir": "${sourceDir}/build/linux-aarch64-debug",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-aarch64-linux.cmake",
                 "CMAKE_BUILD_TYPE": "Debug",
-                "TARGET_PLATFORM": "linux-arm64"
+                "TARGET_PLATFORM": "linux-arm64",
+                "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools/ninja.exe"
+                // "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools/mingw32-make.exe"
             }
         },
         {
@@ -25,7 +28,8 @@
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-aarch64-linux.cmake",
                 "CMAKE_BUILD_TYPE": "Release",
-                "TARGET_PLATFORM": "linux-arm64"
+                "TARGET_PLATFORM": "linux-arm64",
+                "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools/ninja.exe"
             }
         },
         {

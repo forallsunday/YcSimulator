@@ -74,10 +74,10 @@ if(EXISTS "${XML_CONFIG_FILE}")
     COMMENT "Copying yc_udp_config.xml to bin directory")
 endif()
 
-# ==================================================
-# 可执行文件: 测试发送UDP包
-# ==================================================
-set(TEST_EXE_NAME "TestUdpSend")
-add_executable(${TEST_EXE_NAME} "./yc_test_send_udp_packet/main.cpp" ${SRCS_DEPS})
-target_include_directories(${TEST_EXE_NAME} PRIVATE ${INCLUDE_DEPS})
-target_link_libraries(${TEST_EXE_NAME} PRIVATE pthread)
+# # ==================================================
+# # 可执行文件: 测试发送UDP包
+# # ==================================================
+# set(TEST_EXE_NAME "TestUdpSend")
+# add_executable(${TEST_EXE_NAME} "./yc_test_send_udp_packet/main.cpp" ${SRCS_DEPS})
+# target_include_directories(${TEST_EXE_NAME} PRIVATE ${INCLUDE_DEPS})
+# target_link_libraries(${TEST_EXE_NAME} PRIVATE pthread)

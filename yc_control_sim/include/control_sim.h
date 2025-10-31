@@ -18,8 +18,8 @@ typedef struct UdpAddress {
     int         port; // 端口
 } UdpAddress;
 
-// icp节点对应的地址
-using IcpNodeMap = std::map<FUNCTION_NODE_TYPE, UdpAddress>;
+using MapNodeAddr   = std::map<FUNCTION_NODE_TYPE, UdpAddress>;       // ICP节点对应的地址
+using MapTopicNodes = std::map<int, std::vector<FUNCTION_NODE_TYPE>>; // Topic要发送到nodes
 
 // 机载主控模拟器
 class ControlSimulator {
@@ -27,7 +27,7 @@ class ControlSimulator {
   public:
     ControlSimulator(
         int port_on_icp, int port_on_camera, UdpAddress addr_icp, UdpAddress addr_camera,
-        IcpNodeMap icp_node_map);
+        MapNodeAddr map_icp_node);
 
     ~ControlSimulator();
 
@@ -56,7 +56,9 @@ class ControlSimulator {
     std::unique_ptr<UdpConnect> udp_camera_;
 
     // ICP各个节点的地址
-    IcpNodeMap icp_node_map_;
+    MapNodeAddr   map_node_adrr_;    // ICP节点对应的地址
+    MapTopicNodes map_topic_nodes_; // Topic要发送到nodes
+    void          initMapTopicNodes();
 
     // 队列
     ThreadSafeQueue<PtrUdpPacket> q_from_icp_;    // 从ICP接收的数据

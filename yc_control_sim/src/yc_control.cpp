@@ -38,10 +38,11 @@ int main() {
 
     // 解析xml文件 获取icp节点(V_NODE_XXX)对应的所有地址
     SOCKET_PARSE data; // xml解析的数据
-    // Note: 没有文件时需要注释掉下面这行
-    // tcp_udp_parse_d("./ModuleConfig.xml", &data);
 
-    IcpNodeMap icp_node_map; // icp节点对应的端口
+    // !!! 没有文件时需要注释掉下面这行
+    tcp_udp_parse_d("./ModuleConfig.xml", &data);
+
+    MapNodeAddr icp_node_map; // icp节点对应的端口
 
     // 需要发送的icp节点
     std::vector<FUNCTION_NODE_TYPE> node_vec = {

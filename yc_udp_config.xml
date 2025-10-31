@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <udp>
     <udp_icp ip="192.168.1.123" port="2001" />
-    <udp_control ip="127.0.0.1" port_on_icp="3001" port_on_camera="3002"/>
+    <udp_control ip="127.0.0.1" port_on_icp="3001" port_on_camera="3002" />
     <udp_camera ip="127.0.0.1" port="4001" />
 </udp>

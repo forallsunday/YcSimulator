@@ -3,10 +3,11 @@
 #include <cstring>
 #include <udp_packet_log.h>
 
-ControlSimulator::ControlSimulator(int port_on_icp, int port_on_camera, UdpAddress addr_icp, UdpAddress addr_camera, IcpNodeMap icp_node_map)
-    : port_on_icp_(port_on_icp), port_on_camera_(port_on_camera),
-      addr_icp_(addr_icp), addr_camera_(addr_camera),
-      icp_node_map_(icp_node_map) {
+ControlSimulator::ControlSimulator(
+    int port_on_icp, int port_on_camera,
+    UdpAddress addr_icp, UdpAddress addr_camera,
+    MapNodeAddr map_node_adrr)
+    : port_on_icp_(port_on_icp), port_on_camera_(port_on_camera), addr_icp_(addr_icp), addr_camera_(addr_camera), map_node_adrr_(map_node_adrr) {
 }
 
 ControlSimulator::~ControlSimulator() {
@@ -52,16 +53,24 @@ void ControlSimulator::init() {
         return;
     }
 
+    // 初始化主题节点映射
+    initMapTopicNodes();
+
     // 开启发送线程
     startSend2Camera();
     startSend2IcpNodes();
 }
 
 void ControlSimulator::dataHandlerICP(char *data, int size) {
+
+    // Debug 检查数据大小
+#ifndef NDEBUG
     if (size > sizeof(UdpPacket)) {
         printf("Warning: received data size (%d) exceeds UdpPacket size (%zu)\n", size, sizeof(UdpPacket));
         size = sizeof(UdpPacket); // 避免越界
     }
+#endif
+
     auto ptr_packet = PtrUdpPacket(new UdpPacket());
     std::memcpy(ptr_packet.get(), data, size);
 
@@ -72,10 +81,14 @@ void ControlSimulator::dataHandlerICP(char *data, int size) {
 }
 
 void ControlSimulator::dataHandlerCamera(char *data, int size) {
+
+#ifndef NDEBUG
     if (size > sizeof(UdpPacket)) {
         printf("Warning: received data size (%d) exceeds UdpPacket size (%zu)\n", size, sizeof(UdpPacket));
         size = sizeof(UdpPacket); // 避免越界
     }
+#endif
+
     auto ptr_packet = PtrUdpPacket(new UdpPacket());
     std::memcpy(ptr_packet.get(), data, size);
 
@@ -106,6 +119,28 @@ void ControlSimulator::startSend2Camera() {
     });
 }
 
+void ControlSimulator::initMapTopicNodes() {
+    // 初始化ICP节点映射
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_WORK_STATE_REPORT] = {
+        V_NODE_MPHL,
+        V_NODE_SYMM,
+        V_NODE_MPHR,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS] = {
+        V_NODE_IIPM,
+        V_NODE_DCLD,
+        V_NODE_TMMM,
+        V_NODE_DCRM,
+        V_NODE_DCLM,
+        V_NODE_DCRD,
+        V_NODE_SRMM,
+    };
+
+    // 可以根据需要添加更多节点
+}
+
 void ControlSimulator::startSend2IcpNodes() {
     printf("start sending to icp nodes.\n");
     // 消息分类 不同的节点
@@ -115,28 +150,37 @@ void ControlSimulator::startSend2IcpNodes() {
             PtrUdpPacket ptr_packet;
             if (q_from_camera_.waitForAndPop(ptr_packet, this->timeout)) {
                 // 没有竞争条件 不用加锁
-                // Note: 临时 发送到所有节点
-                for (const auto &pair : icp_node_map_) {
-                    const FUNCTION_NODE_TYPE &node = pair.first;
-                    const UdpAddress         &addr = pair.second;
-                    INFO_UDP_PACKET_SEND("ICP Node", addr.ip.c_str(), *ptr_packet);
+                // // Note: 临时 发送到所有节点
+                // for (const auto &pair : map_node_adrr_) {
+                //     const FUNCTION_NODE_TYPE &node = pair.first;
+                //     const UdpAddress         &addr = pair.second;
+                //     INFO_UDP_PACKET_SEND("ICP Node", addr.ip.c_str(), *ptr_packet);
+                //     udp_icp_->SendData(
+                //         reinterpret_cast<const char *>(ptr_packet.get()),
+                //         sizeof(UdpPacket),
+                //         addr.ip.c_str(),
+                //         addr.port);
+                // }
+                // Note: 根据topic 发送到不同的节点
+                auto iter_topic = map_topic_nodes_.find(ptr_packet->topicId);
+                if (iter_topic == map_topic_nodes_.end())
+                    continue; // topic 未注册
+
+                for (const FUNCTION_NODE_TYPE node : iter_topic->second) {
+                    auto iter_node = map_node_adrr_.find(node);
+                    if (iter_node == map_node_adrr_.end())
+                        continue; // 节点地址未注册
+
+                    const std::string &ip   = iter_node->second.ip;
+                    int                port = iter_node->second.port;
+
+                    INFO_UDP_PACKET_SEND("ICP Nodes", ip.c_str(), *ptr_packet);
+
                     udp_icp_->SendData(
                         reinterpret_cast<const char *>(ptr_packet.get()),
                         sizeof(UdpPacket),
-                        addr.ip.c_str(),
-                        addr.port);
+                        ip.c_str(), port);
                 }
-                // // todo: 根据topic 发送到不同的节点
-                // auto       &topic = packet->topicId;
-                // std::string ip;
-                // int         port;
-                // switch (topic) {
-                // case V_TOPIC_IRRM_IRST_LOS:
-                //     ip   = this->icp_node_map_[V_NODE_IRRM].ip.c_str();
-                //     port = this->icp_node_map_[V_NODE_IRRM].port;
-                //     break;
-                // }
-                // udp_icp_->SendData(reinterpret_cast<const char *>(packet.get()), sizeof(UdpPacket), ip.c_str(), port);
             }
         } // 这里 packet 超出作用域，它会自动 delete UdpPacket
     });

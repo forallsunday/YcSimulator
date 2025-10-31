@@ -137,14 +137,18 @@ void step_calculate() {
     /* 1. 调用topic_read从共享内存中读取所需信息 */
     topic_read("FacilitiesPowerSupplyStatusParasMsg",
                &(shm_input.facilities_power_supply_status_paras_msg), 0);
-    // 后续完善class 传入上电状态
+    topic_read("SecSimulatorControlMsg",
+               &(shm_input.sec_simulator_control_msg), 0);
+    // 继续添加...
 
     /* 2. 添加模型单步运行逻辑 */
-    // 后续完善计算结果
+    cam_sim->step(&shm_input, &shm_output);
 
     /* 3. 调用topic_write将模型计算后的数据写回共享内存 */
-    // topic_write("FunctionalUnitStatusMsg",
-    //             &(shm_output.functional_unit_status_msg), 0);
+    topic_write("FunctionalUnitStatusMsg",
+                &(shm_output.functional_unit_status_msg), 0);
+    // 继续添加...
+
     /* ************************************* */
 
     return;
