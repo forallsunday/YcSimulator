@@ -1,11 +1,14 @@
 #include <AOXEAppDef.h>
 #include <control_sim.h>
+#include <xml_api.h>
+#include <yc_udp_xml_api.hpp>
+
+#include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <xml_api.h>
-#include <yc_udp_xml_api.hpp>
 
 // 转换为16进制字符串
 std::string hexString(int value) {
@@ -22,16 +25,11 @@ std::string hexString(int value) {
 int main() {
 
     // 从自己写的xml配置文件获取ip和端口
-    // ip: ICP、机载主控模拟器、相机仿真模型
-    std::string ip_icp, ip_control, ip_camera;
-    // port: ICP、机载主控接收ICP、机载主控接收相机、相机仿真模型
-    int port_icp, port_control_on_icp, port_control_on_camera, port_camera;
-
-    // if (parseXmlYcUdpConfig("./yc_udp_config.xml",
-    if (parseXmlYcUdpConfig("/mnt/d/Documents/C-Project/YcSimulator/yc_udp_config.xml",
-                            &ip_icp, &port_icp,
-                            &ip_control, &port_control_on_icp, &port_control_on_camera,
-                            &ip_camera, &port_camera)) {
+    std::string ip_icp_server, ip_control, ip_camera;
+    int         ctrl_port_recv_icp, ctrl_port_recv_camera, cam_port;
+    if (parseXmlYcUdpConfig(
+            "./yc_udp_config.xml", &ip_icp_server, &ip_control,
+            &ctrl_port_recv_icp, &ctrl_port_recv_camera, &ip_camera, &cam_port)) {
     } else {
         printf("[ERR] failed to parse yc_udp_config.xml\n");
     }
@@ -39,15 +37,40 @@ int main() {
     // 解析xml文件 获取icp节点(V_NODE_XXX)对应的所有地址
     SOCKET_PARSE data; // xml解析的数据
 
-    // !!! 没有文件时需要注释掉下面这行
-    tcp_udp_parse_d("./ModuleConfig.xml", &data);
+    // 要检查的文件路径
+    const std::string config_file = "./ModuleConfig.xml";
+
+    // 尝试以输入模式打开文件
+    std::ifstream file(config_file);
+
+    if (file.is_open()) {
+        // 文件存在并且可以成功打开
+        file.close(); // 及时关闭，让 tcp_udp_parse_d 函数可以自行打开
+
+        // 现在可以安全地调用你的解析函数
+        tcp_udp_parse_d(config_file.c_str(), &data); // 注意：传入 c_str()
+
+    } else {
+        // 打开文件失败
+        std::cerr << "Error: Configuration file not found or cannot be opened: " << config_file << std::endl;
+    }
 
     MapNodeAddr icp_node_map; // icp节点对应的端口
 
     // 需要发送的icp节点
     std::vector<FUNCTION_NODE_TYPE> node_vec = {
+        // V_TOPIC_IRRM_WORK_STATE_REPORT 对应:
+        V_NODE_MPHL,
         V_NODE_SYMM,
-        V_NODE_IRRM,
+        V_NODE_MPHR,
+        // V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS 对应:
+        V_NODE_IIPM,
+        V_NODE_DCLD,
+        V_NODE_TMMM,
+        V_NODE_DCRM,
+        V_NODE_DCLM,
+        V_NODE_DCRD,
+        V_NODE_SRMM,
     };
 
     for (const auto &node : node_vec) {
@@ -65,12 +88,11 @@ int main() {
         }
     }
 
-    UdpAddress addr_icp    = {ip_icp, port_icp};       // icp server 地址
-    UdpAddress addr_camera = {ip_camera, port_camera}; // 相机仿真 地址
-
     // 机载主控模拟器
     ControlSimulator ctrl_sim(
-        port_control_on_icp, port_control_on_camera, addr_icp, addr_camera, icp_node_map);
+        ip_icp_server, ip_camera,
+        ctrl_port_recv_icp, ctrl_port_recv_camera, cam_port, icp_node_map);
+
     // 初始化 建立udp连接 接收从icp和相机仿真发来的数据
     ctrl_sim.init();
 
@@ -84,7 +106,7 @@ int main() {
         // printf("HeartBit: %llu\n", heartbit); // for uint64_t
         printf("HeartBit: %u\n", heartbit);
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
     return 0;

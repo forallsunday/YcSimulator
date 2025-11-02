@@ -98,23 +98,23 @@ void usrmode_init() {
     // Note: 2025-10-28 LCY
 
     // 从自己写的xml配置文件获取ip和端口
-    // ip: ICP、机载主控模拟器、相机仿真模型
-    std::string ip_icp, ip_control, ip_camera;
-    // port: ICP、机载主控接收ICP、机载主控接收相机、相机仿真模型
-    int port_icp, port_control_on_icp, port_control_on_camera, port_camera;
-
-    if (parseXmlYcUdpConfig("./yc_udp_config.xml",
-                            &ip_icp, &port_icp,
-                            &ip_control, &port_control_on_icp, &port_control_on_camera,
-                            &ip_camera, &port_camera)) {
+    std::string ip_icp_server, ip_control, ip_camera;
+    int         ctrl_port_recv_icp, ctrl_port_recv_camera, cam_port;
+    if (parseXmlYcUdpConfig(
+            "./yc_udp_config.xml", &ip_icp_server, &ip_control,
+            &ctrl_port_recv_icp, &ctrl_port_recv_camera, &ip_camera, &cam_port)) {
     } else {
         printf("[ERR] failed to parse yc_udp_config.xml\n");
     }
 
     cam_sim = std::unique_ptr<CameraSimulator>(
-        new CameraSimulator(port_camera, ip_control, port_control_on_camera));
+        new CameraSimulator(cam_port, ip_control, ctrl_port_recv_camera));
 
     cam_sim->init();
+
+    // // Note: 测试 时 直接上电
+    // cam_sim->powerOn(5);
+
     return;
 }
 
@@ -136,9 +136,9 @@ void step_calculate() {
     /* ************************************* */
     /* 1. 调用topic_read从共享内存中读取所需信息 */
     topic_read("FacilitiesPowerSupplyStatusParasMsg",
-               &(shm_input.facilities_power_supply_status_paras_msg), 0);
+               &(shm_input.m_FacilitiesPowerSupplyStatusParasMsg), 0);
     topic_read("SecSimulatorControlMsg",
-               &(shm_input.sec_simulator_control_msg), 0);
+               &(shm_input.m_SecSimulatorControlMsg), 0);
     // 继续添加...
 
     /* 2. 添加模型单步运行逻辑 */
@@ -146,7 +146,7 @@ void step_calculate() {
 
     /* 3. 调用topic_write将模型计算后的数据写回共享内存 */
     topic_write("FunctionalUnitStatusMsg",
-                &(shm_output.functional_unit_status_msg), 0);
+                &(shm_output.m_FunctionalUnitStatusMsg), 0);
     // 继续添加...
 
     /* ************************************* */

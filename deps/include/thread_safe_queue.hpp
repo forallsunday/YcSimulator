@@ -108,6 +108,14 @@ class ThreadSafeQueue {
         return queue_.size();
     }
 
+    void clearAndNotify() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        while (!queue_.empty()) {
+            queue_.pop();
+        }
+        condition_.notify_all();
+    }
+
   private:
     std::queue<T>           queue_;     // 底层存储队列
     mutable std::mutex      mutex_;     // 保护队列的互斥锁

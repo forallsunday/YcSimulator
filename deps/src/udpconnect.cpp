@@ -12,9 +12,9 @@
 #include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <iostream>
-#include <thread>
 
 // #include "logger_wrapper.h"
 #define MAX_EVENTS 50
@@ -68,16 +68,20 @@ UdpConnect::UdpConnect(std::string ip, int port, int port_send, DataHandlFunc da
     : ip_(ip),
       port_(port),
       port_send(port_send),
-      isStartRecv_(false),
+      start_receive(false),
       dataHandlFunc_(std::move(dataFunc)),
       pSocketWrapper_(nullptr),
       socketWrapperHandle_(nullptr),
       socketWrapperHandle_send(nullptr) {
 }
 
+UdpConnect::~UdpConnect() {
+    this->Close();
+}
+
 bool UdpConnect::Init() {
     bool bResult(false);
-    this->pSocketWrapper_ = new SocketWrapper();
+    this->pSocketWrapper_      = new SocketWrapper();
     this->socketWrapperHandle_ = this->pSocketWrapper_->socket(SOCKETWRAPPER_SOCK_DGRAM);
     if (nullptr == this->socketWrapperHandle_) {
         return bResult;
@@ -111,57 +115,53 @@ bool UdpConnect::Init() {
         printf("UDP Send using system-assigned port (no bind)\n");
     }
 
-    isStartRecv_ = true;
-    // 开启线程接收数据
-    std::thread recvThread([&]() {
-        char buf[2048] = {0};
+    this->start_receive = true;
 
-        unsigned int farAddr = 0;
+    epfd_ = epoll_create(MAX_EVENTS);
+    if (epfd_ == -1) {
+        printf("epoll create failed error = %d\n", errno);
+        return false;
+    }
+
+    // 添加 fd once
+    add_del_fd(epfd_, (int)(long)(this->socketWrapperHandle_), 1);
+
+    // 启动成员线程（捕获 this 安全）
+    recv_thread_ = std::thread([this]() {
+        char           buf[2048];
+        unsigned int   farAddr = 0;
         unsigned short farPort = 0;
-        int nResult = 0;
 
         struct epoll_event events[MAX_EVENTS];
-        int epfd = epoll_create(MAX_EVENTS);
-        if (epfd == -1) {
-            printf("epoll create failed erro = %d\n", errno);
-        }
-        add_del_fd(epfd, (int)(long)(this->socketWrapperHandle_), 1);
-        // printf("while num is %d\n", (int)(long)(this->socketWrapperHandle_));
-        struct sockaddr_in udp_client_addr;
-        memset(&udp_client_addr, 0, sizeof(udp_client_addr));
-        socklen_t len = sizeof(udp_client_addr);
 
-        while (isStartRecv_) {
-            // int numEvents = epoll_wait(epfd, events, MAX_EVENTS, 0);
-            // timeout 时间设置为10ms 即收到事件立即执行 不然就等待10ms
-            int numEvents = epoll_wait(epfd, events, MAX_EVENTS, 10);
+        while (this->start_receive) {
+            int numEvents = epoll_wait(this->epfd_, events, MAX_EVENTS, 10);
             if (numEvents == -1) {
+                if (errno == EINTR)
+                    continue;
                 printf("epoll wait failed\n");
                 break;
             }
 
-            for (int i = 0; i < numEvents; i++) {
+            for (int i = 0; i < numEvents; ++i) {
                 int sockfd = events[i].data.fd;
                 if (sockfd == (int)(long)(this->socketWrapperHandle_)) {
-                    nResult = this->pSocketWrapper_->recvfrom(this->socketWrapperHandle_, buf, sizeof(buf), &farAddr, &farPort);
+                    int nResult = this->pSocketWrapper_->recvfrom(
+                        this->socketWrapperHandle_, buf, sizeof(buf), &farAddr, &farPort);
 
-                    if (nResult >= 0) {
-                        dataHandlFunc_(buf, sizeof(buf));
+                    if (nResult > 0) {
+                        // 传入实际接收长度
+                        this->dataHandlFunc_(buf, nResult);
                     }
                 }
-                add_del_fd(epfd, (int)(long)(this->socketWrapperHandle_), 0);
-                add_del_fd(epfd, (int)(long)(this->socketWrapperHandle_), 1);
             }
-
-            // std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
     });
-    recvThread.detach();
 
     return true;
 }
 
-int UdpConnect::SendData(const char* buf, int data_len, const char* ip_dst, int port_dst) {
+int UdpConnect::SendData(const char *buf, int data_len, const char *ip_dst, int port_dst) {
     if (this->socketWrapperHandle_send == nullptr) {
         return -1;
     }
@@ -169,93 +169,45 @@ int UdpConnect::SendData(const char* buf, int data_len, const char* ip_dst, int 
     return this->pSocketWrapper_->sendto(socketWrapperHandle_send, buf, data_len, inet_addr(ip_dst), port_dst);
 }
 
-// 是否变成更安全的关闭方式
 void UdpConnect::Close() {
-    if (this->socketWrapperHandle_ == nullptr) {
+    // 1. 停止循环
+    if (!start_receive)
         return;
-    }
-    isStartRecv_ = false;
-    this->pSocketWrapper_->close(socketWrapperHandle_);
-}
 
-#if 0
-#include <QNetworkDatagram>
-UdpConnect::UdpConnect(std::string ip,int port,DataHandlFunc dataFunc):ip_(ip),port_(port),dataHandlFunc_(std::move(dataFunc))
-{
+    start_receive = false;
 
-}
-
-bool UdpConnect::Init()
-{
-    bool bResult(false);
-
-    this->pUdpSocket_ = new  QUdpSocket();
-    QHostAddress  addr;
-    addr.setAddress(ip_.c_str());
-    if(! this->pUdpSocket_->bind(addr,port_))
-    {
-        return bResult;
+    // 2. 移除 epoll fd
+    if (epfd_ != -1 && socketWrapperHandle_) {
+        epoll_ctl(epfd_, EPOLL_CTL_DEL, (int)(long)socketWrapperHandle_, nullptr);
     }
 
-    connect(this->pUdpSocket_, &QUdpSocket::readyRead,
-            this, &UdpConnect::readPendingDatagrams);
-
-
-    return  bResult;
-}
-
-int UdpConnect::SendData(const char *buf, int bufLen, const char * destIp, int destPort)
-{
-    QHostAddress  addr;
-    addr.setAddress(destIp);
-    return  pUdpSocket_->writeDatagram(buf,bufLen,addr,destPort);
-}
-
-//接收函数
-void UdpConnect::readPendingDatagrams()
-{
-
-    while (pUdpSocket_->hasPendingDatagrams()) {
-
-        QNetworkDatagram datagram =  pUdpSocket_->receiveDatagram();
-
-        processTheDatagram(datagram);
+    // 3. 关闭 recv socket
+    if (socketWrapperHandle_) {
+        pSocketWrapper_->close(socketWrapperHandle_);
+        socketWrapperHandle_ = nullptr;
     }
-}
 
-void UdpConnect::processTheDatagram(QNetworkDatagram datagram)
-{
-    //解析数据
-    char* buf =   datagram.data().data();
-    int dataLen =   datagram.data().length();
+    // 4. join recv thread
+    if (recv_thread_.joinable())
+        recv_thread_.join();
 
-    if(buf == nullptr || dataLen<1 ){
-        return;
+    // 5. 关闭 epoll fd
+    if (epfd_ != -1) {
+        close(epfd_);
+        epfd_ = -1;
     }
-    dataHandlFunc_(buf,dataLen);
+
+    // 6. 关闭发送 socket
+    if (socketWrapperHandle_send) {
+        pSocketWrapper_->close(socketWrapperHandle_send);
+        socketWrapperHandle_send = nullptr;
+    }
+
+    // 7. 释放 SocketWrapper
+    if (pSocketWrapper_) {
+        delete pSocketWrapper_;
+        pSocketWrapper_ = nullptr;
+    }
+
+    printf("[UdpConnect] Closed\n");
 }
-
-void UdpConnect::Close()
-{
-
-}
-
-
-//void Server::initSocket()
-//{
-//    udpSocket = new QUdpSocket(this);
-//    udpSocket->bind(QHostAddress::LocalHost, 7755);
-
-//    connect(udpSocket, &QUdpSocket::readyRead,
-//            this, &Server::readPendingDatagrams);
-//}
-
-//void Server::readPendingDatagrams()
-//{
-//    while (udpSocket->hasPendingDatagrams()) {
-//        QNetworkDatagram datagram = udpSocket->receiveDatagram();
-//        processTheDatagram(datagram);
-//    }
-//}
-
-#endif

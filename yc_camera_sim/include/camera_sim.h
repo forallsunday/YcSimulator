@@ -3,6 +3,7 @@
 
 #include <ICD/ICDB_ENUM_STRUCT_IRRM.H>
 #include <ICD/ICDB_TOPIC_STRUCT_IRRM.H>
+#include <global_var_def.hpp>
 #include <shm_interface.h>
 #include <udp_packet.h>
 #include <udpconnect.h>
@@ -13,7 +14,7 @@
 
 class CameraSimulator {
   public:
-    CameraSimulator(int port, std::string ip_dst, int port_dst);
+    CameraSimulator(int port, std::string ip_control, int port_dst);
     ~CameraSimulator();
 
     // 初始化 建立与ControlSimulator的udp连接
@@ -22,58 +23,72 @@ class CameraSimulator {
     // 单步计算
     void step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output);
 
-  private:
-    // 心跳计数
-    uint64_t          heartbit_;
-    std::atomic<bool> updatting_heartbit_;
-    std::thread       heartbit_thread_;
-    void              startHeartbitting();
-
-    // 上电
-    std::atomic<bool> is_powered_on_;
-    std::thread       power_on_thread_;
-    // int               remain_time;
-    std::atomic<int> remain_time;
-    void             powerOn(int delay);
+    // 上电 delay: 上电延迟时间 单位: s
+    void powerOn(int delay);
+    // 冻结
+    void freeze();
     // 下电
     void powerOff();
+
+    // 设置周期性发送间隔
+    void setPeriodicSendInterval(int ms) { this->periodic_send_interval = ms; };
+
+  private:
+    enum PowerStatus {
+        POWER_UNKNOWN,
+        POWER_ON,
+        POWER_FREEZE,
+        POWER_OFF,
+    } power_status_;
+
+    // 上电参数
+    std::atomic<bool> during_powered_on_;
+    std::thread       thread_power_on_;
+    std::atomic<int>  remain_time;
+
+    // 锁
+    std::mutex mtx_shm_;  // 共享内存锁
+    std::mutex mtx_send_; // 发送锁
 
     // 共享内存
     SharedMemoryInput  shm_input_;
     SharedMemoryOutput shm_output_;
-    std::mutex         mtx_shm_; // 共享内存锁
 
-    //
-    char    *facility_power_supply_status; // 设备供电状态参数 - 设备供电状态
-    uint8_t *operation_mode;               // 模拟器运行控制 - 控制模式
-    // 将共享内存输入参数更新映射到本地指针
-    void updateShmInputParams();
+    // 将共享内存输入参数映射到本地(指针指向共享内存输入对应的位置)
+    void pointShmInputParams();
 
-    // 计算模块
-    // void compute();
+    // 共享内存输入参数映射对应的主要变量
+    char    *facility_power_supply_status_; // 设备供电状态参数 - 设备供电状态
+    uint8_t *operation_mode_;               // 模拟器运行控制 - 控制模式
 
     // 更新共享内存输出
     void updateShmOutput();
 
-    // udp
-    std::unique_ptr<UdpConnect> udp_;      // udp 连接 接收数据
-    int                         port_;     // udp 本类监听端口
-    std::string                 ip_dst_;   // udp 机载主控模拟器ip
-    int                         port_dst_; // udp 要发送到的端口
+    // todo: 计算模块
+    // void compute();
 
-    std::mutex mtx_send_; // 发送锁
+    // UDP
+    std::unique_ptr<UdpConnect> udp_;       // udp 连接 接收数据
+    int                         port_;      // udp 监听端口
+    std::string                 ip_contrl_; // udp 机载主控模拟器ip
+    int                         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
+
+    /// @brief 接收数据 分类消息 放入队列
+    /// @param data udp包的指针
+    /// @param size udp包的数据长度
+    void udpRecv(char *data, int size);
 
     /// @brief udp 发送函数
     /// @param topic_id   主题ID    (V_TOPIC_XXX_XXX)
-    /// @param msg        数据指针
-    /// @param msg_len    数据长度
-    void udpSend(uint32_t topic_id, uint8_t *msg, uint32_t msg_len);
+    /// @param msg        msg数据指针
+    /// @param size_msg   msg的数据长度
+    void udpSend(uint32_t topic_id, uint8_t *msg, uint32_t size_msg);
 
     // 队列
     ThreadSafeQueue<PtrUdpPacket> queue_act_req_;
     ThreadSafeQueue<PtrUdpPacket> queue_others_;
 
-    // 线程运行状态
+    // 运行状态
     std::atomic<bool> running_act_req_;
     std::atomic<bool> running_other_process_;
     std::atomic<bool> running_periodic_send_;
@@ -84,23 +99,49 @@ class CameraSimulator {
     std::thread thread_periodic_send_;   // 子线程4
     std::thread thread_subsystem_timer_; // 子线程5
 
-    // 子线程1 handler : 接受数据 分类消息 放入队列
-    void dataReceive(char *data, int size);
-    // 子线程2 运行函数 : 处理act_req以及主流程控制
+    // 开始所有任务线程 (不包括 udp线程、心跳线程)
+    void startTaskThreads();
+
+    // 心跳计数
+    std::atomic<uint64_t> heartbit_{0};
+    std::atomic<bool>     running_hearbit;
+    std::thread           thread_heartbit_;
+
+    // 心跳线程
+    void startHeartbitting();
+    // 子线程1 udp连接: 数据接收函数 udpRecv 线程一直运行 与类的生命周期一致
+    void startUdpConnect();
+    // 子线程2 任务线程 运行函数 : 处理act_req以及主流程控制
     void startActReq();
-    // 子线程3 运行函数 : 其他消息处理
+    // 子线程3 任务线程 运行函数 : 其他消息处理
     void startOtherProcess();
-    // 子线程4 运行函数 : 周期发送
+    // 子线程4 任务线程 运行函数 : 周期发送
     void startPeriodicSend();
-    // 子线程5 运行函数 : 分系统计时器
+    // 子线程5 任务线程 运行函数 : 分系统计时器
     void startSubsystemTiming();
+
+    // 周期性发送间隔 ms
+    int periodic_send_interval = 5;
 
     // 超时时间 (子线程阻塞时间)
     std::chrono::milliseconds timeout = std::chrono::milliseconds(100);
 
+    // 消息
+    MsgRecvAll msg_recv; // 所有接收消息
+    MsgSendAll msg_send; // 所有发送消息
+
     // 功能函数
+    Timestamp getCurrentTimestamp();
     // 得到系统RTC TODO: How? 原来为fc函数
     uint64_t getSysRTC();
 };
+
+// 从UdpPacket中复制消息数据
+template <typename T>
+void copyMsgFromPacket(T &msg, UdpPacket *ptr_packet) {
+    // if (ptr_packet->pPayload == nullptr) {
+    // if (ptr_packet->pPayloadLen != sizeof(T) {
+    memcpy(&msg, ptr_packet->pPayload, sizeof(T));
+}
 
 #endif // CAMERA_SIM_H

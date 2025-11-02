@@ -40,10 +40,11 @@ inline bool loadXmlDoc(const std::string &path, rapidxml::xml_document<> &doc, s
 // 合成函数：一次解析全部
 inline bool parseXmlYcUdpConfig(
     const std::string &path,
-    std::string *ip_icp, int *port_icp,
-    std::string *ip_control, int *port_control_on_icp, int *port_control_on_camera,
-    std::string *ip_camera, int *port_camera) {
-    if (!ip_icp || !port_icp || !ip_control || !port_control_on_icp || !port_control_on_camera || !ip_camera || !port_camera)
+    std::string       *ip_icp_server,
+    std::string *ip_control, int *ctrl_port_recv_icp, int *ctrl_port_recv_camera,
+    std::string *ip_camera, int *cam_port) {
+
+    if (!ip_icp_server || !ip_control || !ctrl_port_recv_icp || !ctrl_port_recv_camera || !ip_camera || !cam_port)
         return false;
 
     rapidxml::xml_document<> doc;
@@ -55,36 +56,31 @@ inline bool parseXmlYcUdpConfig(
     if (!root)
         return false;
 
-    // udp_icp
-    auto node_icp = root->first_node("udp_icp");
-    if (node_icp) {
-        *ip_icp   = node_icp->first_attribute("ip") ? node_icp->first_attribute("ip")->value() : "0.0.0.0";
-        *port_icp = node_icp->first_attribute("port") ? std::stoi(node_icp->first_attribute("port")->value()) : 0;
+    // === udp_icp_server ===
+    if (auto node_icp = root->first_node("udp_icp_server")) {
+        *ip_icp_server = node_icp->first_attribute("ip") ? node_icp->first_attribute("ip")->value() : "0.0.0.0";
     } else {
-        *ip_icp   = "0.0.0.0";
-        *port_icp = 0;
+        *ip_icp_server = "0.0.0.0";
     }
 
-    // udp_control
-    auto node_ctrl = root->first_node("udp_control");
-    if (node_ctrl) {
-        *ip_control             = node_ctrl->first_attribute("ip") ? node_ctrl->first_attribute("ip")->value() : "0.0.0.0";
-        *port_control_on_icp    = node_ctrl->first_attribute("port_on_icp") ? std::stoi(node_ctrl->first_attribute("port_on_icp")->value()) : 0;
-        *port_control_on_camera = node_ctrl->first_attribute("port_on_camera") ? std::stoi(node_ctrl->first_attribute("port_on_camera")->value()) : 0;
+    // === udp_control ===
+    if (auto node_ctrl = root->first_node("udp_control")) {
+        *ip_control            = node_ctrl->first_attribute("ip") ? node_ctrl->first_attribute("ip")->value() : "0.0.0.0";
+        *ctrl_port_recv_icp    = node_ctrl->first_attribute("ctrl_port_recv_icp") ? std::stoi(node_ctrl->first_attribute("ctrl_port_recv_icp")->value()) : 0;
+        *ctrl_port_recv_camera = node_ctrl->first_attribute("ctrl_port_recv_camera") ? std::stoi(node_ctrl->first_attribute("ctrl_port_recv_camera")->value()) : 0;
     } else {
-        *ip_control             = "0.0.0.0";
-        *port_control_on_icp    = 0;
-        *port_control_on_camera = 0;
+        *ip_control            = "0.0.0.0";
+        *ctrl_port_recv_icp    = 0;
+        *ctrl_port_recv_camera = 0;
     }
 
-    // udp_camera
-    auto node_cam = root->first_node("udp_camera");
-    if (node_cam) {
-        *ip_camera   = node_cam->first_attribute("ip") ? node_cam->first_attribute("ip")->value() : "0.0.0.0";
-        *port_camera = node_cam->first_attribute("port") ? std::stoi(node_cam->first_attribute("port")->value()) : 0;
+    // === udp_camera ===
+    if (auto node_cam = root->first_node("udp_camera")) {
+        *ip_camera = node_cam->first_attribute("ip") ? node_cam->first_attribute("ip")->value() : "0.0.0.0";
+        *cam_port  = node_cam->first_attribute("cam_port") ? std::stoi(node_cam->first_attribute("cam_port")->value()) : 0;
     } else {
-        *ip_camera   = "0.0.0.0";
-        *port_camera = 0;
+        *ip_camera = "0.0.0.0";
+        *cam_port  = 0;
     }
 
     return true;

@@ -78,8 +78,9 @@ int SocketWrapper::close(SocketWrapperHandle s) {
 #endif
     case LinuxSocket:
 #ifdef __GNUC__
-        // return ::close((int)s);
-        return ::shutdown((int)(long)s, 2);
+        // LCY 修改为此 避免 析构后无法重新绑定相同的端口
+        return ::close((int)(long)s);
+        // return ::shutdown((int)(long)s, 2);
 #else
         return -1;
 #endif
@@ -353,6 +354,7 @@ int SocketWrapper::setsockopt(SocketWrapperHandle s, int level, int optname, voi
         return 0;
     case LinuxSocket:
         return 0;
+        // return ::setsockopt((int)(long)s, level, optname, optval, (socklen_t)*optlen);
     case TSNSocket:
         //        return ::tsnSetOption((int)(long)s, level, optname, optval, optlen);
         break;

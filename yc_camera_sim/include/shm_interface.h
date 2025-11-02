@@ -20,42 +20,42 @@ extern "C" {
 
 // -------------------- 基础结构体 -------------------- //
 typedef struct EntityID {
-    unsigned int U4_EntityID;
+    unsigned int   U4_EntityID;
     unsigned short U2_GenID;
 } EntityID;
 
 typedef struct Position {
     double D8_Longitude_deg_CGCS;
     double D8_Latitude_deg_CGCS;
-    float F4_AltitudeAsl_m_CGCS;
+    float  F4_AltitudeAsl_m_CGCS;
 } Position;
 
 typedef struct Timestamp {
-    unsigned char U1_Year;
-    unsigned char U1_Month;
-    unsigned char U1_Day;
-    unsigned char U1_Hour;
-    unsigned char U1_Minute;
-    unsigned char U1_Second;
+    unsigned char  U1_Year;
+    unsigned char  U1_Month;
+    unsigned char  U1_Day;
+    unsigned char  U1_Hour;
+    unsigned char  U1_Minute;
+    unsigned char  U1_Second;
     unsigned short U2_Millisecond;
 } Timestamp;
 
 // -------------------- 公共消息头 -------------------- //
 typedef struct SM_MessageHeader {
-    unsigned int U4_Heartbeat;
+    unsigned int   U4_Heartbeat;
     unsigned short U2_EffectiveLength;
-    Timestamp St_PubTime;
-    Timestamp St_GenerateTime;
+    Timestamp      St_PubTime;
+    Timestamp      St_GenerateTime;
 } SM_MessageHeader;
 
 // -------------------- 设备/实体信息 -------------------- //
 typedef struct EntityAttribute {
-    EntityID St_EntityID;
-    unsigned char U1_EntityCamp;
-    unsigned char U1_EntityCategory;
+    EntityID       St_EntityID;
+    unsigned char  U1_EntityCamp;
+    unsigned char  U1_EntityCategory;
     unsigned short U2_EntityType;
-    unsigned char U1_EntityClass;
-    unsigned char U1_EntityLive;
+    unsigned char  U1_EntityClass;
+    unsigned char  U1_EntityLive;
 } EntityAttribute;
 
 typedef struct LinearVelocity {
@@ -77,10 +77,10 @@ typedef struct Attitude {
 } Attitude;
 
 typedef struct EntityPosVelAccAtt {
-    Position St_EntityPosition;
-    LinearVelocity St_EntityLinearVelocit;
+    Position           St_EntityPosition;
+    LinearVelocity     St_EntityLinearVelocit;
     LinearAcceleration St_EntityLinearAcceleratio;
-    Attitude St_EntityAttitude;
+    Attitude           St_EntityAttitude;
 } EntityPosVelAccAtt;
 
 // -------------------- 消息数据 -------------------- //
@@ -89,7 +89,7 @@ typedef struct FacilitiesPowerSupplyStatusData {
 } FacilitiesPowerSupplyStatusData;
 
 typedef struct FacilitiesPowerSupplyStatusParasMsg {
-    SM_MessageHeader St_SMMessageHeader;
+    SM_MessageHeader                St_SMMessageHeader;
     FacilitiesPowerSupplyStatusData St_FacilitiesPowerSupplyStatusData;
 } FacilitiesPowerSupplyStatusParasMsg;
 
@@ -99,14 +99,14 @@ typedef struct SimulatorStatusControl {
 } SimulatorStatusControl;
 
 typedef struct SecSimulatorControlMsg {
-    SM_MessageHeader St_SMMessageHeader;
+    SM_MessageHeader       St_SMMessageHeader;
     SimulatorStatusControl St_SimulatorStatusControl;
 } SecSimulatorControlMsg;
 
 // -------------------- 实体TSPI -------------------- //
 typedef struct SecEntityTSPIMsg {
-    SM_MessageHeader St_MessageHeader;
-    EntityAttribute St_EntityAttribute;
+    SM_MessageHeader   St_MessageHeader;
+    EntityAttribute    St_EntityAttribute;
     EntityPosVelAccAtt St_EntityPosVelAccAtt;
 } SecEntityTSPIMsg;
 
@@ -116,45 +116,45 @@ typedef struct MessageValid {
 } MessageValid;
 
 typedef struct SecEnAttrPVAA {
-    SM_MessageHeader St_MessageHeader;
-    EntityAttribute St_EntityAttribute;
+    SM_MessageHeader   St_MessageHeader;
+    EntityAttribute    St_EntityAttribute;
     EntityPosVelAccAtt St_EntityPosVelAccAtt;
 } SecEnAttrPVAA;
 
 typedef struct SecAllEntityTSPIMsg {
     SM_MessageHeader St_SMMessageHeader;
-    MessageValid Arr_MessageValid[200];
-    SecEnAttrPVAA Arr_SecEnAttrPVAA[200];
+    MessageValid     Arr_MessageValid[200];
+    SecEnAttrPVAA    Arr_SecEnAttrPVAA[200];
 } SecAllEntityTSPIMsg;
 
 // -------------------- SecVFTSPIMsg -------------------- //
 typedef struct SingleVFTSPI {
-    EntityAttribute VFAttribute;
+    EntityAttribute    VFAttribute;
     EntityPosVelAccAtt VFPosVelAccAtt;
 } SingleVFTSPI;
 
 typedef struct SecVFTSPIMsg {
     SM_MessageHeader St_SMMessageHeader;
-    SingleVFTSPI Arr_SecVFTSPI[200];
+    SingleVFTSPI     Arr_SecVFTSPI[200];
 } SecVFTSPIMsg;
 
 // -------------------- 功能单元状态 -------------------- //
 typedef struct UnitStatusData {
-    char ArrI1_UnitID[20];
-    char ArrI1_UnitVersion[9];
-    unsigned int U4_UnitHeartbeat;
+    char          ArrI1_UnitID[20];
+    char          ArrI1_UnitVersion[9];
+    unsigned int  U4_UnitHeartbeat;
     unsigned char U1_MemberStatus;
 } UnitStatusData;
 
 typedef struct FunctionalUnitStatusMsg {
     SM_MessageHeader St_MessageHeader;
-    UnitStatusData St_UnitStatusData;
+    UnitStatusData   St_UnitStatusData;
 } FunctionalUnitStatusMsg;
 
 // -------------------- 工作参数 -------------------- //
 typedef struct DeviceAttribute {
-    EntityID St_DeviceEntityID;
-    unsigned char U1_DeviceType;
+    EntityID       St_DeviceEntityID;
+    unsigned char  U1_DeviceType;
     unsigned short U2_DeviceCategory;
 } DeviceAttribute;
 
@@ -165,12 +165,12 @@ typedef struct ElectroOpticalEquipmentStatus {
 } ElectroOpticalEquipmentStatus;
 
 typedef struct ElecOptDeteWorkingParas {
-    DeviceAttribute St_DeviceAttribute;
+    DeviceAttribute               St_DeviceAttribute;
     ElectroOpticalEquipmentStatus St_ElectroOpticalEquipmentStatus;
 } ElecOptDeteWorkingParas;
 
 typedef struct SecElecOptDeteWorkingParasMsg {
-    SM_MessageHeader St_SMMessageHeader;
+    SM_MessageHeader        St_SMMessageHeader;
     ElecOptDeteWorkingParas St_ElecOptDeteWorkingParas;
 } SecElecOptDeteWorkingParasMsg;
 
@@ -188,8 +188,8 @@ typedef struct EOImageEffect {
 } EOImageEffect;
 
 typedef struct EOImageTrackPara {
-    EntityID St_EntityID;
-    float F4_TargetDis;
+    EntityID       St_EntityID;
+    float          F4_TargetDis;
     unsigned short U2_ShowEntityID;
 } EOImageTrackPara;
 
@@ -202,35 +202,35 @@ typedef struct EOImageShowArea {
 
 typedef struct SecIRSTImageDriveMsg {
     SM_MessageHeader St_SMMessageHeader;
-    EOImageModePara St_EOImageModePara;
-    EOImageEffect Arr_EOImageEffect[3];
+    EOImageModePara  St_EOImageModePara;
+    EOImageEffect    Arr_EOImageEffect[3];
     EOImageTrackPara Arr_EOImageTrackPara[3];
-    EOImageShowArea St_EOImageShowArea;
+    EOImageShowArea  St_EOImageShowArea;
 } SecIRSTImageDriveMsg;
 
 /********************共享内存输入接口*********************/
 typedef struct SharedMemoryInput {
     // 设备供电状态参数
-    FacilitiesPowerSupplyStatusParasMsg facilities_power_supply_status_paras_msg;
+    FacilitiesPowerSupplyStatusParasMsg m_FacilitiesPowerSupplyStatusParasMsg;
     // 模拟器运行控制 - 场景控制指令
-    SecSimulatorControlMsg sec_simulator_control_msg;
+    SecSimulatorControlMsg m_SecSimulatorControlMsg;
     // 实体时空位置状态 - 本机信息
-    SecEntityTSPIMsg sec_entity_tspi_msg;
+    SecEntityTSPIMsg m_SecEntityTSPIMsg;
     // 实体时空位置状态 - 实体目标信息（其他模拟器）
-    SecAllEntityTSPIMsg sec_all_entity_tspi_msg;
+    SecAllEntityTSPIMsg m_SecAllEntityTSPIMsg;
     // 虚拟兵力时空位置状态 - 虚拟目标信息（训练控制中设置的目标）
-    SecVFTSPIMsg sec_vft_spi_msg;
+    SecVFTSPIMsg m_SecVFTSPIMsg;
 } SharedMemoryInput;
 /********************共享内存输入接口:End*********************/
 
 /********************共享内存输出接口*********************/
 typedef struct SharedMemoryOutput {
     // 功能单元状态
-    FunctionalUnitStatusMsg functional_unit_status_msg;
+    FunctionalUnitStatusMsg m_FunctionalUnitStatusMsg;
     // 光电探测系统参数
-    SecElecOptDeteWorkingParasMsg sec_elec_opt_dete_working_paras_msg;
+    SecElecOptDeteWorkingParasMsg m_SecElecOptDeteWorkingParasMsg;
     // 光电成像驱动参数
-    SecIRSTImageDriveMsg sec_irst_image_drive_msg;
+    SecIRSTImageDriveMsg m_SecIRSTImageDriveMsg;
 } SharedMemoryOutput;
 /********************共享内存输出接口:End*********************/
 

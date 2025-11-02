@@ -1,0 +1,3 @@
+[proc] 正在执行命令: C:\CMake\bin\cmake.EXE -DCMAKE_TOOLCHAIN_FILE=D:/Documents/C-Project/YcSimulator/toolchain-aarch64-linux.cmake -DCMAKE_BUILD_TYPE=Debug -DTARGET_PLATFORM=linux-arm64 -DCMAKE_MAKE_PROGRAM=D:/cross_compile/tools/ninja.exe -S D:/Documents/C-Project/YcSimulator -B D:/Documents/C-Project/YcSimulator/build/linux-aarch64-debug -G Ninja
+
+[proc] 正在执行命令: C:\CMake\bin\cmake.EXE --build D:/Documents/C-Project/YcSimulator/build/linux-aarch64-debug --config Debug --target all --

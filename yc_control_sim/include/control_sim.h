@@ -25,9 +25,9 @@ using MapTopicNodes = std::map<int, std::vector<FUNCTION_NODE_TYPE>>; // Topic�
 class ControlSimulator {
 
   public:
-    ControlSimulator(
-        int port_on_icp, int port_on_camera, UdpAddress addr_icp, UdpAddress addr_camera,
-        MapNodeAddr map_icp_node);
+    ControlSimulator(std::string ip_icp_server, std::string ip_camera,
+                     int ctrl_port_recv_icp, int ctrl_port_recv_camera, int cam_port,
+                     MapNodeAddr map_node_addr);
 
     ~ControlSimulator();
 
@@ -43,11 +43,12 @@ class ControlSimulator {
     // 发送数据到相机仿真模型
     void startSend2Camera();
 
+    // ip
+    std::string ip_icp_server_, ip_camera_;
     // 数据监听端口
-    int port_on_icp_, port_on_camera_;
-
-    // udp地址 icp 和 相机仿真模型
-    UdpAddress addr_icp_, addr_camera_;
+    int ctrl_port_recv_icp_, ctrl_port_recv_camera_;
+    // 发送数据的端口
+    int cam_port_;
 
     // udp 从ICP接收数据
     std::unique_ptr<UdpConnect> udp_icp_;
@@ -56,7 +57,7 @@ class ControlSimulator {
     std::unique_ptr<UdpConnect> udp_camera_;
 
     // ICP各个节点的地址
-    MapNodeAddr   map_node_adrr_;    // ICP节点对应的地址
+    MapNodeAddr   map_node_addr_;   // ICP节点对应的地址
     MapTopicNodes map_topic_nodes_; // Topic要发送到nodes
     void          initMapTopicNodes();
 

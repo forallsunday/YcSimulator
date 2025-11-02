@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <udp>
-    <udp_icp ip="192.168.1.123" port="2001" />
-    <udp_control ip="127.0.0.1" port_on_icp="3001" port_on_camera="3002" />
-    <udp_camera ip="127.0.0.1" port="4001" />
+    <!-- ICP 服务器 ip -->
+    <udp_icp_server ip="0.0.0.0"/>
+    <!-- 机载移植模拟器ip 监听端口fromICP 监听端口fromCamera -->
+    <udp_control ip="127.0.0.1" ctrl_port_recv_icp="9018" ctrl_port_recv_camera="30001" />
+    <!-- 相机仿真ip 监听端口fromControl -->
+    <udp_camera ip="127.0.0.1" cam_port="40001" />
 </udp>

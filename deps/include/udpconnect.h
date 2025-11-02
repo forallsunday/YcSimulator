@@ -1,15 +1,16 @@
 #ifndef UDPCONNECT_H
 #define UDPCONNECT_H
+#include "SocketWrapper.h"
+
 #include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
-
-#include "SocketWrapper.h"
+#include <thread>
 
 class UdpConnect {
-   public:
-    using DataHandlFunc = std::function<void(char*, int)>;
+  public:
+    using DataHandlFunc = std::function<void(char *, int)>;
     /// @brief 构造函数
     /// @param ip 地址
     /// @param port 接收端口
@@ -27,67 +28,33 @@ class UdpConnect {
     /// ```
     UdpConnect(std::string ip, int port, int port_send, DataHandlFunc dataFunc);
 
-    bool Init();  // 初始化链接, 建立接收udp
+    ~UdpConnect();
+
+    bool Init(); // 初始化链接, 建立接收udp
 
     // 参数：数据缓冲区，数据长度，目标ip，目标端口
-    int SendData(const char* buf, int data_len, const char* ip_dst, int port_dst);
+    int SendData(const char *buf, int data_len, const char *ip_dst, int port_dst);
 
     // int recvfrom(SocketWrapperHandle s, char* buf, int len, unsigned int* farAddr, unsigned short* farPort);
     //    int RecvData( char* buf, int len, unsigned int* farAddr);
 
-    void Close();  // 关闭链接
-   private:
+    void Close(); // 关闭链接
+
+  private:
     std::string ip_;
 
     int port_;
     int port_send;
 
-    std::atomic<bool> isStartRecv_;  // 是否开启接收数据
+    DataHandlFunc dataHandlFunc_; // 数据处理
 
-    // 数据处理
-    DataHandlFunc dataHandlFunc_;
-    //
-    SocketWrapper* pSocketWrapper_;
+    std::atomic<bool> start_receive{false}; // 是否开启接收数据
 
-    SocketWrapperHandle socketWrapperHandle_;
-    SocketWrapperHandle socketWrapperHandle_send;
-};
-
-#if 0
-
-#include <QUdpSocket>
-#include <QtWidgets/QAction>
-class UdpConnect :public QWidget
-{
-    Q_OBJECT
-public:
-    using DataHandlFunc = std::function<void(char* ,int)>;
-
-    UdpConnect(std::string ,int,DataHandlFunc );
-
-    bool Init(); //初始化链接
-
-    int SendData(const char*,int ,const char* ,int);
-
-
-    void Close();//关闭链接
-
-private:
-
-    void readPendingDatagrams();
-
-    void  processTheDatagram( QNetworkDatagram datagram);
-
-private:
-    std::string ip_;
-    int port_;
-	int port_send;
-    //数据处理
-    DataHandlFunc dataHandlFunc_;
-
-    QUdpSocket* pUdpSocket_;//UDP连接对象
+    int            epfd_ = -1;
+    std::thread    recv_thread_;
+    SocketWrapper *pSocketWrapper_          = nullptr;
+    void          *socketWrapperHandle_     = nullptr;
+    void          *socketWrapperHandle_send = nullptr;
 };
 
 #endif
-
-#endif  // UDPCONNECT_H
