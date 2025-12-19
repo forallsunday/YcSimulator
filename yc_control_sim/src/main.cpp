@@ -59,19 +59,14 @@ int main() {
 
     // 需要发送的icp节点
     std::vector<FUNCTION_NODE_TYPE> node_vec = {
+        // 监控
+        V_NODE_ADAS,
+        // ok_msg
+        V_NODE_SYMM, V_NODE_MPHL, V_NODE_MPHR, V_NODE_SRMM,
         // V_TOPIC_IRRM_WORK_STATE_REPORT 对应:
-        V_NODE_MPHL,
-        V_NODE_SYMM,
-        V_NODE_MPHR,
+        V_NODE_MPHL, V_NODE_SYMM, V_NODE_MPHR,
         // V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS 对应:
-        V_NODE_IIPM,
-        V_NODE_DCLD,
-        V_NODE_TMMM,
-        V_NODE_DCRM,
-        V_NODE_DCLM,
-        V_NODE_DCRD,
-        V_NODE_SRMM,
-    };
+        V_NODE_IIPM, V_NODE_DCLD, V_NODE_TMMM, V_NODE_DCRM, V_NODE_DCLM, V_NODE_DCRD, V_NODE_SRMM};
 
     for (const auto &node : node_vec) {
         // 将node转换为16进制字符串(xml中的形式)

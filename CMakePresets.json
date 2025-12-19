@@ -7,92 +7,152 @@
     },
     "configurePresets": [
         {
-            "name": "linux-aarch64-debug",
-            "description": "Cross compile to Linux ARM64 (Debug)",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/linux-aarch64-debug",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-aarch64-linux.cmake",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "TARGET_PLATFORM": "linux-arm64",
-                "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools/ninja.exe"
-            }
-        },
-        {
-            "name": "linux-aarch64-release",
-            "description": "Cross compile to Linux ARM64 (Release)",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/linux-aarch64-release",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-aarch64-linux.cmake",
-                "CMAKE_BUILD_TYPE": "Release",
-                "TARGET_PLATFORM": "linux-arm64",
-                "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools/ninja.exe"
-            }
-        },
-        {
-            "name": "linux-x64-debug",
-            "description": "Build Linux x64 (Debug)",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/linux-x64-debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "TARGET_PLATFORM": "linux-x64"
-            }
-        },
-        {
-            "name": "linux-x64-release",
-            "description": "Build Linux x64 (Release)",
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/linux-x64-release",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "TARGET_PLATFORM": "linux-x64"
-            }
-        },
-        {
             "name": "windows-msvc",
             "description": "Configure using MSVC on Windows (multi-config)",
             "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/build/windows-msvc",
-            "architecture": "x64"
+            "architecture": "x64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "D:/Library/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "TARGET_PLATFORM": "windows-x64"
+            }
+        },
+        {
+            "name": "linux-x64-multiconfig",
+            "description": "Native build for Linux x64 using Ninja Multi-Config",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/linux-x64-multiconfig",
+            "cacheVariables": {
+                "TARGET_PLATFORM": "linux-x64"
+            }
+        },
+        {
+            "name": "linux-aarch64-win-cross-multiconfig",
+            "description": "Cross compile from Windows to Linux ARM64 using Ninja Multi-Config",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-win-cross-multiconfig",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-win-cross.cmake",
+                "TARGET_PLATFORM": "linux-aarch64",
+                "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools/ninja_1.13.1/ninja.exe"
+            }
+        },
+        {
+            "name": "linux-aarch64-linux-cross-multiconfig",
+            "description": "Cross compile from Linux x64 to Linux ARM64 using Ninja Multi-Config",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-linux-cross-multiconfig",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-linux-cross.cmake",
+                "TARGET_PLATFORM": "linux-aarch64"
+            }
+        },
+        {
+            "name": "linux-aarch64-win-cross-debug",
+            "description": "Cross compile from Windows to Linux ARM64 (Debug)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-win-cross-debug",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-win-cross.cmake",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "TARGET_PLATFORM": "linux-aarch64",
+                "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools//ninja_1.9.0/ninja.exe"
+            }
+        },
+        {
+            "name": "linux-aarch64-win-cross-release",
+            "description": "Cross compile from Windows to Linux ARM64 (Release)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-win-cross-release",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-win-cross.cmake",
+                "CMAKE_BUILD_TYPE": "Release",
+                "TARGET_PLATFORM": "linux-aarch64",
+                "CMAKE_MAKE_PROGRAM": "D:/cross_compile/tools//ninja_1.9.0/ninja.exe"
+            }
+        },
+        {
+            "name": "linux-aarch64-linux-cross-debug",
+            "description": "Cross compile from Linux x64 to Linux ARM64 (Debug)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-linux-cross-debug",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-linux-cross.cmake",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "TARGET_PLATFORM": "linux-aarch64"
+            }
+        },
+        {
+            "name": "linux-aarch64-linux-cross-release",
+            "description": "Cross compile from Linux x64 to Linux ARM64 (Release)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-linux-cross-release",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-linux-cross.cmake",
+                "CMAKE_BUILD_TYPE": "Release",
+                "TARGET_PLATFORM": "linux-aarch64"
+            }
         }
     ],
     "buildPresets": [
         {
-            "name": "linux-aarch64-debug",
-            "configurePreset": "linux-aarch64-debug",
-            "description": "Build Debug for Linux ARM64",
+            "name": "Debug-windows-msvc",
+            "configurePreset": "windows-msvc",
+            "description": "Build Debug for Windows (MSVC)",
             "configuration": "Debug"
         },
         {
-            "name": "linux-aarch64-release",
-            "configurePreset": "linux-aarch64-release",
-            "description": "Build Release for Linux ARM64",
+            "name": "Release-windows-msvc",
+            "configurePreset": "windows-msvc",
+            "description": "Build Release for Windows (MSVC)",
             "configuration": "Release"
         },
         {
-            "name": "linux-x64-debug",
-            "configurePreset": "linux-x64-debug",
-            "description": "Build Debug for Linux x64",
+            "name": "Debug-linux-aarch64-win-cross",
+            "configurePreset": "linux-aarch64-win-cross-debug",
+            "description": "Build Debug for Linux ARM64 (Windows cross compile)",
             "configuration": "Debug"
         },
         {
-            "name": "linux-x64-release",
-            "configurePreset": "linux-x64-release",
-            "description": "Build Release for Linux x64",
+            "name": "Release-linux-aarch64-win-cross",
+            "configurePreset": "linux-aarch64-win-cross-release",
+            "description": "Build Release for Linux ARM64 (Windows cross compile)",
             "configuration": "Release"
         },
         {
-            "name": "windows-msvc-debug",
-            "configurePreset": "windows-msvc",
-            "description": "Build Debug for Windows with MSVC",
+            "name": "Debug-linux-x64-multiconfig",
+            "configurePreset": "linux-x64-multiconfig",
+            "description": "Build Debug for Linux x64 (Multi-Config)",
             "configuration": "Debug"
         },
         {
-            "name": "windows-msvc-release",
-            "configurePreset": "windows-msvc",
-            "description": "Build Release for Windows with MSVC",
+            "name": "Release-linux-x64-multiconfig",
+            "configurePreset": "linux-x64-multiconfig",
+            "description": "Build Release for Linux x64 (Multi-Config)",
+            "configuration": "Release"
+        },
+        {
+            "name": "Debug-linux-aarch64-linux-cross-multiconfig",
+            "configurePreset": "linux-aarch64-linux-cross-multiconfig",
+            "description": "Build Debug for Linux ARM64 (Linux cross, Multi-Config)",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Release-linux-aarch64-linux-cross-multiconfig",
+            "configurePreset": "linux-aarch64-linux-cross-multiconfig",
+            "description": "Build Release for Linux ARM64 (Linux cross, Multi-Config)",
+            "configuration": "Release"
+        },
+        {
+            "name": "Debug-linux-aarch64-win-cross-multiconfig",
+            "configurePreset": "linux-aarch64-win-cross-multiconfig",
+            "description": "Build Debug for Linux ARM64 (Windows cross, Multi-Config)",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Release-linux-aarch64-win-cross-multiconfig",
+            "configurePreset": "linux-aarch64-win-cross-multiconfig",
+            "description": "Build Release for Linux ARM64 (Windows cross, Multi-Config)",
             "configuration": "Release"
         }
     ]

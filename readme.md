@@ -14,7 +14,7 @@
 ```cpp
     // 参数：数据缓冲区，数据长度，目标ip，目标端口
     // 本机向任意ip发送时，固定使用构造函数中的发送端口
-    int SendData(const char* buf, int data_len, const char* ip_dst, int port_dst);
+    int SendData(const char* buf, size_t len, const char* ip_dst, int port_dst);
 ```
 - 在调试阶段，udp地址暂时需手动指定。我们在`yc_udp_config.xml`中定义，由`yc_udp_xml_api.hpp`中的函数解析。
 

@@ -7,7 +7,7 @@
 #if PRINTF_UDP_PACKET_RECV
 #define INFO_UDP_PACKET_RECV(packet)                                                                \
     do {                                                                                                       \
-        printf("[RECV] | time_tag=%llu src=0x%08X dst=0x%08X topicId=0x%08X payloadLen=%u bytes\n", \
+        printf("[接收RECV] | time_tag=%llu src=0x%08X dst=0x%08X topicId=0x%08X payloadLen=%u bytes\n", \
                static_cast<unsigned long long>((packet).time_tag),                                             \
                (packet).source,                                                                                \
                (packet).dest,                                                                                  \
@@ -23,7 +23,7 @@
 #if PRINTF_UDP_PACKET_SEND
 #define INFO_UDP_PACKET_SEND(where, ip, port, packet)                                                             \
     do {                                                                                                          \
-        printf("[SEND] to %s %s : %d | time_tag=%llu src=0x%08X dst=0x%08X topicId=0x%08X payloadLen=%u bytes\n", \
+        printf("[发送SEND] to %s %s : %d | time_tag=%llu src=0x%08X dst=0x%08X topicId=0x%08X payloadLen=%u bytes\n", \
                where,                                                                                             \
                ip,                                                                                                \
                port,                                                                                              \

@@ -33,10 +33,10 @@ class UdpConnect {
     bool Init(); // 初始化链接, 建立接收udp
 
     // 参数：数据缓冲区，数据长度，目标ip，目标端口
-    int SendData(const char *buf, int data_len, const char *ip_dst, int port_dst);
+    int SendData(const char *buf, size_t size, const char *ip_dst, int port_dst);
 
-    // int recvfrom(SocketWrapperHandle s, char* buf, int len, unsigned int* farAddr, unsigned short* farPort);
-    //    int RecvData( char* buf, int len, unsigned int* farAddr);
+    // int recvfrom(SocketWrapperHandle s, char* buf, size_t len, unsigned int* farAddr, unsigned short* farPort);
+    //    int RecvData( char* buf, size_t len, unsigned int* farAddr);
 
     void Close(); // 关闭链接
 

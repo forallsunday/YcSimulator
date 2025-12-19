@@ -230,7 +230,7 @@ SocketWrapperHandle SocketWrapper::accept(SocketWrapperHandle s, unsigned int *f
     return 0;
 }
 
-int SocketWrapper::recv(SocketWrapperHandle s, char *buf, int len) {
+int SocketWrapper::recv(SocketWrapperHandle s, char *buf, size_t len) {
     switch (m_SocketType) {
     case Win32Socket:
 #ifdef _MSC_VER
@@ -255,7 +255,7 @@ int SocketWrapper::recv(SocketWrapperHandle s, char *buf, int len) {
     return 0;
 }
 
-int SocketWrapper::send(SocketWrapperHandle s, const char *buf, int len) {
+int SocketWrapper::send(SocketWrapperHandle s, const char *buf, size_t len) {
     switch (m_SocketType) {
     case Win32Socket:
 #ifdef _MSC_VER
@@ -280,7 +280,7 @@ int SocketWrapper::send(SocketWrapperHandle s, const char *buf, int len) {
     return 0;
 }
 
-int SocketWrapper::recvfrom(SocketWrapperHandle s, char *buf, int len, unsigned int *farAddr, unsigned short *farPort) {
+int SocketWrapper::recvfrom(SocketWrapperHandle s, char *buf, size_t len, unsigned int *farAddr, unsigned short *farPort) {
     sockaddr_in addr;
     int         addrLen = sizeof(addr);
     int         ret;
@@ -319,7 +319,7 @@ int SocketWrapper::recvfrom(SocketWrapperHandle s, char *buf, int len, unsigned 
     return 0;
 }
 
-int SocketWrapper::sendto(SocketWrapperHandle s, const char *buf, int len, unsigned int farAddr, unsigned short farPort) {
+int SocketWrapper::sendto(SocketWrapperHandle s, const char *buf, size_t len, unsigned int farAddr, unsigned short farPort) {
     sockaddr_in addr;
     addr.sin_family      = AF_INET;
     addr.sin_addr.s_addr = farAddr;

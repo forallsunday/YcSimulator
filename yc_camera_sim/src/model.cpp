@@ -61,7 +61,7 @@ std::unique_ptr<CameraSimulator> cam_sim;
 int usrmode_wait() {
     /*****************************************************/
     /***需要修改模型名称'model.so'，与xml配置中的名称一致***/
-    rtn = topic_init("libycSim.so", "ModuleConfig.xml");
+    rtn = topic_init("YCSIM", "ModuleConfig.xml");
     printf("init rtn = %d\n", rtn);
     /*****************************************************/
     tcp_udp_parse_d("./ModuleConfig.xml", &socket_data);
@@ -109,6 +109,8 @@ void usrmode_init() {
 
     cam_sim = std::unique_ptr<CameraSimulator>(
         new CameraSimulator(cam_port, ip_control, ctrl_port_recv_camera));
+
+    cam_sim->setPeriodicSendInterval(500);
 
     cam_sim->init();
 

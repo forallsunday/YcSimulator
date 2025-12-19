@@ -6,7 +6,10 @@
 #include <global_var_def.hpp>
 #include <shm_interface.h>
 #include <udp_packet.h>
+#include <udp_trans.h>
 #include <udpconnect.h>
+#include <yc/YC_Controller_Constant_Define.h>
+#include <yc/YC_Controller_globalVal_Ext.h>
 
 #include <atomic>
 #include <thread>
@@ -34,17 +37,19 @@ class CameraSimulator {
     void setPeriodicSendInterval(int ms) { this->periodic_send_interval = ms; };
 
   private:
+    // 上电状态
     enum PowerStatus {
         POWER_UNKNOWN,
         POWER_ON,
+        POWER_CHECKING,
         POWER_FREEZE,
         POWER_OFF,
-    } power_status_;
+    };
+    std::atomic<PowerStatus> power_status_;
 
     // 上电参数
-    std::atomic<bool> during_powered_on_;
-    std::thread       thread_power_on_;
-    std::atomic<int>  remain_time;
+    std::thread      thread_power_on_;
+    std::atomic<int> remain_time;
 
     // 锁
     std::mutex mtx_shm_;  // 共享内存锁
@@ -73,23 +78,40 @@ class CameraSimulator {
     std::string                 ip_contrl_; // udp 机载主控模拟器ip
     int                         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
 
-    /// @brief 接收数据 分类消息 放入队列
+    /// @brief 接收数据 分类消息 放入队列 (对应原 fc_EventRecv_task )
     /// @param data udp包的指针
     /// @param size udp包的数据长度
-    void udpRecv(char *data, int size);
+    void udpEventRecv(char *data, int size);
 
-    /// @brief udp 发送函数
+    // 发送udp包到机载主控移植
+    int sendPacket(const UdpPacket *ptr_pkt);
+
+    /// @brief udp 发送msg函数
     /// @param topic_id   主题ID    (V_TOPIC_XXX_XXX)
     /// @param msg        msg数据指针
     /// @param size_msg   msg的数据长度
-    void udpSend(uint32_t topic_id, uint8_t *msg, uint32_t size_msg);
+    void udpSendMsg(uint32_t topic_id, uint8_t *msg, uint32_t size_msg);
+
+    // 发送udp消息到机载移植
+    template <typename T>
+    void udpSendMsg(uint32_t topic_id, T *msg) {
+        udpSendMsg(topic_id, (uint8_t *)msg, sizeof(T));
+    };
+
+    // 从UdpPacket中更新消息数据
+    template <typename T>
+    void localUpdate(T &msg, UdpPacket *ptr_packet) {
+        // if (ptr_packet->pPayload == nullptr) {
+        // if (ptr_packet->pPayloadLen != sizeof(T) {
+        memcpy(&msg, ptr_packet->pPayload, sizeof(T));
+    }
 
     // 队列
-    ThreadSafeQueue<PtrUdpPacket> queue_act_req_;
+    ThreadSafeQueue<PtrUdpPacket> queue_main_ctrl_;
     ThreadSafeQueue<PtrUdpPacket> queue_others_;
 
     // 运行状态
-    std::atomic<bool> running_act_req_;
+    std::atomic<bool> running_main_ctrl_;
     std::atomic<bool> running_other_process_;
     std::atomic<bool> running_periodic_send_;
     std::atomic<bool> running_subsystem_timer_;
@@ -109,10 +131,10 @@ class CameraSimulator {
 
     // 心跳线程
     void startHeartbitting();
-    // 子线程1 udp连接: 数据接收函数 udpRecv 线程一直运行 与类的生命周期一致
+    // 子线程1 udp连接: 数据接收函数 udpEventRecv 线程一直运行 与类的生命周期一致
     void startUdpConnect();
     // 子线程2 任务线程 运行函数 : 处理act_req以及主流程控制
-    void startActReq();
+    void startMainControl();
     // 子线程3 任务线程 运行函数 : 其他消息处理
     void startOtherProcess();
     // 子线程4 任务线程 运行函数 : 周期发送
@@ -126,22 +148,13 @@ class CameraSimulator {
     // 超时时间 (子线程阻塞时间)
     std::chrono::milliseconds timeout = std::chrono::milliseconds(100);
 
+
     // 消息
     MsgRecvAll msg_recv; // 所有接收消息
     MsgSendAll msg_send; // 所有发送消息
 
-    // 功能函数
-    Timestamp getCurrentTimestamp();
-    // 得到系统RTC TODO: How? 原来为fc函数
-    uint64_t getSysRTC();
+    // // 缓存变量
+    // CMD_FROM_FC cmd_From_FC;
 };
-
-// 从UdpPacket中复制消息数据
-template <typename T>
-void copyMsgFromPacket(T &msg, UdpPacket *ptr_packet) {
-    // if (ptr_packet->pPayload == nullptr) {
-    // if (ptr_packet->pPayloadLen != sizeof(T) {
-    memcpy(&msg, ptr_packet->pPayload, sizeof(T));
-}
 
 #endif // CAMERA_SIM_H

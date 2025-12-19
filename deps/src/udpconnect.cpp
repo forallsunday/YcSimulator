@@ -161,12 +161,12 @@ bool UdpConnect::Init() {
     return true;
 }
 
-int UdpConnect::SendData(const char *buf, int data_len, const char *ip_dst, int port_dst) {
+int UdpConnect::SendData(const char *buf, size_t size, const char *ip_dst, int port_dst) {
     if (this->socketWrapperHandle_send == nullptr) {
         return -1;
     }
 
-    return this->pSocketWrapper_->sendto(socketWrapperHandle_send, buf, data_len, inet_addr(ip_dst), port_dst);
+    return this->pSocketWrapper_->sendto(socketWrapperHandle_send, buf, size, inet_addr(ip_dst), port_dst);
 }
 
 void UdpConnect::Close() {

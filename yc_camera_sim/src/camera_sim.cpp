@@ -1,8 +1,12 @@
 #include <Def/AOXEAppDef.h>
 #include <Def/AppTopicIdDef.h>
+#include <Def/MyTopicIdDef.h>
 
 #include <camera_sim.h>
 #include <udp_packet_log.h>
+#include <utils.h>
+
+#include <yc/YC_Controller_init.h>
 
 #include <chrono>
 #include <cstring>
@@ -10,21 +14,25 @@
 CameraSimulator::CameraSimulator(int port, std::string ip_control, int port_dst)
     : port_(port), ip_contrl_(ip_control), port_dst_(port_dst),
       running_hearbit(false),
-      during_powered_on_(false),
-      running_act_req_(false),
+      running_main_ctrl_(false),
       running_other_process_(false),
       running_periodic_send_(false),
       running_subsystem_timer_(false),
       power_status_(POWER_UNKNOWN) {}
 
 void CameraSimulator::init() {
-    // 心跳线程
-    startHeartbitting();
+    // 重置为0
+    memset(&this->msg_recv, 0, sizeof(MsgRecvAll));
+    memset(&this->msg_send, 0, sizeof(MsgSendAll));
+
     // UDP线程
     startUdpConnect();
+    // 心跳线程
+    startHeartbitting();
     // 共享内存输入参数 指针映射
     pointShmInputParams();
 }
+
 void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output) {
     // todo: 是否需要上锁
     // std::lock_guard<std::mutex> lock(this->mtx_shm_);
@@ -41,7 +49,7 @@ void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutpu
         this->powerOn(30); // 上电 50s
         break;
     case 2:
-        this->powerOn(5); // 快速上电 10s
+        this->powerOn(3); // 快速上电 10s
         break;
     case 3:
         // 降级
@@ -66,6 +74,11 @@ void CameraSimulator::pointShmInputParams() {
     // [5]综合光电系统 0-NA 1-上电 2-快速上电 3-降级 4-下电
     this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
                                                .ArrU1_FacilitiesPowerSupplyStatus[5];
+
+    // // !!!!!调试时 供电暂时使用4
+    // this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
+    //                                            .ArrU1_FacilitiesPowerSupplyStatus[4];
+
     // 0-NA；1-初始化；2-快速启动；3-常规启动；4-冻结；5-停止
     this->operation_mode_ = &shm_input_.m_SecSimulatorControlMsg.St_SimulatorStatusControl.U1_OperationMode;
 }
@@ -88,7 +101,13 @@ void CameraSimulator::updateShmOutput() {
     this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData = unit_status_data;
 }
 
-void CameraSimulator::udpSend(uint32_t topic_id, uint8_t *msg, uint32_t size_msg) {
+int CameraSimulator::sendPacket(const UdpPacket *ptr_packet) {
+    return udp_->SendData(
+        reinterpret_cast<const char *>(ptr_packet),
+        sizeofPacket(ptr_packet), ip_contrl_.c_str(), port_dst_);
+}
+
+void CameraSimulator::udpSendMsg(uint32_t topic_id, uint8_t *msg, uint32_t size_msg) {
     // // 加锁
     // std::lock_guard<std::mutex> lock(this->mtx_send_);
 
@@ -101,18 +120,13 @@ void CameraSimulator::udpSend(uint32_t topic_id, uint8_t *msg, uint32_t size_msg
     packet.topicId    = topic_id;
     size_msg          = size_msg < 2048 ? size_msg : 2048;
     packet.payloadLen = size_msg;
-
     std::memcpy(packet.pPayload, msg, size_msg);
 
-    INFO_UDP_PACKET_SEND("Control", this->ip_contrl_.c_str(), this->port_dst_, packet);
-
-    this->udp_->SendData(
-        reinterpret_cast<const char *>(&packet),
-        sizeof(UdpPacket),
-        this->ip_contrl_.c_str(), this->port_dst_);
+    INFO_UDP_PACKET_SEND("机载移植 Control", ip_contrl_.c_str(), port_dst_, packet);
+    this->sendPacket(&packet);
 }
 
-void CameraSimulator::udpRecv(char *data, int size) {
+void CameraSimulator::udpEventRecv(char *data, int size) {
     // 如果没有上电 则不处理
     if (power_status_ != POWER_ON)
         return;
@@ -133,7 +147,7 @@ void CameraSimulator::udpRecv(char *data, int size) {
     auto topic_id = ptr_packet->topicId;
     switch (topic_id) {
     case V_TOPIC_IRST_ACT_REQ:
-        this->queue_act_req_.push(std::move(ptr_packet));
+        this->queue_main_ctrl_.push(std::move(ptr_packet));
         break;
     case V_TOPIC_SYMM_SYM_OPERATIONAL_PARAS:
     case V_TOPIC_SYMD_DATA_LOAD_MSG_IRRM:
@@ -142,21 +156,54 @@ void CameraSimulator::udpRecv(char *data, int size) {
         // Note: 缓存参数信息
         // 系统管理时间信息报告
     case V_TOPIC_SYMM_SYM_TIME_REPORT:
-        copyMsgFromPacket(msg_recv.m_SYM_TIME_REPORT, ptr_packet.get());
+        // todo: msg_recv 改成指针？
+        localUpdate(msg_recv.m_SYM_TIME_REPORT, ptr_packet.get());
         break;
         // INS1工作参数报告
     case V_TOPIC_IN1M_INS1_OPERATIONAL_PARAS:
-        copyMsgFromPacket(msg_recv.m_INS1_OPERATIONAL_PARAS, ptr_packet.get());
+        localUpdate(msg_recv.m_INS1_OPERATIONAL_PARAS, ptr_packet.get());
         break;
-    // ...
+        // INS2工作参数报告
+    case V_TOPIC_IN2M_INS2_OPERATIONAL_PARAS:
+        localUpdate(msg_recv.m_INS2_OPERATIONAL_PARAS, ptr_packet.get());
+        break;
+        // INS3工作参数报告
+    case V_TOPIC_IN3M_INS3_OPERATIONAL_PARAS:
+        localUpdate(msg_recv.m_INS3_OPERATIONAL_PARAS, ptr_packet.get());
+        break;
+    // 绝对导航融合飞行参数
+    case V_TOPIC_NAFM_ABSOLUTE_NAV_DATA_FUSED:
+        localUpdate(msg_recv.m_ABSOLUTE_NAV_DATA_FUSED, ptr_packet.get());
+        break;
+    // 导航参数报告
+    case V_TOPIC_NAV_PARAS:
+        localUpdate(msg_recv.m_NAV_PARAS, ptr_packet.get());
+        break;
+    // 战术任务事件报告（事件类，通常入队）
+    case V_TOPIC_TMMM_MISSION_EVENT_REPORT:
+        localUpdate(msg_recv.m_MISSION_EVENT_REPORT, ptr_packet.get());
+        break;
+
+    // // 内部存储消息（FLASH 相关）
+    // case V_TOPIC_NEIBU_MESS:
+    //     msgUpdate(msg_recv.m_HWINFO_FLASH, ptr_packet.get());
+    //     // 如需要同步写 flash，可在 msgUpdate 内或此处处理
+    //     break;
+    // // 静态成像使用消息
+    // case V_TOPIC_JT_PHOTO:
+    //     msgUpdate(msg_recv.m_JT_PHOTO, ptr_packet.get());
+    //     break;
+
+    // ===================== 默认 =====================
     default:
+        // 其他消息暂不处理
         break;
     }
 }
 
 void CameraSimulator::startTaskThreads() {
     // 任务线程启动
-    startActReq();
+    startMainControl();
     startOtherProcess();
     startPeriodicSend();
     startSubsystemTiming();
@@ -169,28 +216,47 @@ void CameraSimulator::startHeartbitting() {
     this->running_hearbit = true;
     thread_heartbit_      = std::thread([this]() {
         using namespace std::chrono;
-        auto interval  = 1;
-        auto time_step = seconds(interval);
+        // auto time_step = seconds(1);
+        auto time_step = milliseconds(180);
+
         while (running_hearbit) {
             ++heartbit_;
+
+            // 向Control发送OKMSG
+            uint8_t data[1] = {1};
+            this->udpSendMsg(V_TOPIC_OKMSG, data);
+
             std::this_thread::sleep_for(time_step);
         }
     });
 }
 
 void CameraSimulator::startUdpConnect() {
-    // udp连接
-    udp_ = std::unique_ptr<UdpConnect>(new UdpConnect(
-        "0.0.0.0", this->port_, -1,
-        [this](char *data, int size) { this->udpRecv(data, size); }));
-
-    printf("[CameraSimulator] UdpConnect bind port: %d\n", this->port_);
-
-    // 开启udp连接 (子线程1启动)
-    udp_->Init();
+    // 初始化udp连接 设置接受函数
+    initUdpTrans(port_, ip_contrl_.c_str(), port_dst_,
+                 [this](char *data, int size) { this->udpEventRecv(data, size); });
 }
 
-void CameraSimulator::startActReq() {
+void CameraSimulator::startMainControl() {
+    if (running_main_ctrl_)
+        return;
+
+    running_main_ctrl_    = true;
+    thread_other_process_ = std::thread([this]() {
+        using namespace std::chrono;
+
+        while (running_main_ctrl_) {
+
+            PtrUdpPacket ptr_packet;
+
+            // 等待队列有数据并取出，如果超时，则进行下一次循环
+            if (queue_main_ctrl_.waitForAndPop(ptr_packet, timeout)) {
+                // === 处理UDP消息 ===
+                // 缓存
+                localUpdate(cmd_From_FC.current_IRST_ACT_REQ, ptr_packet.get());
+            }
+        }
+    });
     //
 }
 
@@ -227,30 +293,21 @@ void CameraSimulator::startPeriodicSend() {
             auto start = steady_clock::now();
 
             // WORK_STATE_REPORT
-            WORK_STATE_REPORT work_state_report;
-            work_state_report.msg_publish_time.time_sys_RTC = getSysRTC();
-            work_state_report.msg_publisher_ID.subdomain_ID = V_NODE_IRRM;
-            work_state_report.start_remain_time             = this->remain_time; // remain_time.load()?
-            work_state_report.subsys_work_state             = SUBSYS_WORK_STATE::V_SUBSYS_WORK_STATE_NA;
-            work_state_report.subsys_main_mode              = SUBSYS_MAIN_MODE::V_SUBSYS_MAIN_MODE_NA;
-            // work_state_report.AC_ID =
-            work_state_report.security_level          = V_SECURITY_LEVEL_SECRET;
-            work_state_report.bit_process_percent     = 678;
-            work_state_report.subsys_electrify_amount = 123;
+            msg_send.m_WORK_STATE_REPORT.msg_publish_time.time_sys_RTC = getSysRTC();
+            msg_send.m_WORK_STATE_REPORT.msg_publisher_ID.subdomain_ID = V_NODE_IRRM;
+            msg_send.m_WORK_STATE_REPORT.security_level                = V_SECURITY_LEVEL_SECRET;
+            msg_send.m_WORK_STATE_REPORT.AC_ID                         = msg_recv.m_MISSION_EVENT_REPORT.VMS_AC_ID;
 
-            this->udpSend(V_TOPIC_IRRM_WORK_STATE_REPORT,
-                           (UINT8 *)&work_state_report, sizeof(WORK_STATE_REPORT));
+            this->udpSendMsg(V_TOPIC_IRRM_WORK_STATE_REPORT, &msg_send.m_WORK_STATE_REPORT);
             printf("[CameraSimulator] Sent periodic UDP packet: WORK_STATE_REPORT\n");
 
             // IRST_OPERATIONAL_PARAMS
-            IRST_OPERATIONAL_PARAS irst_operational_paras;
-            irst_operational_paras.msg_publish_time.time_sys_RTC = getSysRTC();
-            irst_operational_paras.msg_publisher_ID.subdomain_ID = V_NODE_IRRM;
-            irst_operational_paras.security_level                = V_SECURITY_LEVEL_SECRET;
-            irst_operational_paras.paras_validity                = 1; // 有效
+            msg_send.m_IRST_OPERATIONAL_PARAS.msg_publish_time.time_sys_RTC = getSysRTC();
+            msg_send.m_IRST_OPERATIONAL_PARAS.msg_publisher_ID.subdomain_ID = V_NODE_IRRM;
+            msg_send.m_IRST_OPERATIONAL_PARAS.security_level                = V_SECURITY_LEVEL_SECRET;
+            msg_send.m_IRST_OPERATIONAL_PARAS.paras_validity                = 1; // 有效
 
-            this->udpSend(V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS,
-                           (UINT8 *)&irst_operational_paras, sizeof(IRST_OPERATIONAL_PARAS));
+            this->udpSendMsg(V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS, &msg_send.m_IRST_OPERATIONAL_PARAS);
             printf("[CameraSimulator] Sent periodic UDP packet: IRST_OPERATIONAL_PARAS\n");
 
             // 定时
@@ -262,52 +319,16 @@ void CameraSimulator::startPeriodicSend() {
 void CameraSimulator::startSubsystemTiming() {
 }
 
-Timestamp CameraSimulator::getCurrentTimestamp() {
-    using namespace std::chrono;
-
-    // 获取当前时间点
-    auto now = system_clock::now();
-
-    // 转为 time_t（秒）
-    std::time_t t = system_clock::to_time_t(now);
-    std::tm     local_tm{};
-
-    localtime_r(&t, &local_tm);
-
-    // 计算毫秒部分
-    auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
-
-    Timestamp ts{};
-    ts.U1_Year        = static_cast<unsigned char>((local_tm.tm_year + 1900) % 100); // 年份只取后两位
-    ts.U1_Month       = static_cast<unsigned char>(local_tm.tm_mon + 1);
-    ts.U1_Day         = static_cast<unsigned char>(local_tm.tm_mday);
-    ts.U1_Hour        = static_cast<unsigned char>(local_tm.tm_hour);
-    ts.U1_Minute      = static_cast<unsigned char>(local_tm.tm_min);
-    ts.U1_Second      = static_cast<unsigned char>(local_tm.tm_sec);
-    ts.U2_Millisecond = static_cast<unsigned short>(ms.count());
-
-    return ts;
-}
-
-uint64_t CameraSimulator::getSysRTC() {
-    // todo: 不对
-    using namespace std::chrono;
-    // 获取当前时间点（系统时钟）
-    auto now = steady_clock::now();
-    // 转换为毫秒数
-    auto ms = duration_cast<milliseconds>(now.time_since_epoch()).count();
-    return static_cast<uint64_t>(ms);
-}
-
 void CameraSimulator::powerOn(int delay) {
+    // 初始化参数
+    param_Init();
+
     // 避免重复上电
-    if (power_status_ == POWER_ON) {
+    if (power_status_ == POWER_ON || power_status_ == POWER_CHECKING) {
         return;
     }
 
     printf("[CameraSimulator] Power ON start with (%d s)\n", delay);
-
-    this->during_powered_on_ = true;
 
     // 如果还没退出 上电线程退出
     if (thread_power_on_.joinable())
@@ -319,9 +340,22 @@ void CameraSimulator::powerOn(int delay) {
         int  interval     = 1; // 1秒间隔
         auto time_step    = seconds(interval);
 
-        while (this->remain_time > 0 && during_powered_on_) {
+        // msg send
+        this->msg_send.m_WORK_STATE_REPORT.bit_process_percent = 0;
+        float lsb                                              = 0.01f;
+
+        this->power_status_ == POWER_CHECKING;
+
+        while (remain_time > 0 && power_status_ == POWER_CHECKING) {
             printf("[CameraSimulator] Power ON remain %d seconds... \n", this->remain_time.load());
+            // 上电自检中
+            // msg
             this->remain_time -= interval;
+            msg_send.m_WORK_STATE_REPORT.start_remain_time   = this->remain_time;
+            msg_send.m_WORK_STATE_REPORT.bit_process_percent = (float)(delay - remain_time) / delay * 100 * lsb;
+            msg_send.m_WORK_STATE_REPORT.subsys_work_state   = SUBSYS_WORK_STATE::V_SUBSYS_WORK_STATE_BIT;
+            msg_send.m_WORK_STATE_REPORT.subsys_main_mode    = SUBSYS_MAIN_MODE::V_SUBSYS_MAIN_MODE_INI;
+
             std::this_thread::sleep_for(time_step);
         }
 
@@ -329,13 +363,16 @@ void CameraSimulator::powerOn(int delay) {
             printf("[CameraSimulator] Power ON terminated\n");
 
         } else {
-            this->remain_time        = 0;
-            this->during_powered_on_ = false;
-            this->power_status_      = POWER_ON;
+            // 上电成功
+            this->remain_time   = 0;
+            this->power_status_ = POWER_ON;
 
             printf("[CameraSimulator] Power ON complete\n");
+            msg_send.m_WORK_STATE_REPORT.subsys_work_state = SUBSYS_WORK_STATE::V_SUBSYS_WORK_STATE_NORMAL;
+            msg_send.m_WORK_STATE_REPORT.subsys_main_mode  = SUBSYS_MAIN_MODE::V_SUBSYS_MAIN_MODE_NORMAL;
+            msg_send.m_WORK_STATE_REPORT.subsys_electrify_amount += 1;
 
-            // 启动任务线程
+            // !!!启动任务线程
             this->startTaskThreads();
         }
     });
@@ -348,12 +385,12 @@ void CameraSimulator::freeze() {
 
     // 退出除了周期发送以外的其他线程
     // 先设置退出标志
-    this->running_act_req_         = false;
+    this->running_main_ctrl_       = false;
     this->running_other_process_   = false;
     this->running_subsystem_timer_ = false;
 
     // 再清空并通知，确保等待的线程能醒来并检查到退出标志
-    this->queue_act_req_.clearAndNotify();
+    this->queue_main_ctrl_.clearAndNotify();
     this->queue_others_.clearAndNotify();
 
     // 等待线程退出
@@ -367,7 +404,6 @@ void CameraSimulator::freeze() {
     this->power_status_ = POWER_FREEZE;
 
     // 停止上电线程
-    during_powered_on_ = false;
     if (thread_power_on_.joinable())
         thread_power_on_.join();
 }
@@ -384,9 +420,19 @@ void CameraSimulator::powerOff() {
     this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U4_UnitHeartbeat = this->heartbit_;
     // this->shm_output_.m_FunctionalUnitStatusMsg.St_MessageHeader.St_PubTime        = getCurrentTimestamp();
 
+    // todo: 下电自检测流程
+
+    // this->udpSend(V_TOPIC_IRRM_WORK_STATE_REPORT, (UINT8 *)&msg_send.m_WORK_STATE_REPORT, sizeof(WORK_STATE_REPORT));
+    // this->udpSend(V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS, (UINT8 *)&msg_send.m_IRST_OPERATIONAL_PARAS, sizeof(IRST_OPERATIONAL_PARAS));
+
     this->power_status_ = POWER_OFF;
 
     printf("[CameraSimulator] Power OFF complete\n");
+    // msg
+    msg_send.m_WORK_STATE_REPORT.bit_process_percent = 0;
+    msg_send.m_WORK_STATE_REPORT.start_remain_time   = 0;
+    msg_send.m_WORK_STATE_REPORT.subsys_work_state   = SUBSYS_WORK_STATE::V_SUBSYS_WORK_STATE_STOP;
+    msg_send.m_WORK_STATE_REPORT.subsys_main_mode    = SUBSYS_MAIN_MODE::V_SUBSYS_MAIN_MODE_STOP;
 }
 
 CameraSimulator::~CameraSimulator() {
