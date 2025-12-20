@@ -38,3 +38,40 @@ uint64_t getSysRTC() {
     auto ms = duration_cast<milliseconds>(now.time_since_epoch()).count();
     return static_cast<uint64_t>(ms);
 };
+
+void timespec_add_us(timespec &ts, long us) {
+    // 每秒包含的微秒数：1e6 = 1,000,000
+    // 显式 static_cast<long>，避免浮点参与运行期计算
+    constexpr long USEC_PER_SEC = static_cast<long>(1e6);
+
+    // 每秒包含的纳秒数：1e9 = 1,000,000,000
+    constexpr long NSEC_PER_SEC = static_cast<long>(1e9);
+
+    // 把“整秒部分”的微秒转换成秒，直接累加到 tv_sec
+    // 例如 us = 2,000,010 → 增加 2 秒
+    ts.tv_sec += us / USEC_PER_SEC;
+
+    // 把“不足一秒的微秒部分”转换成纳秒，加到 tv_nsec
+    // (us % USEC_PER_SEC) ∈ [0, 999999]
+    // ×1000 → 微秒转纳秒
+    ts.tv_nsec += (us % USEC_PER_SEC) * 1000L;
+
+    // 如果纳秒数超过 1 秒（>= 1e9），需要进位
+    if (ts.tv_nsec >= NSEC_PER_SEC) {
+        // 减去 1 秒对应的纳秒数
+        ts.tv_nsec -= NSEC_PER_SEC;
+        // 秒数加 1
+        ts.tv_sec++;
+    }
+}
+
+void sleep_us(long us) {
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    timespec_add_us(ts, us);
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, nullptr);
+}
+
+void sleep_ms(long ms) {
+    sleep_us(ms * 1000L);
+}

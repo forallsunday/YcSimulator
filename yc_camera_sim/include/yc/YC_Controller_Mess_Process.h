@@ -7,9 +7,9 @@
 
 #ifndef YC_CONTROLLER_MESS_PROCESS_H_
 #define YC_CONTROLLER_MESS_PROCESS_H_
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 #include <ICDB_ENUM_STRUCT_IRRM.H>
 #include <sysTypes.h>
 
@@ -94,8 +94,8 @@ UINT64 fcSysRtcGet();
 void test_forFpga();      // fpga≤‚ ‘∫Ø ˝
 void test_forTXCL_ZZXX(); // ◊¢ Õ–≈œ¢≤‚ ‘
 
-#ifdef __cplusplus
-}
-#endif
+// #ifdef __cplusplus
+// }
+// #endif
 
 #endif /* YC_CONTROLLER_MESS_PROCESS_H_ */

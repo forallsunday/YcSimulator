@@ -9,10 +9,11 @@
 
 #ifndef YC_CONTROLLER_FPGA_MESS_H_
 #define YC_CONTROLLER_FPGA_MESS_H_
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 #include "ICDB_ENUM_STRUCT_IRRM.H"
+#include "ICDB_TOPIC_STRUCT_IRRM.H"
 // #include "YC_Controller_Main_Process.h"
 // #include "YC_Controller_TG_Process.h"
 
@@ -459,10 +460,10 @@ typedef struct Struct_PCS_Update {
     UINT8 head3; //'A' 0x41
     UINT8 head4; //'D' 0x44
 
-    UINT8 cmd; // 0x01：准备升级，惯导执行初始化工作
-               // 0x02：升级过程中，发送拆分的固件包内容
-               // 0x03：升级结束
-               // 0x10：肯定应答（备用）
+    UINT8 cmd;       // 0x01：准备升级，惯导执行初始化工作
+                     // 0x02：升级过程中，发送拆分的固件包内容
+                     // 0x03：升级结束
+                     // 0x10：肯定应答（备用）
     UINT8 file_type; // 标识所升级文件的类型：
                      // 0x02：core2的升级固件（预处理）
                      // 0x03：core3的升级固件（导航解算）
@@ -954,7 +955,7 @@ typedef struct Struct_Mess_To_TXCL_ZSXX {
 
 #pragma pack()
 
-#ifdef __cplusplus
-}
-#endif
+// #ifdef __cplusplus
+// }
+// #endif
 #endif /* YC_CONTROLLER_FPGA_MESS_H_ */

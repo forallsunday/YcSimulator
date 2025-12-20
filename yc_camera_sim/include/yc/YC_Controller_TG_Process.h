@@ -7,11 +7,13 @@
 
 #ifndef YC_CONTROLLER_TG_PROCESS_H_
 #define YC_CONTROLLER_TG_PROCESS_H_
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 // #include "ft_gpio.h"
 #include "sysTypes.h"
+#include <gpio_sim.h>
+
 #pragma pack(1)
 // extern UINT32	ExpSig_cnt;
 
@@ -664,7 +666,7 @@ void TG_State_Flag(UINT8 Data1, UINT8 Data2, UINT8 Data3, UINT8 Data4, UINT8 Dat
 
 #pragma pack()
 
-#ifdef __cplusplus
-}
-#endif
+// #ifdef __cplusplus
+// }
+// #endif
 #endif /* YC_CONTROLLER_TG_PROCESS_H_ */

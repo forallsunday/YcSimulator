@@ -3,13 +3,16 @@
 
 #include <ICD/ICDB_ENUM_STRUCT_IRRM.H>
 #include <ICD/ICDB_TOPIC_STRUCT_IRRM.H>
-#include <global_var_def.hpp>
+#include <yc/YC_Controller_Constant_Define.h>
+#include <yc/YC_Controller_globalVal_Ext.h>
+
+#include <fpga_sim.h>
+#include <global_vars.h>
 #include <shm_interface.h>
+#include <timer_period.h>
 #include <udp_packet.h>
 #include <udp_trans.h>
 #include <udpconnect.h>
-#include <yc/YC_Controller_Constant_Define.h>
-#include <yc/YC_Controller_globalVal_Ext.h>
 
 #include <atomic>
 #include <thread>
@@ -33,8 +36,8 @@ class CameraSimulator {
     // 下电
     void powerOff();
 
-    // 设置周期性发送间隔
-    void setPeriodicSendInterval(int ms) { this->periodic_send_interval = ms; };
+    // 设置周期性间隔
+    void setPeriodicInterval(int ms) { this->periodic_interval = ms; };
 
   private:
     // 上电状态
@@ -98,31 +101,16 @@ class CameraSimulator {
         udpSendMsg(topic_id, (uint8_t *)msg, sizeof(T));
     };
 
-    // 从UdpPacket中更新消息数据
-    template <typename T>
-    void localUpdate(T &msg, UdpPacket *ptr_packet) {
-        // if (ptr_packet->pPayload == nullptr) {
-        // if (ptr_packet->pPayloadLen != sizeof(T) {
-        memcpy(&msg, ptr_packet->pPayload, sizeof(T));
-    }
-
-    // 队列
-    ThreadSafeQueue<PtrUdpPacket> queue_main_ctrl_;
-    ThreadSafeQueue<PtrUdpPacket> queue_others_;
+    // 周期性发送间隔 ms
+    int periodic_interval = PERIOD_TASK_TIME;
 
     // 运行状态
-    std::atomic<bool> running_main_ctrl_;
-    std::atomic<bool> running_other_process_;
-    std::atomic<bool> running_periodic_send_;
     std::atomic<bool> running_subsystem_timer_;
 
-    std::thread thread_act_req_;         // 子线程2
+    std::thread thread_main_ctrl_;       // 子线程2
     std::thread thread_other_process_;   // 子线程3
     std::thread thread_periodic_send_;   // 子线程4
     std::thread thread_subsystem_timer_; // 子线程5
-
-    // 开始所有任务线程 (不包括 udp线程、心跳线程)
-    void startTaskThreads();
 
     // 心跳计数
     std::atomic<uint64_t> heartbit_{0};
@@ -139,22 +127,22 @@ class CameraSimulator {
     void startOtherProcess();
     // 子线程4 任务线程 运行函数 : 周期发送
     void startPeriodicSend();
-    // 子线程5 任务线程 运行函数 : 分系统计时器
+    // 子线程5 任务线程 运行函数 : 5ms计时器
+    void startTimer5ms();
+    // 子线程6? 任务线程 运行函数 : 分系统计时器
     void startSubsystemTiming();
 
-    // 周期性发送间隔 ms
-    int periodic_send_interval = 5;
+    // 开始所有任务线程 (不包括 udp线程、心跳线程)
+    void startTaskThreads();
+
+    // 5ms 计时器
+    TimerPeriod timer_5ms_;
+
+    // fpga 
+    FpgaSimulator fpga_sim;
 
     // 超时时间 (子线程阻塞时间)
-    std::chrono::milliseconds timeout = std::chrono::milliseconds(100);
-
-
-    // 消息
-    MsgRecvAll msg_recv; // 所有接收消息
-    MsgSendAll msg_send; // 所有发送消息
-
-    // // 缓存变量
-    // CMD_FROM_FC cmd_From_FC;
+    std::chrono::milliseconds timeout = std::chrono::milliseconds(10);
 };
 
 #endif // CAMERA_SIM_H

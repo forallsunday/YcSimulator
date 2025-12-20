@@ -6,7 +6,7 @@
  *      初始化系统变量函数
  */
 
-// #include "YC_Controller_init.h"
+#include "YC_Controller_init.h"
 // #include "String.h"
 #include "YC_Controller_Constant_Define.h"
 #include "YC_Controller_HMC_Process.h"
@@ -18,6 +18,8 @@
 #include <YC_Controller_Constant_Define.h>
 #include <YC_Controller_globalVal_Ext.h>
 // #include <interrupt.h>
+#include <cstring>
+#include <global_vars.h>
 
 // //**************************创建线程**************************
 // //**UINT32 affinity:处理器核号
@@ -88,6 +90,10 @@ void param_Init() {
     // bSemId_list_Mess_FromFc_IRST_act_req = createBinarysem(bSemName_list_Mess_FromFc_IRST_act_req); // FC接收消息缓冲区互斥锁
     // bSemId_list_Mess_FromFc_Others       = createBinarysem(bSemName_list_Mess_FromFc_Others);       // FC接收消息缓冲区互斥锁
 
+    // lcy: 使用thread safe queue 来代替 队列
+    sq::sq_IRST_act_req.clearAndNotify();
+    sq::sq_others.clearAndNotify();
+
     // 主控用标志位
     flag_Fpga_Interrupt  = 0; // fpga中断，0为未收到中断，1为已收到中断
     flag_Fpga_down_times = 0; // 统计fpga未触发次数
@@ -124,7 +130,7 @@ void param_Init() {
 
     TG_VarInit(); // 调光初始化-25-8-15,sc
 
-    flash_Data_Init(); // 持久化存储信息初始化
+    // flash_Data_Init(); // 持久化存储信息初始化
 
     nb_HMC_DATA_INIT(); // HMC初始化
 
@@ -168,23 +174,23 @@ void param_Init() {
     cmd_From_FC.irst_cmd_param_area_image_paras[2].IR_AREA_LENGTH          = 4;                              // 区域边长默认为4km
 }
 
-// 持久化存储信息初始化
-void flash_Data_Init() {
-    // 持久化存储信息初始化
-    memcpy(&nbMess_hwInfo_FLASH, (void *)FLASH_ADDR, sizeof(MESS_FROMFC_HWINFO_FLASH));                        // 放入接收缓存
-    nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave++;                                                      // 累加上电次数
-    my_flash_write(FLASH_ADDR, (void *)&(nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave), sizeof(UINT32)); // 写回flash
+// // 持久化存储信息初始化
+// void flash_Data_Init() {
+//     // 持久化存储信息初始化
+//     memcpy(&nbMess_hwInfo_FLASH, (void *)FLASH_ADDR, sizeof(MESS_FROMFC_HWINFO_FLASH));                        // 放入接收缓存
+//     nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave++;                                                      // 累加上电次数
+//     my_flash_write(FLASH_ADDR, (void *)&(nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave), sizeof(UINT32)); // 写回flash
 
-    // 20251128增加保存帧序号功能
-    memcpy((void *)(&(main_Control_State_Param.totalNo)), (void *)(FLASH_ADDR + sizeof(MESS_FROMFC_HWINFO_FLASH)), sizeof(UINT32)); // 从持久化中读取帧序号
+//     // 20251128增加保存帧序号功能
+//     memcpy((void *)(&(main_Control_State_Param.totalNo)), (void *)(FLASH_ADDR + sizeof(MESS_FROMFC_HWINFO_FLASH)), sizeof(UINT32)); // 从持久化中读取帧序号
 
-    printf("readflash:%d\n", main_Control_State_Param.totalNo);
+//     printf("readflash:%d\n", main_Control_State_Param.totalNo);
 
-    param_Compute_Input_Fromfpga.jj_Small_KJ = nbMess_hwInfo_FLASH.jj_Small_KJ; // 可见小视场-长焦
-    param_Compute_Input_Fromfpga.jj_Big_KJ   = nbMess_hwInfo_FLASH.jj_Big_KJ;   // 可见大视场-短焦
-    param_Compute_Input_Fromfpga.jj_Small_HW = nbMess_hwInfo_FLASH.jj_Small_HW; // 红外小视场-长焦
-    param_Compute_Input_Fromfpga.jj_Big_HW   = nbMess_hwInfo_FLASH.jj_Big_HW;   // 红外大视场-短焦
-}
+//     param_Compute_Input_Fromfpga.jj_Small_KJ = nbMess_hwInfo_FLASH.jj_Small_KJ; // 可见小视场-长焦
+//     param_Compute_Input_Fromfpga.jj_Big_KJ   = nbMess_hwInfo_FLASH.jj_Big_KJ;   // 可见大视场-短焦
+//     param_Compute_Input_Fromfpga.jj_Small_HW = nbMess_hwInfo_FLASH.jj_Small_HW; // 红外小视场-长焦
+//     param_Compute_Input_Fromfpga.jj_Big_HW   = nbMess_hwInfo_FLASH.jj_Big_HW;   // 红外大视场-短焦
+// }
 
 // 消息初始化
 void mess_Init() {

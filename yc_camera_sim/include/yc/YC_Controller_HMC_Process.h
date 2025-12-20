@@ -7,9 +7,9 @@
 
 #ifndef YC_CONTROLLER_HMC_PROCESS_H_
 #define YC_CONTROLLER_HMC_PROCESS_H_
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 
 #include "ICDB_TOPIC_STRUCT_IRRM.H"
 #define TOTAL_HMC_NUM 56
@@ -42,7 +42,7 @@ void nb_HMC_DATA_UPLOAD();
 // 清除HMC信息函数，收到指令后调用______外部调用
 void nb_HMC_DATA_CLEAR();
 
-#ifdef __cplusplus
-}
-#endif
+// #ifdef __cplusplus
+// }
+// #endif
 #endif /* YC_CONTROLLER_HMC_PROCESS_H_ */

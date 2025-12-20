@@ -65,7 +65,9 @@ class ThreadSafeQueue {
      * @param timeout 等待的超时时间
      * @return true=如果成功取出元素，false=如果队列为空且超时
      */
-    bool waitForAndPop(T &value, std::chrono::milliseconds timeout) {
+    template <typename Rep, typename Period>
+    bool waitForAndPop(T                                 &value,
+                       std::chrono::duration<Rep, Period> timeout) {
         std::unique_lock<std::mutex> lock(mutex_);
 
         // 等待直到队列非空或超时

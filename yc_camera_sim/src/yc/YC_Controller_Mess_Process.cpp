@@ -11,7 +11,7 @@
 // #include <attribute.h>
 #include "AppTopicIdDef.h"
 // #include "YC_Controller_FC_Trans.h"
-#include "YC_Controller_FPGA_Trans.h"
+// #include "YC_Controller_FPGA_Trans.h"
 #include "YC_Controller_HMC_Process.h"
 #include "YC_Controller_globalVal_Ext.h"
 // #include "fcUsrVos.h"
@@ -832,12 +832,12 @@ void make_Mess_To_TJ(UINT8 cmd, INT8 view_cmd) {
 
     mess_To_TJ.control_lzstate = mess_ToFC_IRST_OPERATIONAL_PARAS.WOW_main - 1;
 
-    mess_To_TJ.distance   = param_Compute_Output.toTJ_distance;                           // 照相距离
-    mess_To_TJ.zjwdxx     = mess_From_QNSJ.zjwdxx;                                        // 主镜温度信息，来自温控
-    mess_To_TJ.cjwdxx     = mess_From_QNSJ.cjwdxx;                                        // 次镜温度信息，来自温控
+    mess_To_TJ.distance   = param_Compute_Output.toTJ_distance;                          // 照相距离
+    mess_To_TJ.zjwdxx     = mess_From_QNSJ.zjwdxx;                                       // 主镜温度信息，来自温控
+    mess_To_TJ.cjwdxx     = mess_From_QNSJ.cjwdxx;                                       // 次镜温度信息，来自温控
     mess_To_TJ.sdtjjzl_kj = cmd_From_FC.irst_cmd_param_IR_image_paras_light.focus_value; // 手动调焦校准量-可见
     mess_To_TJ.sdtjjzl_hw = cmd_From_FC.irst_cmd_param_IR_image_paras_infra.focus_value; // 手动调焦校准量-红外
-    mess_To_TJ.ylz        = mess_From_QNSJ.ylz;                                           // 压力值，来自温控
+    mess_To_TJ.ylz        = mess_From_QNSJ.ylz;                                          // 压力值，来自温控
 }
 
 // 框架消息构建
@@ -1168,9 +1168,9 @@ void make_Mess_To_FPGA(UINT8 cmd, UINT8 irst_form_mode, UINT8 zsxx_valid) {
     mess_To_FPGA.time_speed    = param_Compute_Output.toFPGA_time_speed * 30000;    // 速度信号时间LSB=1ms
     mess_To_FPGA.time_location = param_Compute_Output.toFPGA_time_location * 30000; // 位置信号时间LSB=1ms
 
-    //	mess_To_FPGA.frames_Num = 44;			//条带张数
-    //	mess_To_FPGA.time_speed = 94044112;			//速度信号时间LSB=1ms
-    //	mess_To_FPGA.time_location = 3758561792;		//位置信号时间LSB=1ms
+    // mess_To_FPGA.frames_Num    = 44;         // 条带张数
+    // mess_To_FPGA.time_speed    = 94044112;   // 速度信号时间LSB=1ms
+    // mess_To_FPGA.time_location = 3758561792; // 位置信号时间LSB=1ms
 }
 
 // 向调光发（写结构体）
@@ -1186,7 +1186,7 @@ void make_Mess_To_TG(UINT8 cmd, UINT8 jg_mode) {
     }
 
     mess_To_TG.TargetType = cmd_From_FC.irst_cmd_param_environmnet_type; // 对陆对海
-    if (param_Compute_Output.toKJ_direction_start > 0)                    // 左倾
+    if (param_Compute_Output.toKJ_direction_start > 0)                   // 左倾
     {
         mess_To_TG.XJ_SlopeMode_Rec = XJ_SLOPEMODE_LEFT; // 左倾斜方式
     } else {
@@ -1431,11 +1431,11 @@ void make_Mess_To_TXCL_ZSXX() {
 
     // 每秒1帧标记，如果在监视模式下，并且如果模24等于1，说明是每秒的第一帧
     if (main_Control_State_Param.irst_form_mode == V_IRST_FORM_MODE_AREA_MONI && main_Control_State_Param.cycleNo % 24 == 1) {
-        mess_To_TXCL_ZSXX.tx_info[3] = 1;      // 每秒1帧标记
+        mess_To_TXCL_ZSXX.tx_info[3] = 1;     // 每秒1帧标记
         if (cmd_From_FC.irst_cmd_FROZEN == 1) // 如果收到冻结指令
         {
             mess_To_TXCL_ZSXX.tx_info[3] = 2; // 冻结标记
-            cmd_From_FC.irst_cmd_FROZEN = 0; // 清除冻结指令
+            cmd_From_FC.irst_cmd_FROZEN  = 0; // 清除冻结指令
         }
     } else {
         mess_To_TXCL_ZSXX.tx_info[3] = 0; // 正常帧标记

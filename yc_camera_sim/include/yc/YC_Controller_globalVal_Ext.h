@@ -8,9 +8,9 @@
 // */
 #ifndef YC_CONTROLLER_GLOBALVAL_EXT_H_
 #define YC_CONTROLLER_GLOBALVAL_EXT_H_
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 #include <sysTypes.h>
 // #include <tasks.h>
 // #include <attribute.h>
@@ -33,6 +33,8 @@ extern "C" {
 #include "YC_Controller_FPGA_Mess.h"
 // #include "YC_Controller_Main_Process.h"
 #include "YC_Controller_TG_Process.h"
+
+#include <atomic>
 //-----------------------------------------主控线及定时器程控制用参数--------------------------------------------
 // // 线程id定义
 // extern Task_ID YC_FC_Recv;          // 接收FC消息线程，放入list缓冲区
@@ -50,9 +52,10 @@ extern "C" {
 // extern ACoreOs_id   bSemId_list_Mess_FromFc_Others;         // FC接收消息缓冲区互斥锁id-其他消息
 // extern ACoreOs_name bSemName_list_Mess_FromFc_Others;       // FC接收消息缓冲区互斥锁name-其他消息
 // // 主控用标志位
-extern UINT8 flag_Fpga_Interrupt;  // fpga中断，0为未收到中断，1为已收到中断
-extern int   flag_Fpga_down_times; // 统计fpga未触发次数//fpga掉线次数
-extern UINT8 flag_Fpga_bg;         // 曝光信号到达
+extern UINT8            flag_Fpga_Interrupt;  // fpga中断，0为未收到中断，1为已收到中断
+// extern int              flag_Fpga_down_times; // 统计fpga未触发次数//fpga掉线次数
+extern std::atomic<int> flag_Fpga_down_times; // 统计fpga未触发次数//fpga掉线次数
+extern UINT8            flag_Fpga_bg;         // 曝光信号到达
 //-----------------------------------------主控线及定时器程控制用参数------------------END--------------------------
 
 //-----------------------------------------主控状态控制及参数计算用参数--------------------------------------------
@@ -144,7 +147,7 @@ extern STATUS pcieInit(void); // PICE初始化函数外部引用
 // 写flash
 // extern int my_flash_write(ADDRESS flashStart, char *buf, ULONG nbytes);
 
-#ifdef __cplusplus
-}
-#endif
+// #ifdef __cplusplus
+// }
+// #endif
 #endif /* YC_CONTROLLER_GLOBALVAL_EXT_H_ */
