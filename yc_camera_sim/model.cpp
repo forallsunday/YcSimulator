@@ -10,6 +10,9 @@
 #include "xml_api.h"
 #include "yc_udp_xml_api.hpp"
 
+#include <log_init.hpp>
+
+
 enum status_enum /*状态集*/
 {
     WAITTNG = 0,
@@ -96,6 +99,8 @@ void usrmode_init() {
     //    printf("Usr_ModeInit data is NULL \n");
 
     // Note: 2025-10-28 LCY
+
+    log_init("camera_sim.log");
 
     // 从自己写的xml配置文件获取ip和端口
     std::string ip_icp_server, ip_control, ip_camera;

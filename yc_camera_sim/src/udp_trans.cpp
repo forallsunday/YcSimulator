@@ -1,5 +1,6 @@
 #include <AOXEAppDef.h>
 #include <cstring>
+#include <log.h>
 #include <shm_interface.h>
 #include <udp_packet.h>
 #include <udp_packet_log.h>
@@ -11,7 +12,7 @@ static int                         port_local;
 static std::string                 ip_dst;
 static int                         port_dst;
 
-bool initUdpTrans(
+bool udpTransInit(
     int                       local_port,
     const char               *dst_ip,
     int                       dst_port_,
@@ -26,16 +27,19 @@ bool initUdpTrans(
     ip_dst     = std::string(dst_ip);
     port_dst   = dst_port_;
 
-    udp0.reset(new UdpConnect(
-        "0.0.0.0", port_local, -1, recv_cb));
+    udp0.reset(new UdpConnect("0.0.0.0", port_local, -1, recv_cb));
 
     if (!udp0) {
         return false;
     }
 
-    udp0->Init();
-
-    return true;
+    if (udp0->Init()) {
+        log_info("udp初始化成功 监听端口%d", port_local);
+        return true;
+    } else {
+        log_warn("udp初始化失败");
+        return false;
+    }
 }
 
 void fc_Send_Message(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
@@ -58,4 +62,15 @@ void fc_Send_Message(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
     udp0->SendData(
         reinterpret_cast<const char *>(&packet),
         sizeofPacket(&packet), ip_dst.c_str(), port_dst);
+}
+
+void udpTransSend(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
+    fc_Send_Message(topic_id, msg, size_msg);
+}
+
+void udpTransClose() {
+    if (udp0) {
+        udp0->Close();
+        udp0.reset();
+    }
 }

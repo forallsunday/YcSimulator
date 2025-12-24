@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10.0)
 
 project(YcSim)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 # 输出路径
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/${TARGET_PLATFORM}/$<CONFIG>")
@@ -27,7 +27,8 @@ aux_source_directory("yc_camera_sim/src/yc" SRCS_YC)
 if(NOT ${TARGET_PLATFORM} STREQUAL "linux-x64")
   set(LIB_NAME "ycSim")
 
-  add_library(${LIB_NAME} SHARED ${SRCS_YCSIM} ${SRCS_YC} ${SRCS_DEPS})
+  add_library(${LIB_NAME} SHARED "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/model.cpp" 
+                                  ${SRCS_YCSIM} ${SRCS_YC} ${SRCS_DEPS})
   target_include_directories(${LIB_NAME} PUBLIC ${INCLUDE_DEPS} ${INCLUDE_YCSIM})
   target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/include)
   target_link_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/lib)
@@ -71,11 +72,10 @@ if(EXISTS "${XML_CONFIG_FILE}")
     COMMENT "Copying yc_udp_config.xml to bin directory")
 endif()
 
-# # ==================================================
-# # 可执行文件: 测试发送UDP包
-# # ==================================================
-# set(TEST_EXE_NAME "TestUdpSend")
-# add_executable(${TEST_EXE_NAME} "./yc_camera_sim/src/camera_sim.cpp"
-#   "./yc_test_send_udp_packet/main.cpp" ${SRCS_DEPS})
-# target_include_directories(${TEST_EXE_NAME} PRIVATE ${INCLUDE_DEPS} ${INCLUDE_YCSIM})
-# target_link_libraries(${TEST_EXE_NAME} PRIVATE pthread)
+# ==================================================
+# 可执行文件: 测试发送UDP包
+# ==================================================
+set(TEST_EXE_NAME "TestUdpSend")
+add_executable(${TEST_EXE_NAME} "./yc_test_send_udp_packet/main.cpp" ${SRCS_YCSIM} ${SRCS_YC} ${SRCS_DEPS})
+target_include_directories(${TEST_EXE_NAME} PUBLIC ${INCLUDE_DEPS} ${INCLUDE_YCSIM})
+target_link_libraries(${TEST_EXE_NAME} PUBLIC pthread)

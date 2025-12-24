@@ -1,11 +1,11 @@
 ///*
 // * YC_Controller_Computer.c
 // *
-// *  Created on: 2025Äê4ÔÂ10ÈÕ
-// *      Author: ÍõäìÒİ
+// *  Created on: 2025å¹´4æœˆ10æ—¥
+// *      Author: ç‹æ½‡é€¸
 // *
 // *
-// *  ÃèÊö£ºÖ÷¿ØÄÚ²¿¼ÆËãº¯Êı
+// *  æè¿°ï¼šä¸»æ§å†…éƒ¨è®¡ç®—å‡½æ•°
 // */
 
 #include "YC_Controller_Computer.h"
@@ -14,945 +14,921 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define Sec_KJPosREADY_NKJ 0.8 // ÄÚ¿ò¼ÜÎ»ÖÃºÃÊ±¼äs
-#define Sec_KJPosREADY_WKJ 1.2 // Íâ¿ò¼ÜÎ»ÖÃºÃÊ±¼äs
-#define Sec_KJSpeedREADY 0.2   // ¿ò¼ÜËÙ¶ÈºÃÊ±¼äs
-
-#define GYCX_Near_K 0.5; // ¹ãÓò³ÉÏñ½üµØµãÏµÊı
-#define Max_TDNum 40     // ×î´óÌõ´øÊı
-// ¿ò¼Ü½Ç¼«ÏŞÖµ
-#define NKJ_Max_PI 1.658063 // »¡¶È95¶È
-#define NKJ_Min_PI 0.785398 // »¡¶È45¶È
-#define WKJ_Max_PI 1.88495  // »¡¶È108¶È
-#define WKJ_Min_PI -1.88495 // »¡¶È-108¶È
-
-#define GYCX_P_x 0.15 // ¹ãÓò³ÉÏñxÖØµşÂÊ
-#define GYCX_P_y 0.12 // ¹ãÓò³ÉÏñyÖØµşÂÊ
-
-#define QYCX_P_x 0.15 // ÇøÓò³ÉÏñxÖØµşÂÊ
-#define QYCX_P_y 0.15 // ÇøÓò³ÉÏñyÖØµşÂÊ
-
-#define GYCX_pfs 0.0667 // ¹ãÓò³ÉÏñÖ¡Æµ£¨15HZ£©
-#define QYCX_pfs 0.0667 // 0.0417//ÇøÓò³ÉÏñÖ¡Æµ£¨15HZ£©//£¨24HZ£©
-
-#define KJ_pixnum_X 5120 // ¿É¼ûX·½ÏòÏñËØ
-#define KJ_pixnum_Y 4096 // ¿É¼ûY·½ÏòÏñËØ
-#define pixsize_KJ 4.5   // ¿É¼ûÏñËØ³ß´ç
 
 #define Agl_PI 0.01745329
 #define PI_Agl 57.2957795
 
-//------------------------²ÎÊı¼ÆËãÓÃ±äÁ¿ byL.B----------------------------//
-//----------ÊäÈë
-struct_GPS_float64 AC_Position_pi; // Î»ÖÃ×ø±ê ¼ÆËãÓÃÔØ»úÎ»ÖÃ
-struct_AttiAgl     AttitudeAC_pi;  // ×ËÌ¬
-struct_KJAgl       KJAgl_pi;       // ¿ò¼Ü½Ç
-struct_KJAgl       KJAgl_exp_pi;   // ÆØ¹âÊ±¿Ì¿ò¼Ü½Ç
-struct_KJAgl       KFKZAgl_exp_pi; // ÆØ¹âÊ±¿Ì¿ì·´½Ç
-//--------Êä³ö
-struct_KJAgl KJ_start_pi;         // ¿ò¼ÜÆğÊ¼½Ç
-struct_KJAgl KJ_end_pi;           // ¿ò¼Ü½áÊø½Ç
-struct_KJAgl KJ_omiga_pi;         // ¿ò¼Ü½ÇËÙ¶È½Ç
-float        speed_hight;         // ËÙ¸ß±È
-float        img_move_omiga_x_pi; // Ç°ÏòÏòÏñÒÆËÙ¶È
-float        img_move_omiga_y_pi; // ºáÏòÏòÏñÒÆËÙ¶È
-float        photo_Dis;           // ³ÉÏñ¾àÀë m
-float        TD_Time;             // Ò»Ìõ´øÖÜÆÚÊ±¼ä s
-int          TD_Num;              // Ìõ´øÊı
-int          TD_PhotoNum;         // Ã¿Ìõ´ø³ÉÏñÖ¡Êı
-float        speed_time;          // ËÙ¶ÈĞÅºÅÊ±¼ä s
-float        location_time;       // Î»ÖÃĞÅºÅÊ±¼ä s
-int          QYCX_NeedTDNum;      // ĞèÒªÉ¨ÃèÌõ´ø
-int          QYCX_ScanOverTime;   // ÒÑÍê³ÉÉ¨Ãè´ÎÊı
-float        range_lowline;       // ¾àÀë½ü½ç
-float        range_upline;        // ¾àÀëÔ¶½ç
-// ½¹¾à¡¢Ö¡Æµ¡¢ÏñÔª³ß´ç¡¢ÏñÔªÊı
-int   tocal_foclen_KJ;  // ¿É¼û½¹¾à µ¥Î»: mm
-float tocal_pixsize_KJ; // ÏñÔª³ß´ç4.5
+//------------------------å‚æ•°è®¡ç®—ç”¨å˜é‡ byL.B----------------------------//
+//----------è¾“å…¥
+struct_GPS_float64 AC_Position_pi; // ä½ç½®åæ ‡ è®¡ç®—ç”¨è½½æœºä½ç½®
+struct_AttiAgl     AttitudeAC_pi;  // å§¿æ€
+struct_KJAgl       KJAgl_pi;       // æ¡†æ¶è§’
+struct_KJAgl       KJAgl_exp_pi;   // æ›å…‰æ—¶åˆ»æ¡†æ¶è§’
+struct_KJAgl       KFKZAgl_exp_pi; // æ›å…‰æ—¶åˆ»å¿«åè§’
+//--------è¾“å‡º
+struct_KJAgl KJ_start_pi;         // æ¡†æ¶èµ·å§‹è§’
+struct_KJAgl KJ_end_pi;           // æ¡†æ¶ç»“æŸè§’
+struct_KJAgl KJ_omiga_pi;         // æ¡†æ¶è§’é€Ÿåº¦è§’
+float        speed_hight;         // é€Ÿé«˜æ¯”
+float        img_move_omiga_x_pi; // å‰å‘å‘åƒç§»é€Ÿåº¦
+float        img_move_omiga_y_pi; // æ¨ªå‘å‘åƒç§»é€Ÿåº¦
+float        photo_Dis;           // æˆåƒè·ç¦» m
+float        TD_Time;             // ä¸€æ¡å¸¦å‘¨æœŸæ—¶é—´ s
+int          TD_Num;              // æ¡å¸¦æ•°
+int          TD_PhotoNum;         // æ¯æ¡å¸¦æˆåƒå¸§æ•°
+float        speed_time;          // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
+float        location_time;       // ä½ç½®ä¿¡å·æ—¶é—´ s
+int          QYCX_NeedTDNum;      // éœ€è¦æ‰«ææ¡å¸¦
+int          QYCX_ScanOverTime;   // å·²å®Œæˆæ‰«ææ¬¡æ•°
+float        range_lowline;       // è·ç¦»è¿‘ç•Œ
+float        range_upline;        // è·ç¦»è¿œç•Œ
+// ç„¦è·ã€å¸§é¢‘ã€åƒå…ƒå°ºå¯¸ã€åƒå…ƒæ•°
+int   tocal_foclen_KJ;  // å¯è§ç„¦è· å•ä½: mm
+float tocal_pixsize_KJ; // åƒå…ƒå°ºå¯¸4.5
 
-struct_Position_float64 ZB_ecef_Tar;                 // ×¼±¸ÓÃECEFÖĞÄ¿±ê×ø±ê
-struct_AttiAgl          sin_AttiAgl;                 // ×ËÌ¬½ÇµÄsinÖµ
-struct_AttiAgl          cos_AttiAgl;                 // ×ËÌ¬½ÇµÄcosÖµ
-float                   AC_NED[3][3];                // AC×ø±êÏµÏòNED×ø±êÏµ×ª»»
-float                   NED_ECEF[3][4];              // NED×ø±êÏµÏòECEF×ø±êÏµ×ª»»
-float                   AC_ECEF[3][4];               // AC×ø±êÏµÏòECEF×ø±êÏµ×ª»»
-float                   planTar_high;                // Ïà¶Ô¸ß¶È Ã×
-float                   tar_high;                    // Ä¿±ê¸ß¶È
-struct_KJAgl            sin_KJAgl;                   // ¿ò¼Ü½ÇsinÖµ
-struct_KJAgl            cos_KJAgl;                   // ¿ò¼Ü½ÇcosÖµ
-struct_KJAgl            sin_KJAgl_exp;               // ¿ò¼Ü½ÇsinÖµ
-struct_KJAgl            cos_KJAgl_exp;               // ¿ò¼Ü½ÇcosÖµ
-float                   AC_speed;                    // ËÙ¶È
-double                  ECEF_NED_Plan[3][4];         // ECEFµ½·É»úNED×ø±êÏµ×ª»»¾ØÕó
-float                   GYCX_Tar_YawAgl_last_sin[4]; // ¼ÇÂ¼µ±Ç°º½Ïò½Çsin
-float                   GYCX_Tar_YawAgl_last_cos[4]; // ¼ÇÂ¼µ±Ç°º½Ïò½Çcos
-int                     LL_yaw_i;                    // º½Ïò¼ÆÊı
-float                   GYCX_YawAgl_pi;              // ¹ãÓò³ÉÏñÓÃº½Ïò½Ç
-float                   GYCX_PitchAgl_pi;            // ¹ãÓò³ÉÏñÓÃ¸©Ñö½Ç
-float                   GYCX_WKJ_omiga;              // ¹ãÓò³ÉÏñÍâ¿ò¼Ü½ÇËÙ¶È
-float                   GYCX_NKJ_omiga;              // ¹ãÓò³ÉÏñÄÚ¿ò¼Ü½ÇËÙ¶È
-float                   GYCX_TarAgl_pi;              // ¹ãÓò³ÉÏñ Ä¿±êÇãĞ±½Ç »¡¶È
-float                   GYCX_TarAgl_near_pi;         // ¾àÀëÓÅÏÈ¹ãÓò³ÉÏñ Ä¿±êÇãĞ±½Ç½ü½ç »¡¶È
-float                   GYCX_TarAgl_far_pi;          // ¾àÀëÓÅÏÈ¹ãÓò³ÉÏñ Ä¿±êÇãĞ±½ÇÔ¶½ç »¡¶È
-float                   GYCX_TarAgl_min_pi;          // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ·½Î»½ÇĞ¡½Ç »¡¶È
-float                   GYCX_TarAgl_max_pi;          // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ·½Î»½Ç´ó½Ç »¡¶È
-float                   GYCX_TarAgl_FYAgl_pi;        // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ¸©Ñö½Ç´ó½Ç »¡¶È
+struct_Position_float64 ZB_ecef_Tar;                 // å‡†å¤‡ç”¨ECEFä¸­ç›®æ ‡åæ ‡
+struct_AttiAgl          sin_AttiAgl;                 // å§¿æ€è§’çš„sinå€¼
+struct_AttiAgl          cos_AttiAgl;                 // å§¿æ€è§’çš„coså€¼
+float                   AC_NED[3][3];                // ACåæ ‡ç³»å‘NEDåæ ‡ç³»è½¬æ¢
+float                   NED_ECEF[3][4];              // NEDåæ ‡ç³»å‘ECEFåæ ‡ç³»è½¬æ¢
+float                   AC_ECEF[3][4];               // ACåæ ‡ç³»å‘ECEFåæ ‡ç³»è½¬æ¢
+float                   planTar_high;                // ç›¸å¯¹é«˜åº¦ ç±³
+float                   tar_high;                    // ç›®æ ‡é«˜åº¦
+struct_KJAgl            sin_KJAgl;                   // æ¡†æ¶è§’sinå€¼
+struct_KJAgl            cos_KJAgl;                   // æ¡†æ¶è§’coså€¼
+struct_KJAgl            sin_KJAgl_exp;               // æ¡†æ¶è§’sinå€¼
+struct_KJAgl            cos_KJAgl_exp;               // æ¡†æ¶è§’coså€¼
+float                   AC_speed;                    // é€Ÿåº¦
+double                  ECEF_NED_Plan[3][4];         // ECEFåˆ°é£æœºNEDåæ ‡ç³»è½¬æ¢çŸ©é˜µ
+float                   GYCX_Tar_YawAgl_last_sin[4]; // è®°å½•å½“å‰èˆªå‘è§’sin
+float                   GYCX_Tar_YawAgl_last_cos[4]; // è®°å½•å½“å‰èˆªå‘è§’cos
+int                     LL_yaw_i;                    // èˆªå‘è®¡æ•°
+float                   GYCX_YawAgl_pi;              // å¹¿åŸŸæˆåƒç”¨èˆªå‘è§’
+float                   GYCX_PitchAgl_pi;            // å¹¿åŸŸæˆåƒç”¨ä¿¯ä»°è§’
+float                   GYCX_WKJ_omiga;              // å¹¿åŸŸæˆåƒå¤–æ¡†æ¶è§’é€Ÿåº¦
+float                   GYCX_NKJ_omiga;              // å¹¿åŸŸæˆåƒå†…æ¡†æ¶è§’é€Ÿåº¦
+float                   GYCX_TarAgl_pi;              // å¹¿åŸŸæˆåƒ ç›®æ ‡å€¾æ–œè§’ å¼§åº¦
+float                   GYCX_TarAgl_near_pi;         // è·ç¦»ä¼˜å…ˆå¹¿åŸŸæˆåƒ ç›®æ ‡å€¾æ–œè§’è¿‘ç•Œ å¼§åº¦
+float                   GYCX_TarAgl_far_pi;          // è·ç¦»ä¼˜å…ˆå¹¿åŸŸæˆåƒ ç›®æ ‡å€¾æ–œè§’è¿œç•Œ å¼§åº¦
+float                   GYCX_TarAgl_min_pi;          // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ æ–¹ä½è§’å°è§’ å¼§åº¦
+float                   GYCX_TarAgl_max_pi;          // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ æ–¹ä½è§’å¤§è§’ å¼§åº¦
+float                   GYCX_TarAgl_FYAgl_pi;        // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ ä¿¯ä»°è§’å¤§è§’ å¼§åº¦
 
-float QYCX_WKJ_omiga; // ÇøÓò³ÉÏñÍâ¿ò¼Ü½ÇËÙ¶È
-int   QYCX_Over_flag; // ÒÑÍê³ÉÉ¨Ãè±êÖ¾
-int   QYCX_ScanTDNum; // ÒÑÉ¨ÃèÌõ´øÊı
+float QYCX_WKJ_omiga; // åŒºåŸŸæˆåƒå¤–æ¡†æ¶è§’é€Ÿåº¦
+int   QYCX_Over_flag; // å·²å®Œæˆæ‰«ææ ‡å¿—
+int   QYCX_ScanTDNum; // å·²æ‰«ææ¡å¸¦æ•°
 
-int   QYCX_QYNo_Doing;      // ÕıÔÚÖ´ĞĞµÄÇøÓòºÅ
-int   QYCX_DointQY_flag;    // ÊÇ·ñÕıÔÚÖ´ĞĞÒ»¸öÇøÓò
-float QYCX_TDAgl_WKJ_first; // ÇøÓòÓÃÆğÊ¼Íâ¿ò¼Ü
-float QYCX_TDAgl_NKJ_first; // ÇøÓòÓÃÆğÊ¼ÄÚ¿ò¼Ü
-float QYCX_WKJ_change;      // ÇøÓòÓÃÍâ¿ò¼Ü±ä»¯Á¿
-float QYCX_NKJ_change;      // ÇøÓòÓÃÄÚ¿ò¼Ü±ä»¯Á¿
+int   QYCX_QYNo_Doing;      // æ­£åœ¨æ‰§è¡Œçš„åŒºåŸŸå·
+int   QYCX_DointQY_flag;    // æ˜¯å¦æ­£åœ¨æ‰§è¡Œä¸€ä¸ªåŒºåŸŸ
+float QYCX_TDAgl_WKJ_first; // åŒºåŸŸç”¨èµ·å§‹å¤–æ¡†æ¶
+float QYCX_TDAgl_NKJ_first; // åŒºåŸŸç”¨èµ·å§‹å†…æ¡†æ¶
+float QYCX_WKJ_change;      // åŒºåŸŸç”¨å¤–æ¡†æ¶å˜åŒ–é‡
+float QYCX_NKJ_change;      // åŒºåŸŸç”¨å†…æ¡†æ¶å˜åŒ–é‡
 
-// Ä¿±êÔÚECEF×ø±ê
+// ç›®æ ‡åœ¨ECEFåæ ‡
 float ECEF_TarA[3];
-// Ä¿±êÔÚECEF×ø±ê
+// ç›®æ ‡åœ¨ECEFåæ ‡
 float ECEF_TarC[3];
 
-struct_KJAgl KJAgl_AC_pi;  // AC×ø±êÏµÏÂ¿ò¼Ü½Ç
-struct_KJAgl KJAgl_NED_pi; // NED×ø±êÏµÏÂ¿ò¼Ü½Ç
-int          cover_wide;   // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+struct_KJAgl KJAgl_AC_pi;  // ACåæ ‡ç³»ä¸‹æ¡†æ¶è§’
+struct_KJAgl KJAgl_NED_pi; // NEDåæ ‡ç³»ä¸‹æ¡†æ¶è§’
+int          cover_wide;   // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
 
-struct_Position_float64 GeoTrack_ecef_Tar; // µØÀí¸ú×ÙÓÃECEFÖĞÄ¿±ê×ø±ê
-float                   geo_WKJ_ParaErro;  // ¶¨Î»ĞŞÕı½Ç Íâ¿ò¼Ü¶¨Î»¼ÆËã½Ç ¶È
-float                   geo_NKJ_ParaErro;  // ¶¨Î»ĞŞÕı½Ç ÄÚ¿ò¼Ü¶¨Î»¼ÆËã½Ç ¶È
+struct_Position_float64 GeoTrack_ecef_Tar; // åœ°ç†è·Ÿè¸ªç”¨ECEFä¸­ç›®æ ‡åæ ‡
+float                   geo_WKJ_ParaErro;  // å®šä½ä¿®æ­£è§’ å¤–æ¡†æ¶å®šä½è®¡ç®—è§’ åº¦
+float                   geo_NKJ_ParaErro;  // å®šä½ä¿®æ­£è§’ å†…æ¡†æ¶å®šä½è®¡ç®—è§’ åº¦
 
-//------------------------²ÎÊı¼ÆËãÓÃ±äÁ¿ byL.B---------end-------------------//
+//------------------------å‚æ•°è®¡ç®—ç”¨å˜é‡ byL.B---------end-------------------//
 
-// ¼ÆËãÖĞÊ¹ÓÃ±äÁ¿³õÊ¼»¯
+// è®¡ç®—ä¸­ä½¿ç”¨å˜é‡åˆå§‹åŒ–
 void comp_Parm_init() {
-    memset(&AC_Position_pi, 0, sizeof(struct_GPS_float64)); // Î»ÖÃ×ø±ê ¼ÆËãÓÃÔØ»úÎ»ÖÃ
-    memset(&AttitudeAC_pi, 0, sizeof(AttitudeAC_pi));       // ×ËÌ¬
-    memset(&KJAgl_pi, 0, sizeof(KJAgl_pi));                 // ¿ò¼Ü½Ç
-    memset(&KJAgl_exp_pi, 0, sizeof(KJAgl_exp_pi));         // ÆØ¹âÊ±¿Ì¿ò¼Ü½Ç
-    memset(&KFKZAgl_exp_pi, 0, sizeof(KFKZAgl_exp_pi));     // ÆØ¹âÊ±¿Ì¿ì·´½Ç
-    memset(&KJ_start_pi, 0, sizeof(KJ_start_pi));           // ¿ò¼ÜÆğÊ¼½Ç
-    memset(&KJ_end_pi, 0, sizeof(KJ_end_pi));               // ¿ò¼Ü½áÊø½Ç
-    memset(&KJ_omiga_pi, 0, sizeof(KJ_omiga_pi));           // ¿ò¼Ü½ÇËÙ¶È½Ç
-    speed_hight         = 0.007;                            // ËÙ¸ß±È
-    img_move_omiga_x_pi = 0;                                // Ç°ÏòÏòÏñÒÆËÙ¶È
-    img_move_omiga_y_pi = 0;                                // ºáÏòÏòÏñÒÆËÙ¶È
-    photo_Dis           = 0;                                // ³ÉÏñ¾àÀë m
-    TD_Time             = 0;                                // Ò»Ìõ´øÖÜÆÚÊ±¼ä s
-    TD_Num              = 0;                                // Ìõ´øÊı
-    TD_PhotoNum         = 0;                                // Ã¿Ìõ´ø³ÉÏñÖ¡Êı
-    speed_time          = 0;                                // ËÙ¶ÈĞÅºÅÊ±¼ä s
-    location_time       = 0;                                // Î»ÖÃĞÅºÅÊ±¼ä s
-    tocal_foclen_KJ     = 1906;                             // ¿É¼û½¹¾à µ¥Î»: mm
-    tocal_pixsize_KJ    = 4.5;                              // ÏñÔª³ß´ç4.5
-    memset(&ZB_ecef_Tar, 0, sizeof(ZB_ecef_Tar));           // ×¼±¸ÓÃECEFÖĞÄ¿±ê×ø±ê
-    memset(&sin_AttiAgl, 0, sizeof(sin_AttiAgl));           // ×ËÌ¬½ÇµÄsinÖµ
-    memset(&cos_AttiAgl, 0, sizeof(cos_AttiAgl));           // ×ËÌ¬½ÇµÄcosÖµ
-    memset(&AC_NED, 0, sizeof(AC_NED));                     // ×ËÌ¬½ÇµÄcosÖµ
+    memset(&AC_Position_pi, 0, sizeof(struct_GPS_float64)); // ä½ç½®åæ ‡ è®¡ç®—ç”¨è½½æœºä½ç½®
+    memset(&AttitudeAC_pi, 0, sizeof(AttitudeAC_pi));       // å§¿æ€
+    memset(&KJAgl_pi, 0, sizeof(KJAgl_pi));                 // æ¡†æ¶è§’
+    memset(&KJAgl_exp_pi, 0, sizeof(KJAgl_exp_pi));         // æ›å…‰æ—¶åˆ»æ¡†æ¶è§’
+    memset(&KFKZAgl_exp_pi, 0, sizeof(KFKZAgl_exp_pi));     // æ›å…‰æ—¶åˆ»å¿«åè§’
+    memset(&KJ_start_pi, 0, sizeof(KJ_start_pi));           // æ¡†æ¶èµ·å§‹è§’
+    memset(&KJ_end_pi, 0, sizeof(KJ_end_pi));               // æ¡†æ¶ç»“æŸè§’
+    memset(&KJ_omiga_pi, 0, sizeof(KJ_omiga_pi));           // æ¡†æ¶è§’é€Ÿåº¦è§’
+    speed_hight         = 0.007;                            // é€Ÿé«˜æ¯”
+    img_move_omiga_x_pi = 0;                                // å‰å‘å‘åƒç§»é€Ÿåº¦
+    img_move_omiga_y_pi = 0;                                // æ¨ªå‘å‘åƒç§»é€Ÿåº¦
+    photo_Dis           = 0;                                // æˆåƒè·ç¦» m
+    TD_Time             = 0;                                // ä¸€æ¡å¸¦å‘¨æœŸæ—¶é—´ s
+    TD_Num              = 0;                                // æ¡å¸¦æ•°
+    TD_PhotoNum         = 0;                                // æ¯æ¡å¸¦æˆåƒå¸§æ•°
+    speed_time          = 0;                                // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
+    location_time       = 0;                                // ä½ç½®ä¿¡å·æ—¶é—´ s
+    tocal_foclen_KJ     = 1906;                             // å¯è§ç„¦è· å•ä½: mm
+    tocal_pixsize_KJ    = 4.5;                              // åƒå…ƒå°ºå¯¸4.5
+    memset(&ZB_ecef_Tar, 0, sizeof(ZB_ecef_Tar));           // å‡†å¤‡ç”¨ECEFä¸­ç›®æ ‡åæ ‡
+    memset(&sin_AttiAgl, 0, sizeof(sin_AttiAgl));           // å§¿æ€è§’çš„sinå€¼
+    memset(&cos_AttiAgl, 0, sizeof(cos_AttiAgl));           // å§¿æ€è§’çš„coså€¼
+    memset(&AC_NED, 0, sizeof(AC_NED));                     // å§¿æ€è§’çš„coså€¼
 
-    planTar_high = 0; // Ïà¶Ô¸ß¶È Ã×
-    tar_high     = 0; // Ä¿±ê¸ß¶È
+    planTar_high = 0; // ç›¸å¯¹é«˜åº¦ ç±³
+    tar_high     = 0; // ç›®æ ‡é«˜åº¦
 
-    memset(&sin_KJAgl, 0, sizeof(sin_KJAgl));         // ¿ò¼Ü½ÇsinÖµ
-    memset(&cos_KJAgl, 0, sizeof(cos_KJAgl));         // ¿ò¼Ü½ÇcosÖµ
-    memset(&sin_KJAgl_exp, 0, sizeof(sin_KJAgl_exp)); // ¿ò¼Ü½ÇsinÖµ
-    memset(&cos_KJAgl_exp, 0, sizeof(cos_KJAgl_exp)); // ¿ò¼Ü½ÇcosÖµ
-    AC_speed = 0;                                     // ËÙ¶È
+    memset(&sin_KJAgl, 0, sizeof(sin_KJAgl));         // æ¡†æ¶è§’sinå€¼
+    memset(&cos_KJAgl, 0, sizeof(cos_KJAgl));         // æ¡†æ¶è§’coså€¼
+    memset(&sin_KJAgl_exp, 0, sizeof(sin_KJAgl_exp)); // æ¡†æ¶è§’sinå€¼
+    memset(&cos_KJAgl_exp, 0, sizeof(cos_KJAgl_exp)); // æ¡†æ¶è§’coså€¼
+    AC_speed = 0;                                     // é€Ÿåº¦
 
-    LL_yaw_i             = 0; // º½Ïò¼ÆÊı
-    GYCX_YawAgl_pi       = 0; // ¹ãÓò³ÉÏñÓÃº½Ïò½Ç
-    GYCX_PitchAgl_pi     = 0; // ¹ãÓò³ÉÏñÓÃ¸©Ñö½Ç
-    GYCX_WKJ_omiga       = 0; // ¹ãÓò³ÉÏñÍâ¿ò¼Ü½ÇËÙ¶È
-    GYCX_NKJ_omiga       = 0; // ¹ãÓò³ÉÏñÄÚ¿ò¼Ü½ÇËÙ¶È
-    GYCX_TarAgl_pi       = 0; // ¹ãÓò³ÉÏñ Ä¿±êÇãĞ±½Ç »¡¶È
-    GYCX_TarAgl_near_pi  = 0; // ¾àÀëÓÅÏÈ¹ãÓò³ÉÏñ Ä¿±êÇãĞ±½Ç½ü½ç »¡¶È
-    GYCX_TarAgl_far_pi   = 0; // ¾àÀëÓÅÏÈ¹ãÓò³ÉÏñ Ä¿±êÇãĞ±½ÇÔ¶½ç »¡¶È
-    GYCX_TarAgl_min_pi   = 0; // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ·½Î»½ÇĞ¡½Ç »¡¶È
-    GYCX_TarAgl_max_pi   = 0; // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ·½Î»½Ç´ó½Ç »¡¶È
-    GYCX_TarAgl_FYAgl_pi = 0; // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ¸©Ñö½Ç´ó½Ç »¡¶È
+    LL_yaw_i             = 0; // èˆªå‘è®¡æ•°
+    GYCX_YawAgl_pi       = 0; // å¹¿åŸŸæˆåƒç”¨èˆªå‘è§’
+    GYCX_PitchAgl_pi     = 0; // å¹¿åŸŸæˆåƒç”¨ä¿¯ä»°è§’
+    GYCX_WKJ_omiga       = 0; // å¹¿åŸŸæˆåƒå¤–æ¡†æ¶è§’é€Ÿåº¦
+    GYCX_NKJ_omiga       = 0; // å¹¿åŸŸæˆåƒå†…æ¡†æ¶è§’é€Ÿåº¦
+    GYCX_TarAgl_pi       = 0; // å¹¿åŸŸæˆåƒ ç›®æ ‡å€¾æ–œè§’ å¼§åº¦
+    GYCX_TarAgl_near_pi  = 0; // è·ç¦»ä¼˜å…ˆå¹¿åŸŸæˆåƒ ç›®æ ‡å€¾æ–œè§’è¿‘ç•Œ å¼§åº¦
+    GYCX_TarAgl_far_pi   = 0; // è·ç¦»ä¼˜å…ˆå¹¿åŸŸæˆåƒ ç›®æ ‡å€¾æ–œè§’è¿œç•Œ å¼§åº¦
+    GYCX_TarAgl_min_pi   = 0; // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ æ–¹ä½è§’å°è§’ å¼§åº¦
+    GYCX_TarAgl_max_pi   = 0; // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ æ–¹ä½è§’å¤§è§’ å¼§åº¦
+    GYCX_TarAgl_FYAgl_pi = 0; // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ ä¿¯ä»°è§’å¤§è§’ å¼§åº¦
 
-    QYCX_WKJ_omiga       = 0;                                 // ÇøÓò³ÉÏñÍâ¿ò¼Ü½ÇËÙ¶È
-    QYCX_Over_flag       = 0;                                 // ÒÑÍê³ÉÉ¨Ãè±êÖ¾
-    QYCX_ScanTDNum       = 0;                                 // ÒÑÉ¨ÃèÌõ´øÊı
-    QYCX_NeedTDNum       = 0;                                 // ĞèÒªÉ¨ÃèÌõ´ø
-    QYCX_QYNo_Doing      = 0;                                 // ÕıÔÚÖ´ĞĞµÄÇøÓòºÅ
-    QYCX_DointQY_flag    = 0;                                 // ÊÇ·ñÕıÔÚÖ´ĞĞÒ»¸öÇøÓò
-    QYCX_TDAgl_WKJ_first = 0;                                 // ÇøÓòÓÃÆğÊ¼Íâ¿ò¼Ü
-    QYCX_TDAgl_NKJ_first = 0;                                 // ÇøÓòÓÃÆğÊ¼ÄÚ¿ò¼Ü
-    QYCX_WKJ_change      = 0;                                 // ÇøÓòÓÃÍâ¿ò¼Ü±ä»¯Á¿
-    QYCX_NKJ_change      = 0;                                 // ÇøÓòÓÃÄÚ¿ò¼Ü±ä»¯Á¿
-    QYCX_ScanOverTime    = 0;                                 // ÒÑÍê³ÉÉ¨Ãè´ÎÊı
-    memset(&KJAgl_AC_pi, 0, sizeof(struct_KJAgl));            // AC×ø±êÏµÏÂ¿ò¼Ü½Ç
-    memset(&KJAgl_NED_pi, 0, sizeof(struct_KJAgl));           // NED×ø±êÏµÏÂ¿ò¼Ü½Ç
-    cover_wide = 0;                                           // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
-    memset(&GeoTrack_ecef_Tar, 0, sizeof(GeoTrack_ecef_Tar)); // µØÀí¸ú×ÙÓÃECEFÖĞÄ¿±ê×ø±ê
-    geo_WKJ_ParaErro = 0;                                     // ¶¨Î»ĞŞÕı½Ç Íâ¿ò¼Ü¶¨Î»¼ÆËã½Ç ¶È
-    geo_NKJ_ParaErro = 0;                                     // ¶¨Î»ĞŞÕı½Ç ÄÚ¿ò¼Ü¶¨Î»¼ÆËã½Ç ¶È
+    QYCX_WKJ_omiga       = 0;                                 // åŒºåŸŸæˆåƒå¤–æ¡†æ¶è§’é€Ÿåº¦
+    QYCX_Over_flag       = 0;                                 // å·²å®Œæˆæ‰«ææ ‡å¿—
+    QYCX_ScanTDNum       = 0;                                 // å·²æ‰«ææ¡å¸¦æ•°
+    QYCX_NeedTDNum       = 0;                                 // éœ€è¦æ‰«ææ¡å¸¦
+    QYCX_QYNo_Doing      = 0;                                 // æ­£åœ¨æ‰§è¡Œçš„åŒºåŸŸå·
+    QYCX_DointQY_flag    = 0;                                 // æ˜¯å¦æ­£åœ¨æ‰§è¡Œä¸€ä¸ªåŒºåŸŸ
+    QYCX_TDAgl_WKJ_first = 0;                                 // åŒºåŸŸç”¨èµ·å§‹å¤–æ¡†æ¶
+    QYCX_TDAgl_NKJ_first = 0;                                 // åŒºåŸŸç”¨èµ·å§‹å†…æ¡†æ¶
+    QYCX_WKJ_change      = 0;                                 // åŒºåŸŸç”¨å¤–æ¡†æ¶å˜åŒ–é‡
+    QYCX_NKJ_change      = 0;                                 // åŒºåŸŸç”¨å†…æ¡†æ¶å˜åŒ–é‡
+    QYCX_ScanOverTime    = 0;                                 // å·²å®Œæˆæ‰«ææ¬¡æ•°
+    memset(&KJAgl_AC_pi, 0, sizeof(struct_KJAgl));            // ACåæ ‡ç³»ä¸‹æ¡†æ¶è§’
+    memset(&KJAgl_NED_pi, 0, sizeof(struct_KJAgl));           // NEDåæ ‡ç³»ä¸‹æ¡†æ¶è§’
+    cover_wide = 0;                                           // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
+    memset(&GeoTrack_ecef_Tar, 0, sizeof(GeoTrack_ecef_Tar)); // åœ°ç†è·Ÿè¸ªç”¨ECEFä¸­ç›®æ ‡åæ ‡
+    geo_WKJ_ParaErro = 0;                                     // å®šä½ä¿®æ­£è§’ å¤–æ¡†æ¶å®šä½è®¡ç®—è§’ åº¦
+    geo_NKJ_ParaErro = 0;                                     // å®šä½ä¿®æ­£è§’ å†…æ¡†æ¶å®šä½è®¡ç®—è§’ åº¦
 
-    GYCX_Tar_YawAgl_last_sin[0] = 0; // ¼ÇÂ¼µ±Ç°º½Ïò½Çsin
-    GYCX_Tar_YawAgl_last_sin[1] = 0; // ¼ÇÂ¼µ±Ç°º½Ïò½Çsin
-    GYCX_Tar_YawAgl_last_sin[2] = 0; // ¼ÇÂ¼µ±Ç°º½Ïò½Çsin
-    GYCX_Tar_YawAgl_last_sin[3] = 0; // ¼ÇÂ¼µ±Ç°º½Ïò½Çsin
+    GYCX_Tar_YawAgl_last_sin[0] = 0; // è®°å½•å½“å‰èˆªå‘è§’sin
+    GYCX_Tar_YawAgl_last_sin[1] = 0; // è®°å½•å½“å‰èˆªå‘è§’sin
+    GYCX_Tar_YawAgl_last_sin[2] = 0; // è®°å½•å½“å‰èˆªå‘è§’sin
+    GYCX_Tar_YawAgl_last_sin[3] = 0; // è®°å½•å½“å‰èˆªå‘è§’sin
 
-    GYCX_Tar_YawAgl_last_cos[0] = 1; // ¼ÇÂ¼µ±Ç°º½Ïò½Çcos
-    GYCX_Tar_YawAgl_last_cos[1] = 1; // ¼ÇÂ¼µ±Ç°º½Ïò½Çcos
-    GYCX_Tar_YawAgl_last_cos[2] = 1; // ¼ÇÂ¼µ±Ç°º½Ïò½Çcos
-    GYCX_Tar_YawAgl_last_cos[3] = 1; // ¼ÇÂ¼µ±Ç°º½Ïò½Çcos
+    GYCX_Tar_YawAgl_last_cos[0] = 1; // è®°å½•å½“å‰èˆªå‘è§’cos
+    GYCX_Tar_YawAgl_last_cos[1] = 1; // è®°å½•å½“å‰èˆªå‘è§’cos
+    GYCX_Tar_YawAgl_last_cos[2] = 1; // è®°å½•å½“å‰èˆªå‘è§’cos
+    GYCX_Tar_YawAgl_last_cos[3] = 1; // è®°å½•å½“å‰èˆªå‘è§’cos
 
-    range_lowline = 0; // ¾àÀë½ü½ç
-    range_upline  = 0; // ¾àÀëÔ¶½ç
+    range_lowline = 0; // è·ç¦»è¿‘ç•Œ
+    range_upline  = 0; // è·ç¦»è¿œç•Œ
     /*
-    float AC_NED[3][3];//AC×ø±êÏµÏòNED×ø±êÏµ×ª»»
-    float NED_ECEF[3][4];//NED×ø±êÏµÏòECEF×ø±êÏµ×ª»»
-    float AC_ECEF[3][4];//AC×ø±êÏµÏòECEF×ø±êÏµ×ª»»
-    float ECEF_NED_Plan[3][4];//ECEFµ½·É»úNED×ø±êÏµ×ª»»¾ØÕó
+    float AC_NED[3][3];//ACåæ ‡ç³»å‘NEDåæ ‡ç³»è½¬æ¢
+    float NED_ECEF[3][4];//NEDåæ ‡ç³»å‘ECEFåæ ‡ç³»è½¬æ¢
+    float AC_ECEF[3][4];//ACåæ ‡ç³»å‘ECEFåæ ‡ç³»è½¬æ¢
+    float ECEF_NED_Plan[3][4];//ECEFåˆ°é£æœºNEDåæ ‡ç³»è½¬æ¢çŸ©é˜µ
      */
 }
 
-// 1.¸ù¾İ¾àÀëËã½Ç¶È-¾àÀëÓÅÏÈÄ£Ê½Ê¹ÓÃ£º¼ìµ÷¹â¡¢Õı³£¹¤×÷Ê¹ÓÃ
-// ¸ù¾İ¾àÀë½ü½ç¡¢¾àÀëÔ¶½ç¡¢É¨Ãè·½Ïò¡¢Ä¿±êÇøÓò¸ß¶È£¬¼ÆËãÖ¸Áî½ÇµÈ¹¤×÷²ÎÊı
-// ·µ»ØÖµÎªÊÇ·ñ³¬ÏŞ
+// 1.æ ¹æ®è·ç¦»ç®—è§’åº¦-è·ç¦»ä¼˜å…ˆæ¨¡å¼ä½¿ç”¨ï¼šæ£€è°ƒå…‰ã€æ­£å¸¸å·¥ä½œä½¿ç”¨
+// æ ¹æ®è·ç¦»è¿‘ç•Œã€è·ç¦»è¿œç•Œã€æ‰«ææ–¹å‘ã€ç›®æ ‡åŒºåŸŸé«˜åº¦ï¼Œè®¡ç®—æŒ‡ä»¤è§’ç­‰å·¥ä½œå‚æ•°
+// è¿”å›å€¼ä¸ºæ˜¯å¦è¶…é™
 UINT8 comp_GY_Dis_Normal() {
-    int   overPara_flag_t = 0;    // ²ÎÊı³¬ÏŞ±êÊ¶
-    float TDAgl_bigger_t;         // Ìõ´ø½Ï´ó½Ç
-    float TDAgl_smaller_t;        // Ìõ´ø½ÏĞ¡½Ç
-    ProcessInPram();              // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    int   overPara_flag_t = 0;    // å‚æ•°è¶…é™æ ‡è¯†
+    float TDAgl_bigger_t;         // æ¡å¸¦è¾ƒå¤§è§’
+    float TDAgl_smaller_t;        // æ¡å¸¦è¾ƒå°è§’
+    ProcessInPram();              // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
-    // ¸üĞÂ¹ãÓò³ÉÏñÉ¨Ãèº½Ïò½Ç
+    // æ›´æ–°å¹¿åŸŸæˆåƒæ‰«æèˆªå‘è§’
     GetScanTarYaw();
-    // ¸üĞÂÄ¿±êÇãĞ±½Ç
+    // æ›´æ–°ç›®æ ‡å€¾æ–œè§’
     Process_TarAgl_GY_Dis_ParaComputer();
-    // ¸üĞÂÌõ´øÖ¡Êı£¬Ìõ´øÊ±¼ä¼°ÆğÊ¼½áÊø½Ç
+    // æ›´æ–°æ¡å¸¦å¸§æ•°ï¼Œæ¡å¸¦æ—¶é—´åŠèµ·å§‹ç»“æŸè§’
     GYCX_Dis_GetTDPhotoNum(&TDAgl_bigger_t, &TDAgl_smaller_t, &overPara_flag_t);
 
-    location_time = TD_Time - TD_PhotoNum * GYCX_pfs - Sec_KJSpeedREADY; // Î»ÖÃĞÅºÅÊ±¼ä  s
-    speed_time    = TD_Time - location_time;                             // ËÙ¶ÈĞÅºÅÊ±¼ä s
+    location_time = TD_Time - TD_PhotoNum * GYCX_pfs - Sec_KJSpeedREADY; // ä½ç½®ä¿¡å·æ—¶é—´  s
+    speed_time    = TD_Time - location_time;                             // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
 
-    struct_KJAgl KJ_Agl_start; // ¸³ÖµÓÃ¿ò¼ÜÆğÊ¼½Ç
-    struct_KJAgl KJ_Agl_end;   // ¸³ÖµÓÃ¿ò¼Ü½áÊø½Ç
+    struct_KJAgl KJ_Agl_start; // èµ‹å€¼ç”¨æ¡†æ¶èµ·å§‹è§’
+    struct_KJAgl KJ_Agl_end;   // èµ‹å€¼ç”¨æ¡†æ¶ç»“æŸè§’
 
     KJ_Agl_start.NKJ = TDAgl_smaller_t;
     KJ_Agl_end.NKJ   = TDAgl_bigger_t;
 
-    if (V_IR_WIDE_IMAGE_DIRECTION_LEFT == param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION) // ×ó
+    if (V_IR_WIDE_IMAGE_DIRECTION_LEFT == param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION) // å·¦
     {
-        KJ_Agl_start.WKJ = -85 * Agl_PI; // ÆğÊ¼½Ç
-        KJ_Agl_end.WKJ   = -90 * Agl_PI; // ½áÊø½Ç
-    } else                               // ÓÒÇã
+        KJ_Agl_start.WKJ = -85 * Agl_PI; // èµ·å§‹è§’
+        KJ_Agl_end.WKJ   = -90 * Agl_PI; // ç»“æŸè§’
+    } else                               // å³å€¾
     {
-        KJ_Agl_start.WKJ = 85 * Agl_PI; // ÆğÊ¼½Ç
-        KJ_Agl_end.WKJ   = 90 * Agl_PI; // ½áÊø½Ç
+        KJ_Agl_start.WKJ = 85 * Agl_PI; // èµ·å§‹è§’
+        KJ_Agl_end.WKJ   = 90 * Agl_PI; // ç»“æŸè§’
     }
 
-    cover_wide = tan(fabs(TDAgl_bigger_t)) * planTar_high - tan(fabs(TDAgl_smaller_t)) * planTar_high; // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+    cover_wide = tan(fabs(TDAgl_bigger_t)) * planTar_high - tan(fabs(TDAgl_smaller_t)) * planTar_high; // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
 
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê,³ÉÏñÇ°×¼±¸ÓÃ
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡,æˆåƒå‰å‡†å¤‡ç”¨
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
 
-    // ÒÀ¾İ×ËÌ¬¸ø³öÖ¸Ïò¿ØÖÆ½Ç
+    // ä¾æ®å§¿æ€ç»™å‡ºæŒ‡å‘æ§åˆ¶è§’
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
-    KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+    KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
 
     if (1 == TD_PhotoNum) {
         KJ_omiga_pi.WKJ = 0;
         KJ_omiga_pi.NKJ = 0;
     }
-    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // ÅÔÏòÖØµşÂÊ
-    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // Ç°ÏòÖØµşÂÊ
+    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // æ—å‘é‡å ç‡
+    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // å‰å‘é‡å ç‡
 
-    Geolocation(); // ¶¨Î»¼ÆËã
+    Geolocation(); // å®šä½è®¡ç®—
 
-    ComptLos(); // ¼ÆËãµ±Ç°ÊÓÖá
+    ComptLos(); // è®¡ç®—å½“å‰è§†è½´
 
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
 
-    ComptRange(); // ¼ÆËã½ü¾àÔ¶¾à
+    ComptRange(); // è®¡ç®—è¿‘è·è¿œè·
 
-    Out_GY_Dis(); // ¾àÀëÓÅÏÈ¹ãÓò·µ»Ø²ÎÊı
+    Out_GY_Dis(); // è·ç¦»ä¼˜å…ˆå¹¿åŸŸè¿”å›å‚æ•°
     return overPara_flag_t;
 }
-// 2.¸ù¾İÁ¿³ÌºÍÆğÊ¼½Ç½áÊø½ÇËã¡ª¡ª·½Î»ÓÅÏÈÊ¹ÓÃ£º¼ìµ÷¹â¡¢Õı³£¹¤×÷Ê¹ÓÃ
+// 2.æ ¹æ®é‡ç¨‹å’Œèµ·å§‹è§’ç»“æŸè§’ç®—â€”â€”æ–¹ä½ä¼˜å…ˆä½¿ç”¨ï¼šæ£€è°ƒå…‰ã€æ­£å¸¸å·¥ä½œä½¿ç”¨
 UINT8 comp_GY_Az_Normal() {
-    int   overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
-    float TDAgl_bigger_t;      // Ìõ´ø½Ï´ó½Ç
-    float TDAgl_smaller_t;     // Ìõ´ø½ÏĞ¡½Ç
+    int   overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
+    float TDAgl_bigger_t;      // æ¡å¸¦è¾ƒå¤§è§’
+    float TDAgl_smaller_t;     // æ¡å¸¦è¾ƒå°è§’
     float temp_dis = 0;
-    //	float temp_agl = 0;//ÁÙÊ±½ü½ç½Ç
-    ProcessInPram();              // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    //	float temp_agl = 0;//ä¸´æ—¶è¿‘ç•Œè§’
+    ProcessInPram();              // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.AZ_area_altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
-    GetScanTarYaw();                     // ¸üĞÂ¹ãÓò³ÉÏñÉ¨Ãèº½Ïò½Ç
-    Process_TarAgl_GY_AZ_ParaComputer(); // ¸üĞÂÄ¿±êÇãĞ±½Ç
-    // ¸üĞÂÌõ´øÖ¡Êı£¬Ìõ´øÊ±¼ä¼°ÆğÊ¼½áÊø½Ç
+    GetScanTarYaw();                     // æ›´æ–°å¹¿åŸŸæˆåƒæ‰«æèˆªå‘è§’
+    Process_TarAgl_GY_AZ_ParaComputer(); // æ›´æ–°ç›®æ ‡å€¾æ–œè§’
+    // æ›´æ–°æ¡å¸¦å¸§æ•°ï¼Œæ¡å¸¦æ—¶é—´åŠèµ·å§‹ç»“æŸè§’
     GYCX_AZ_GetTDPhotoNum(&TDAgl_bigger_t, &TDAgl_smaller_t, &overPara_flag_t);
 
-    location_time = TD_Time - TD_PhotoNum * GYCX_pfs - Sec_KJSpeedREADY; // Î»ÖÃĞÅºÅÊ±¼ä  s
-    speed_time    = TD_Time - location_time;                             // ËÙ¶ÈĞÅºÅÊ±¼ä s
+    location_time = TD_Time - TD_PhotoNum * GYCX_pfs - Sec_KJSpeedREADY; // ä½ç½®ä¿¡å·æ—¶é—´  s
+    speed_time    = TD_Time - location_time;                             // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
 
-    struct_KJAgl KJ_Agl_start; // ¸³ÖµÓÃ¿ò¼ÜÆğÊ¼½Ç
-    struct_KJAgl KJ_Agl_end;   // ¸³ÖµÓÃ¿ò¼Ü½áÊø½Ç
+    struct_KJAgl KJ_Agl_start; // èµ‹å€¼ç”¨æ¡†æ¶èµ·å§‹è§’
+    struct_KJAgl KJ_Agl_end;   // èµ‹å€¼ç”¨æ¡†æ¶ç»“æŸè§’
 
     KJ_Agl_start.WKJ = TDAgl_smaller_t;
     KJ_Agl_end.WKJ   = TDAgl_bigger_t;
 
-    KJ_Agl_start.NKJ = GYCX_TarAgl_FYAgl_pi;           // ÆğÊ¼½Ç
-    KJ_Agl_end.NKJ   = GYCX_TarAgl_FYAgl_pi - 0.08726; // ½áÊø½Ç
+    KJ_Agl_start.NKJ = GYCX_TarAgl_FYAgl_pi;           // èµ·å§‹è§’
+    KJ_Agl_end.NKJ   = GYCX_TarAgl_FYAgl_pi - 0.08726; // ç»“æŸè§’
 
-    temp_dis = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE * 1000; // Ä¿±ê¾àÀë
+    temp_dis = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE * 1000; // ç›®æ ‡è·ç¦»
     if (temp_dis == 0) {
         temp_dis = 1;
     }
 
     if ((TDAgl_bigger_t * TDAgl_smaller_t) < 0) {
-        cover_wide = tan(fabs(TDAgl_bigger_t)) * temp_dis + tan(fabs(TDAgl_smaller_t)) * temp_dis; // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+        cover_wide = tan(fabs(TDAgl_bigger_t)) * temp_dis + tan(fabs(TDAgl_smaller_t)) * temp_dis; // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
     } else {
-        cover_wide = fabs(tan(fabs(TDAgl_bigger_t)) * temp_dis - tan(fabs(TDAgl_smaller_t)) * temp_dis); // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+        cover_wide = fabs(tan(fabs(TDAgl_bigger_t)) * temp_dis - tan(fabs(TDAgl_smaller_t)) * temp_dis); // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
     }
 
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê,³ÉÏñÇ°×¼±¸ÓÃ
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡,æˆåƒå‰å‡†å¤‡ç”¨
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
-    // ÒÀ¾İ×ËÌ¬¸ø³öÖ¸Ïò¿ØÖÆ½Ç
+    // ä¾æ®å§¿æ€ç»™å‡ºæŒ‡å‘æ§åˆ¶è§’
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
-    KJ_omiga_pi.WKJ = GYCX_WKJ_omiga;      // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = img_move_omiga_x_pi; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+    KJ_omiga_pi.WKJ = GYCX_WKJ_omiga;      // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = img_move_omiga_x_pi; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
 
-    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_y; // ÅÔÏòÖØµşÂÊ
-    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_x; // Ç°ÏòÖØµşÂÊ
+    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_y; // æ—å‘é‡å ç‡
+    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_x; // å‰å‘é‡å ç‡
 
-    Geolocation(); // ¶¨Î»¼ÆËã
-    ComptLos();    // ¼ÆËãµ±Ç°ÊÓÖá
+    Geolocation(); // å®šä½è®¡ç®—
+    ComptLos();    // è®¡ç®—å½“å‰è§†è½´
 
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
-    ComptRange();     // ¼ÆËã½ü¾àÔ¶¾à
-    Out_GY_Az();      // ·½Î»ÓÅÏÈ¹ãÓò·µ»Ø²ÎÊı
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
+    ComptRange();     // è®¡ç®—è¿‘è·è¿œè·
+    Out_GY_Az();      // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸè¿”å›å‚æ•°
 
     return overPara_flag_t;
 }
 
-// 3.×¼±¸ÖĞµÄ¼ìµ÷½¹Ê¹ÓÃ¡ª¡ª¾àÀëÓÅÏÈ
-// ²àÏò£¨¾àÀëÓÅÏÈ£©£ºÖ»¿¼ÂÇ×óÓÒÇã£¬·½Î»°´85¡ã£¬¸©Ñö°´ÕÕ¾àÀë32km¼ÆËã
+// 3.å‡†å¤‡ä¸­çš„æ£€è°ƒç„¦ä½¿ç”¨â€”â€”è·ç¦»ä¼˜å…ˆ
+// ä¾§å‘ï¼ˆè·ç¦»ä¼˜å…ˆï¼‰ï¼šåªè€ƒè™‘å·¦å³å€¾ï¼Œæ–¹ä½æŒ‰85Â°ï¼Œä¿¯ä»°æŒ‰ç…§è·ç¦»32kmè®¡ç®—
 UINT8 comp_GY_Dis_ZB_JTJ() {
-    int overPara_flag_t = 0;                                                    // ²ÎÊı³¬ÏŞ±êÊ¶
-    ProcessInPram();                                                            // ÊäÈë²ÎÊı´¦Àí
-    Process_Atti_ParaComputer();                                                // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer();                                               // ´¦Àí¿ò¼Ü½Ç
-    GetScanTarYaw();                                                            // ¸üĞÂ¹ãÓò³ÉÏñÉ¨Ãèº½Ïò½Ç
-    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // ¼ÆËãÏà¶Ô¸ß¶È
+    int overPara_flag_t = 0;                                                    // å‚æ•°è¶…é™æ ‡è¯†
+    ProcessInPram();                                                            // è¾“å…¥å‚æ•°å¤„ç†
+    Process_Atti_ParaComputer();                                                // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer();                                               // å¤„ç†æ¡†æ¶è§’
+    GetScanTarYaw();                                                            // æ›´æ–°å¹¿åŸŸæˆåƒæ‰«æèˆªå‘è§’
+    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // è®¡ç®—ç›¸å¯¹é«˜åº¦
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
-    struct_KJAgl       hope_agl_kj_t;  // ÀíÏë¿ò¼Ü½Ç
-    struct_KJAgl       cal_agl_kj_t;   // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t; // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
+    struct_KJAgl       hope_agl_kj_t;  // ç†æƒ³æ¡†æ¶è§’
+    struct_KJAgl       cal_agl_kj_t;   // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t; // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
 
     if (V_IR_WIDE_IMAGE_DIRECTION_RIGHT == param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION) {
         hope_agl_kj_t.WKJ = 85 * Agl_PI;
     } else {
         hope_agl_kj_t.WKJ = -85 * Agl_PI;
     }
-    // ¸³ÖµÀíÏë¿ò¼Ü½Ç
+    // èµ‹å€¼ç†æƒ³æ¡†æ¶è§’
     hope_agl_kj_t.NKJ = acos(planTar_high / 32000);
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &hope_agl_kj_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &ZB_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 1; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 1; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
 
     return overPara_flag_t;
 }
-// 4.×¼±¸ÖĞµÄ¼ìµ÷½¹Ê¹ÓÃ¡ª¡ª·½Î»ÓÅÏÈ
-// Ç°Ïò£¨·½Î»ÓÅÏÈ£©£ºÓÒ²àÇ°£¬·½Î»ÓÒ²àÇã½Ç30¡ã£¨Ç°Îª0£©£¬Ç°Ïò¸©Ñö½Ç°´¾àÀë32km¼ÆËã
+// 4.å‡†å¤‡ä¸­çš„æ£€è°ƒç„¦ä½¿ç”¨â€”â€”æ–¹ä½ä¼˜å…ˆ
+// å‰å‘ï¼ˆæ–¹ä½ä¼˜å…ˆï¼‰ï¼šå³ä¾§å‰ï¼Œæ–¹ä½å³ä¾§å€¾è§’30Â°ï¼ˆå‰ä¸º0ï¼‰ï¼Œå‰å‘ä¿¯ä»°è§’æŒ‰è·ç¦»32kmè®¡ç®—
 UINT8 comp_GY_Az_ZB_JTJ() {
-    int overPara_flag_t = 0;                                                    // ²ÎÊı³¬ÏŞ±êÊ¶
-    ProcessInPram();                                                            // ÊäÈë²ÎÊı´¦Àí
-    Process_Atti_ParaComputer();                                                // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer();                                               // ´¦Àí¿ò¼Ü½Ç
-    GetScanTarYaw();                                                            // ¸üĞÂ¹ãÓò³ÉÏñÉ¨Ãèº½Ïò½Ç
-    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // ¼ÆËãÏà¶Ô¸ß¶È
+    int overPara_flag_t = 0;                                                    // å‚æ•°è¶…é™æ ‡è¯†
+    ProcessInPram();                                                            // è¾“å…¥å‚æ•°å¤„ç†
+    Process_Atti_ParaComputer();                                                // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer();                                               // å¤„ç†æ¡†æ¶è§’
+    GetScanTarYaw();                                                            // æ›´æ–°å¹¿åŸŸæˆåƒæ‰«æèˆªå‘è§’
+    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // è®¡ç®—ç›¸å¯¹é«˜åº¦
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
-    struct_KJAgl       hope_agl_kj_t;  // ÀíÏë¿ò¼Ü½Ç
-    struct_KJAgl       cal_agl_kj_t;   // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t; // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
+    struct_KJAgl       hope_agl_kj_t;  // ç†æƒ³æ¡†æ¶è§’
+    struct_KJAgl       cal_agl_kj_t;   // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t; // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
 
     hope_agl_kj_t.WKJ = 30 * Agl_PI;
-    // ¸³ÖµÀíÏë¿ò¼Ü½Ç
+    // èµ‹å€¼ç†æƒ³æ¡†æ¶è§’
     hope_agl_kj_t.NKJ = acos(planTar_high / 32000);
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &hope_agl_kj_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &ZB_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 1; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 1; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
 
     return overPara_flag_t;
 }
 
-// 5.Î¬»¤×Ô¼ì£¬Ö´ĞĞ¹ãÓò³ÉÏñ¡ª¡ª¾àÀëÓÅÏÈ£¬ÓÒÇã³ÉÏñ
+// 5.ç»´æŠ¤è‡ªæ£€ï¼Œæ‰§è¡Œå¹¿åŸŸæˆåƒâ€”â€”è·ç¦»ä¼˜å…ˆï¼Œå³å€¾æˆåƒ
 UINT8 comp_GY_Dis_WHZJ() {
-    int   overPara_flag_t = 0;    // ²ÎÊı³¬ÏŞ±êÊ¶
-    float TDAgl_bigger_t;         // Ìõ´ø½Ï´ó½Ç
-    float TDAgl_smaller_t;        // Ìõ´ø½ÏĞ¡½Ç
-    ProcessInPram();              // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    int   overPara_flag_t = 0;    // å‚æ•°è¶…é™æ ‡è¯†
+    float TDAgl_bigger_t;         // æ¡å¸¦è¾ƒå¤§è§’
+    float TDAgl_smaller_t;        // æ¡å¸¦è¾ƒå°è§’
+    ProcessInPram();              // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
+    // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
     Process_Dis_ParaComputer();
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
-    // ¸üĞÂ¹ãÓò³ÉÏñÉ¨Ãèº½Ïò½Ç
+    // æ›´æ–°å¹¿åŸŸæˆåƒæ‰«æèˆªå‘è§’
     GetScanTarYaw();
 
-    //----------×Ô¼ìÓÃ¸³Öµ
+    //----------è‡ªæ£€ç”¨èµ‹å€¼
     if (speed_hight < 0.07) {
         speed_hight = 0.07;
     }
     GYCX_TarAgl_pi      = 80 * Agl_PI;
     GYCX_TarAgl_near_pi = 75 * Agl_PI;
     GYCX_TarAgl_far_pi  = 85 * Agl_PI;
-    //----------×Ô¼ìÓÃ¸³Öµ
-    // ¸üĞÂÌõ´øÖ¡Êı£¬Ìõ´øÊ±¼ä¼°ÆğÊ¼½áÊø½Ç
+    //----------è‡ªæ£€ç”¨èµ‹å€¼
+    // æ›´æ–°æ¡å¸¦å¸§æ•°ï¼Œæ¡å¸¦æ—¶é—´åŠèµ·å§‹ç»“æŸè§’
     GYCX_Dis_GetTDPhotoNum(&TDAgl_bigger_t, &TDAgl_smaller_t, &overPara_flag_t);
 
-    location_time = (TD_Time - TD_PhotoNum * GYCX_pfs - Sec_KJSpeedREADY); // Î»ÖÃĞÅºÅÊ±¼ä s
-    speed_time    = TD_Time - location_time;                               // ËÙ¶ÈĞÅºÅÊ±¼ä s
+    location_time = (TD_Time - TD_PhotoNum * GYCX_pfs - Sec_KJSpeedREADY); // ä½ç½®ä¿¡å·æ—¶é—´ s
+    speed_time    = TD_Time - location_time;                               // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
 
-    struct_KJAgl KJ_Agl_start; // ¸³ÖµÓÃ¿ò¼ÜÆğÊ¼½Ç
-    struct_KJAgl KJ_Agl_end;   // ¸³ÖµÓÃ¿ò¼Ü½áÊø½Ç
+    struct_KJAgl KJ_Agl_start; // èµ‹å€¼ç”¨æ¡†æ¶èµ·å§‹è§’
+    struct_KJAgl KJ_Agl_end;   // èµ‹å€¼ç”¨æ¡†æ¶ç»“æŸè§’
 
-    AttitudeAC_pi.Yaw   = param_Compute_Input_Fromfpga.true_heading; // º½Ïò½Ç
-    AttitudeAC_pi.Pitch = param_Compute_Input_Fromfpga.pitch;        // ¸©Ñö½Ç
-    AttitudeAC_pi.Roll  = param_Compute_Input_Fromfpga.roll;         // ºá¹ö½Ç
+    AttitudeAC_pi.Yaw   = param_Compute_Input_Fromfpga.true_heading; // èˆªå‘è§’
+    AttitudeAC_pi.Pitch = param_Compute_Input_Fromfpga.pitch;        // ä¿¯ä»°è§’
+    AttitudeAC_pi.Roll  = param_Compute_Input_Fromfpga.roll;         // æ¨ªæ»šè§’
 
     KJ_Agl_start.NKJ = TDAgl_smaller_t;
     KJ_Agl_end.NKJ   = TDAgl_bigger_t;
 
-    // °´ÕÕÓÒÇã
-    KJ_Agl_start.WKJ = 90 * Agl_PI; // ÆğÊ¼½Ç
-    KJ_Agl_end.WKJ   = 95 * Agl_PI; // ½áÊø½Ç
+    // æŒ‰ç…§å³å€¾
+    KJ_Agl_start.WKJ = 90 * Agl_PI; // èµ·å§‹è§’
+    KJ_Agl_end.WKJ   = 95 * Agl_PI; // ç»“æŸè§’
 
-    // ÒÀ¾İ×ËÌ¬¸ø³öÖ¸Ïò¿ØÖÆ½Ç
+    // ä¾æ®å§¿æ€ç»™å‡ºæŒ‡å‘æ§åˆ¶è§’
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
-    KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+    KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
 
-    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // ÅÔÏòÖØµşÂÊ
-    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // Ç°ÏòÖØµşÂÊ
+    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // æ—å‘é‡å ç‡
+    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // å‰å‘é‡å ç‡
 
-    range_lowline = tan(KJ_Agl_start.NKJ * Agl_PI) * planTar_high; // ½ü¾à
+    range_lowline = tan(KJ_Agl_start.NKJ * Agl_PI) * planTar_high; // è¿‘è·
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    Out_GY_Dis();     // ¾àÀëÓÅÏÈ¹ãÓò·µ»Ø²ÎÊı
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    Out_GY_Dis();     // è·ç¦»ä¼˜å…ˆå¹¿åŸŸè¿”å›å‚æ•°
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
 
-// 6.×¼±¸ÖĞµ÷¹âÊ¹ÓÃ¡ª¡ª¹ãÓò³ÉÏñ¡ª¡ª¾àÀëÓÅÏÈ
-// ·µ»ØÖµÎªÊÇ·ñ³¬ÏŞ
+// 6.å‡†å¤‡ä¸­è°ƒå…‰ä½¿ç”¨â€”â€”å¹¿åŸŸæˆåƒâ€”â€”è·ç¦»ä¼˜å…ˆ
+// è¿”å›å€¼ä¸ºæ˜¯å¦è¶…é™
 UINT8 comp_GY_Dis_ZB_JTG() {
-    int   overPara_flag_t = 0;    // ²ÎÊı³¬ÏŞ±êÊ¶
-    float TDAgl_bigger_t;         // Ìõ´ø½Ï´ó½Ç
-    float TDAgl_smaller_t;        // Ìõ´ø½ÏĞ¡½Ç
-    ProcessInPram();              // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    int   overPara_flag_t = 0;    // å‚æ•°è¶…é™æ ‡è¯†
+    float TDAgl_bigger_t;         // æ¡å¸¦è¾ƒå¤§è§’
+    float TDAgl_smaller_t;        // æ¡å¸¦è¾ƒå°è§’
+    ProcessInPram();              // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
-    // ¸üĞÂ¹ãÓò³ÉÏñÉ¨Ãèº½Ïò½Ç
+    // æ›´æ–°å¹¿åŸŸæˆåƒæ‰«æèˆªå‘è§’
     GetScanTarYaw();
-    // ¸üĞÂÄ¿±êÇãĞ±½Ç
+    // æ›´æ–°ç›®æ ‡å€¾æ–œè§’
     Process_TarAgl_GY_Dis_ParaComputer();
-    // ¸üĞÂÌõ´øÖ¡Êı£¬Ìõ´øÊ±¼ä¼°ÆğÊ¼½áÊø½Ç
+    // æ›´æ–°æ¡å¸¦å¸§æ•°ï¼Œæ¡å¸¦æ—¶é—´åŠèµ·å§‹ç»“æŸè§’
     GYCX_Dis_GetTDPhotoNum(&TDAgl_bigger_t, &TDAgl_smaller_t, &overPara_flag_t);
 
-    if (TD_PhotoNum > 30) // µ÷¹âÓÃÌõ´ø×î¶à30Ö¡
+    if (TD_PhotoNum > 30) // è°ƒå…‰ç”¨æ¡å¸¦æœ€å¤š30å¸§
     {
         TD_PhotoNum = 30;
     }
-    location_time = Sec_KJPosREADY_WKJ;                        // µ÷¹âÓÃÎ»ÖÃĞÅºÅÊ±¼ä  s
-    speed_time    = GYCX_pfs * TD_PhotoNum + Sec_KJSpeedREADY; // ËÙ¶ÈĞÅºÅÊ±¼ä s
+    location_time = Sec_KJPosREADY_WKJ;                        // è°ƒå…‰ç”¨ä½ç½®ä¿¡å·æ—¶é—´  s
+    speed_time    = GYCX_pfs * TD_PhotoNum + Sec_KJSpeedREADY; // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
 
-    struct_KJAgl KJ_Agl_start; // ¸³ÖµÓÃ¿ò¼ÜÆğÊ¼½Ç
-    struct_KJAgl KJ_Agl_end;   // ¸³ÖµÓÃ¿ò¼Ü½áÊø½Ç
+    struct_KJAgl KJ_Agl_start; // èµ‹å€¼ç”¨æ¡†æ¶èµ·å§‹è§’
+    struct_KJAgl KJ_Agl_end;   // èµ‹å€¼ç”¨æ¡†æ¶ç»“æŸè§’
 
     KJ_Agl_start.NKJ = TDAgl_smaller_t;
     KJ_Agl_end.NKJ   = TDAgl_bigger_t;
 
-    if (V_IR_WIDE_IMAGE_DIRECTION_LEFT == param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION) // ×ó
+    if (V_IR_WIDE_IMAGE_DIRECTION_LEFT == param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION) // å·¦
     {
-        KJ_Agl_start.WKJ = -85 * Agl_PI; // ÆğÊ¼½Ç
-        KJ_Agl_end.WKJ   = -90 * Agl_PI; // ½áÊø½Ç
-    } else                               // ÓÒÇã
+        KJ_Agl_start.WKJ = -85 * Agl_PI; // èµ·å§‹è§’
+        KJ_Agl_end.WKJ   = -90 * Agl_PI; // ç»“æŸè§’
+    } else                               // å³å€¾
     {
-        KJ_Agl_start.WKJ = 85 * Agl_PI; // ÆğÊ¼½Ç
-        KJ_Agl_end.WKJ   = 90 * Agl_PI; // ½áÊø½Ç
+        KJ_Agl_start.WKJ = 85 * Agl_PI; // èµ·å§‹è§’
+        KJ_Agl_end.WKJ   = 90 * Agl_PI; // ç»“æŸè§’
     }
 
-    cover_wide = tan(fabs(TDAgl_bigger_t)) * planTar_high - tan(fabs(TDAgl_smaller_t)) * planTar_high; // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+    cover_wide = tan(fabs(TDAgl_bigger_t)) * planTar_high - tan(fabs(TDAgl_smaller_t)) * planTar_high; // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
 
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê,³ÉÏñÇ°×¼±¸ÓÃ
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡,æˆåƒå‰å‡†å¤‡ç”¨
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
 
-    // ÒÀ¾İ×ËÌ¬¸ø³öÖ¸Ïò¿ØÖÆ½Ç
+    // ä¾æ®å§¿æ€ç»™å‡ºæŒ‡å‘æ§åˆ¶è§’
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
-    KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+    KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
 
     if (1 == TD_PhotoNum) {
         KJ_omiga_pi.WKJ = 0;
         KJ_omiga_pi.NKJ = 0;
     }
-    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // ÅÔÏòÖØµşÂÊ
-    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // Ç°ÏòÖØµşÂÊ
+    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // æ—å‘é‡å ç‡
+    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // å‰å‘é‡å ç‡
 
-    Geolocation(); // ¶¨Î»¼ÆËã
+    Geolocation(); // å®šä½è®¡ç®—
 
-    ComptLos(); // ¼ÆËãµ±Ç°ÊÓÖá
+    ComptLos(); // è®¡ç®—å½“å‰è§†è½´
 
-    ComptRange();     // ¼ÆËã½ü¾àÔ¶¾à
-    Out_GY_Dis();     // ¾àÀëÓÅÏÈ¹ãÓò·µ»Ø²ÎÊı
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptRange();     // è®¡ç®—è¿‘è·è¿œè·
+    Out_GY_Dis();     // è·ç¦»ä¼˜å…ˆå¹¿åŸŸè¿”å›å‚æ•°
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
 
     return overPara_flag_t;
 }
-// 7.×¼±¸ÖĞµ÷¹âÊ¹ÓÃ¡ª¡ª¹ãÓò³ÉÏñ¡ª¡ª·½Î»ÓÅÏÈ
-// ·µ»ØÖµÎªÊÇ·ñ³¬ÏŞ
+// 7.å‡†å¤‡ä¸­è°ƒå…‰ä½¿ç”¨â€”â€”å¹¿åŸŸæˆåƒâ€”â€”æ–¹ä½ä¼˜å…ˆ
+// è¿”å›å€¼ä¸ºæ˜¯å¦è¶…é™
 UINT8 comp_GY_Az_ZB_JTG() {
-    int   overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
-    float TDAgl_bigger_t;      // Ìõ´ø½Ï´ó½Ç
-    float TDAgl_smaller_t;     // Ìõ´ø½ÏĞ¡½Ç
+    int   overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
+    float TDAgl_bigger_t;      // æ¡å¸¦è¾ƒå¤§è§’
+    float TDAgl_smaller_t;     // æ¡å¸¦è¾ƒå°è§’
     float temp_dis = 0;
-    //	float temp_agl = 0;//ÁÙÊ±½ü½ç½Ç
-    ProcessInPram();              // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    //	float temp_agl = 0;//ä¸´æ—¶è¿‘ç•Œè§’
+    ProcessInPram();              // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.AZ_area_altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
-    GetScanTarYaw();                     // ¸üĞÂ¹ãÓò³ÉÏñÉ¨Ãèº½Ïò½Ç
-    Process_TarAgl_GY_AZ_ParaComputer(); // ¸üĞÂÄ¿±êÇãĞ±½Ç
-    // ¸üĞÂÌõ´øÖ¡Êı£¬Ìõ´øÊ±¼ä¼°ÆğÊ¼½áÊø½Ç
+    GetScanTarYaw();                     // æ›´æ–°å¹¿åŸŸæˆåƒæ‰«æèˆªå‘è§’
+    Process_TarAgl_GY_AZ_ParaComputer(); // æ›´æ–°ç›®æ ‡å€¾æ–œè§’
+    // æ›´æ–°æ¡å¸¦å¸§æ•°ï¼Œæ¡å¸¦æ—¶é—´åŠèµ·å§‹ç»“æŸè§’
     GYCX_AZ_GetTDPhotoNum(&TDAgl_bigger_t, &TDAgl_smaller_t, &overPara_flag_t);
 
-    if (TD_PhotoNum > 30) // µ÷¹âÓÃÌõ´ø×î¶à30Ö¡
+    if (TD_PhotoNum > 30) // è°ƒå…‰ç”¨æ¡å¸¦æœ€å¤š30å¸§
     {
         TD_PhotoNum = 30;
     }
-    location_time = Sec_KJPosREADY_WKJ;                        // µ÷¹âÓÃÎ»ÖÃĞÅºÅÊ±¼ä  s
-    speed_time    = GYCX_pfs * TD_PhotoNum + Sec_KJSpeedREADY; // ËÙ¶ÈĞÅºÅÊ±¼ä s
+    location_time = Sec_KJPosREADY_WKJ;                        // è°ƒå…‰ç”¨ä½ç½®ä¿¡å·æ—¶é—´  s
+    speed_time    = GYCX_pfs * TD_PhotoNum + Sec_KJSpeedREADY; // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
 
-    struct_KJAgl KJ_Agl_start; // ¸³ÖµÓÃ¿ò¼ÜÆğÊ¼½Ç
-    struct_KJAgl KJ_Agl_end;   // ¸³ÖµÓÃ¿ò¼Ü½áÊø½Ç
+    struct_KJAgl KJ_Agl_start; // èµ‹å€¼ç”¨æ¡†æ¶èµ·å§‹è§’
+    struct_KJAgl KJ_Agl_end;   // èµ‹å€¼ç”¨æ¡†æ¶ç»“æŸè§’
 
     KJ_Agl_start.WKJ = TDAgl_smaller_t;
     KJ_Agl_end.WKJ   = TDAgl_bigger_t;
 
-    KJ_Agl_start.NKJ = GYCX_TarAgl_FYAgl_pi;           // ÆğÊ¼½Ç
-    KJ_Agl_end.NKJ   = GYCX_TarAgl_FYAgl_pi - 0.08726; // ½áÊø½Ç
+    KJ_Agl_start.NKJ = GYCX_TarAgl_FYAgl_pi;           // èµ·å§‹è§’
+    KJ_Agl_end.NKJ   = GYCX_TarAgl_FYAgl_pi - 0.08726; // ç»“æŸè§’
 
-    temp_dis = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE * 1000; // Ä¿±ê¾àÀë
+    temp_dis = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE * 1000; // ç›®æ ‡è·ç¦»
     if (temp_dis == 0) {
         temp_dis = 1;
     }
 
     if ((TDAgl_bigger_t * TDAgl_smaller_t) < 0) {
-        cover_wide = tan(fabs(TDAgl_bigger_t)) * temp_dis + tan(fabs(TDAgl_smaller_t)) * temp_dis; // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+        cover_wide = tan(fabs(TDAgl_bigger_t)) * temp_dis + tan(fabs(TDAgl_smaller_t)) * temp_dis; // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
     } else {
-        cover_wide = fabs(tan(fabs(TDAgl_bigger_t)) * temp_dis - tan(fabs(TDAgl_smaller_t)) * temp_dis); // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+        cover_wide = fabs(tan(fabs(TDAgl_bigger_t)) * temp_dis - tan(fabs(TDAgl_smaller_t)) * temp_dis); // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
     }
 
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê,³ÉÏñÇ°×¼±¸ÓÃ
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡,æˆåƒå‰å‡†å¤‡ç”¨
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
-    // ÒÀ¾İ×ËÌ¬¸ø³öÖ¸Ïò¿ØÖÆ½Ç
+    // ä¾æ®å§¿æ€ç»™å‡ºæŒ‡å‘æ§åˆ¶è§’
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
-    KJ_omiga_pi.WKJ = GYCX_WKJ_omiga;      // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = img_move_omiga_x_pi; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+    KJ_omiga_pi.WKJ = GYCX_WKJ_omiga;      // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = img_move_omiga_x_pi; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
 
-    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_y; // ÅÔÏòÖØµşÂÊ
-    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_x; // Ç°ÏòÖØµşÂÊ
+    param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_y; // æ—å‘é‡å ç‡
+    param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_x; // å‰å‘é‡å ç‡
 
-    Geolocation();    // ¶¨Î»¼ÆËã
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ComptRange();     // ¼ÆËã½ü¾àÔ¶¾à
-    Out_GY_Az();      // ·½Î»ÓÅÏÈ¹ãÓò·µ»Ø²ÎÊı
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    Geolocation();    // å®šä½è®¡ç®—
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ComptRange();     // è®¡ç®—è¿‘è·è¿œè·
+    Out_GY_Az();      // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸè¿”å›å‚æ•°
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
 
-// 1.ÇøÓò³ÉÏñ×¼±¸ÖĞ¡ª¡ª¼ìµ÷¹âÓÃ
-// °´ÕÕÇøÓò³ÉÏñµÄÖĞĞÄµã¾­Î³¸ß²ÎÊıÌáÈ¡×óÓÒÇãĞ±·½Ïò£¬·½Î»°´80¡ã£¬¸©Ñö°ÚÉ¨½Ç¶ÈÒÔ¾àÀë50kmÎªÖĞĞÄ°ÚÉ¨
+// 1.åŒºåŸŸæˆåƒå‡†å¤‡ä¸­â€”â€”æ£€è°ƒå…‰ç”¨
+// æŒ‰ç…§åŒºåŸŸæˆåƒçš„ä¸­å¿ƒç‚¹ç»çº¬é«˜å‚æ•°æå–å·¦å³å€¾æ–œæ–¹å‘ï¼Œæ–¹ä½æŒ‰80Â°ï¼Œä¿¯ä»°æ‘†æ‰«è§’åº¦ä»¥è·ç¦»50kmä¸ºä¸­å¿ƒæ‘†æ‰«
 UINT8 comp_QY_Photo_ZB_JTG() {
-    int                overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
+    int                overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
     int                temp_int;
     float              Tar_Lon;
     float              Tar_lat;
     float              Tar_alt;
-    struct_KJAgl       hope_agl_kj_t;  // ÀíÏë¿ò¼Ü½Ç
-    struct_KJAgl       cal_agl_kj_t;   // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t; // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
+    struct_KJAgl       hope_agl_kj_t;  // ç†æƒ³æ¡†æ¶è§’
+    struct_KJAgl       cal_agl_kj_t;   // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t; // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
 
-    ProcessInPram();              // ÊäÈë²ÎÊı´¦Àí
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    ProcessInPram();              // è¾“å…¥å‚æ•°å¤„ç†
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
-    QYCX_QYNo_Doing = 0;                         // ÕıÔÚÖ´ĞĞµÄÇøÓòºÅ
-    for (temp_int = 1; temp_int < 4; temp_int++) // ×î¶à²éÕÒ3¸ö
+    QYCX_QYNo_Doing = 0;                         // æ­£åœ¨æ‰§è¡Œçš„åŒºåŸŸå·
+    for (temp_int = 1; temp_int < 4; temp_int++) // æœ€å¤šæŸ¥æ‰¾3ä¸ª
     {
-        // ÈôÇøÓò±àºÅÎŞĞ§
+        // è‹¥åŒºåŸŸç¼–å·æ— æ•ˆ
         if (0 == param_Compute_Input_Fromfc.comp_area_image_paras_validity[QYCX_QYNo_Doing]) {
-            QYCX_QYNo_Doing++; // ÕıÔÚÉ¨ÃèÇøÓò
-        } else                 // ÇøÓòÓĞĞ§
+            QYCX_QYNo_Doing++; // æ­£åœ¨æ‰«æåŒºåŸŸ
+        } else                 // åŒºåŸŸæœ‰æ•ˆ
         {
-            break; // Ìø³öÑ­»·
+            break; // è·³å‡ºå¾ªç¯
         }
-    } // ²éÕÒ¿ÉÓÃÇøÓò½áÊø
+    } // æŸ¥æ‰¾å¯ç”¨åŒºåŸŸç»“æŸ
 
     Tar_Lon = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].longitude;
     Tar_lat = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].latitude;
     Tar_alt = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].altitude;
-    // ¼ÆËã¿ò¼Ü½Ç
+    // è®¡ç®—æ¡†æ¶è§’
     overPara_flag_t = GeoTrack_ParaComputer(Tar_Lon, Tar_lat, Tar_alt);
     if (KJ_start_pi.WKJ > 0) {
         hope_agl_kj_t.WKJ = 80 * Agl_PI;
     } else {
         hope_agl_kj_t.WKJ = -80 * Agl_PI;
     }
-    // ¸³ÖµÀíÏë¿ò¼Ü½Ç
+    // èµ‹å€¼ç†æƒ³æ¡†æ¶è§’
     hope_agl_kj_t.NKJ = acos(planTar_high / 50000);
 
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &hope_agl_kj_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &ZB_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
 
     return overPara_flag_t;
 }
 
-// 2.ÇøÓò³ÉÏñ×¼±¸ÖĞ¡ª¡ª¼ìµ÷½¹ÓÃ
-// ÏÈÓÃ¾­Î³¸ßËã×óÓÒ£¬·½Î»°´85¡ã£¬¸©Ñö°´ÕÕ¾àÀë32km¼ÆËã£¬¼ÆËã³ö¾­Î³¸ß(×¼±¸ÖĞ¼ìµ÷½¹ÓÃµÄ  ¾­Î³¸ß)
+// 2.åŒºåŸŸæˆåƒå‡†å¤‡ä¸­â€”â€”æ£€è°ƒç„¦ç”¨
+// å…ˆç”¨ç»çº¬é«˜ç®—å·¦å³ï¼Œæ–¹ä½æŒ‰85Â°ï¼Œä¿¯ä»°æŒ‰ç…§è·ç¦»32kmè®¡ç®—ï¼Œè®¡ç®—å‡ºç»çº¬é«˜(å‡†å¤‡ä¸­æ£€è°ƒç„¦ç”¨çš„  ç»çº¬é«˜)
 UINT8 comp_QY_Photo_ZB_JTJ() {
-    int                overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
+    int                overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
     int                temp_int;
     float              Tar_Lon;
     float              Tar_lat;
     float              Tar_alt;
-    struct_KJAgl       hope_agl_kj_t;                                                   // ÀíÏë¿ò¼Ü½Ç
-    struct_KJAgl       cal_agl_kj_t;                                                    // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t;                                                  // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
-    ProcessInPram();                                                                    // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();                                                        // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer();                                                       // ´¦Àí¿ò¼Ü½Ç
-    tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude; // ¼ÆËãÏà¶Ô¸ß¶È
+    struct_KJAgl       hope_agl_kj_t;                                                   // ç†æƒ³æ¡†æ¶è§’
+    struct_KJAgl       cal_agl_kj_t;                                                    // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t;                                                  // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
+    ProcessInPram();                                                                    // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();                                                        // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer();                                                       // å¤„ç†æ¡†æ¶è§’
+    tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude; // è®¡ç®—ç›¸å¯¹é«˜åº¦
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
+    // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
     Process_Dis_ParaComputer();
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
     QYCX_QYNo_Doing = 0;
-    for (temp_int = 1; temp_int < 4; temp_int++) // ×î¶à²éÕÒ3¸ö
+    for (temp_int = 1; temp_int < 4; temp_int++) // æœ€å¤šæŸ¥æ‰¾3ä¸ª
     {
-        // ÈôÇøÓò±àºÅÎŞĞ§
+        // è‹¥åŒºåŸŸç¼–å·æ— æ•ˆ
         if (0 == param_Compute_Input_Fromfc.comp_area_image_paras_validity[QYCX_QYNo_Doing]) {
-            QYCX_QYNo_Doing++; // ÕıÔÚÉ¨ÃèÇøÓò
-        } else                 // ÇøÓòÓĞĞ§
+            QYCX_QYNo_Doing++; // æ­£åœ¨æ‰«æåŒºåŸŸ
+        } else                 // åŒºåŸŸæœ‰æ•ˆ
         {
-            break; // Ìø³öÑ­»·
+            break; // è·³å‡ºå¾ªç¯
         }
-    } // ²éÕÒ¿ÉÓÃÇøÓò½áÊø
+    } // æŸ¥æ‰¾å¯ç”¨åŒºåŸŸç»“æŸ
 
     Tar_Lon = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].longitude / 1000;
     Tar_lat = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].latitude / 1000;
     Tar_alt = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].altitude;
-    // ¼ÆËã¿ò¼Ü½Ç
+    // è®¡ç®—æ¡†æ¶è§’
     overPara_flag_t = GeoTrack_ParaComputer(Tar_Lon, Tar_lat, Tar_alt);
     if (KJ_start_pi.WKJ > 0) {
         hope_agl_kj_t.WKJ = 85 * Agl_PI;
     } else {
         hope_agl_kj_t.WKJ = -85 * Agl_PI;
     }
-    // ¸³ÖµÀíÏë¿ò¼Ü½Ç
+    // èµ‹å€¼ç†æƒ³æ¡†æ¶è§’
     hope_agl_kj_t.NKJ = acos(planTar_high / 32000);
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &hope_agl_kj_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &ZB_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
 
-// 3.ÇøÓò³ÉÏñÕı³££¬¸ù¾İÊÕµ½µÄÈı×éÇøÓò³ÉÏñ²ÎÊı½øĞĞ¼ÆËã
+// 3.åŒºåŸŸæˆåƒæ­£å¸¸ï¼Œæ ¹æ®æ”¶åˆ°çš„ä¸‰ç»„åŒºåŸŸæˆåƒå‚æ•°è¿›è¡Œè®¡ç®—
 UINT8 comp_QY_Photo_Normal() {
-    int                overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
+    int                overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
     int                temp_int        = 0;
     struct_GPS_float64 GPS_Tar;
     float              Tar_Range;
-    ProcessInPram();                                                            // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();                                                // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer();                                               // ´¦Àí¿ò¼Ü½Ç
-    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // ¼ÆËãÏà¶Ô¸ß¶È
+    ProcessInPram();                                                            // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();                                                // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer();                                               // å¤„ç†æ¡†æ¶è§’
+    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // è®¡ç®—ç›¸å¯¹é«˜åº¦
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
+    // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
     Process_Dis_ParaComputer();
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
-    // ¼ÆËã»ñµÃÉ¨Ãèº½Ïò½Ç
+    // è®¡ç®—è·å¾—æ‰«æèˆªå‘è§’
     GetScanTarYaw();
-    // ÊÇ·ñµÚÒ»´Î½øÈëÇøÓò³ÉÏñ¼ÆËã
+    // æ˜¯å¦ç¬¬ä¸€æ¬¡è¿›å…¥åŒºåŸŸæˆåƒè®¡ç®—
     if (1 == param_Compute_Input_Fromfpga.flag_GYQYPhoto_FIRST_Compute) {
-        QYCX_Over_flag    = 0; // ÒÑÍê³ÉÉ¨Ãè±êÖ¾
-        QYCX_ScanTDNum    = 0; // ÒÑÉ¨ÃèÌõ´øÊı
-        QYCX_QYNo_Doing   = 0; // ÕıÔÚÖ´ĞĞµÄÇøÓòºÅ
-        QYCX_DointQY_flag = 0; // ÊÇ·ñÕıÔÚÖ´ĞĞÒ»¸öÇøÓò
-        QYCX_NeedTDNum    = 0; // ĞèÒªÉ¨ÃèÌõ´ø
-        QYCX_ScanOverTime = 0; // ÒÑÍê³ÉÉ¨Ãè´ÎÊı
-    } else                     // ²»ÊÇµÚÒ»´Î¼ÆËãÇøÓò³ÉÏñ
+        QYCX_Over_flag    = 0; // å·²å®Œæˆæ‰«ææ ‡å¿—
+        QYCX_ScanTDNum    = 0; // å·²æ‰«ææ¡å¸¦æ•°
+        QYCX_QYNo_Doing   = 0; // æ­£åœ¨æ‰§è¡Œçš„åŒºåŸŸå·
+        QYCX_DointQY_flag = 0; // æ˜¯å¦æ­£åœ¨æ‰§è¡Œä¸€ä¸ªåŒºåŸŸ
+        QYCX_NeedTDNum    = 0; // éœ€è¦æ‰«ææ¡å¸¦
+        QYCX_ScanOverTime = 0; // å·²å®Œæˆæ‰«ææ¬¡æ•°
+    } else                     // ä¸æ˜¯ç¬¬ä¸€æ¬¡è®¡ç®—åŒºåŸŸæˆåƒ
     {
-        if (1 == param_Compute_Input_Fromfpga.flag_First_Into_Speed) // ´ÓÎ»ÖÃ½øÈëËÙ¶ÈĞÅºÅ
+        if (1 == param_Compute_Input_Fromfpga.flag_First_Into_Speed) // ä»ä½ç½®è¿›å…¥é€Ÿåº¦ä¿¡å·
         {
-            QYCX_ScanTDNum++; // ÒÑÉ¨ÃèÌõ´øÊı
+            QYCX_ScanTDNum++; // å·²æ‰«ææ¡å¸¦æ•°
             param_Compute_Input_Fromfpga.flag_First_Into_Speed = 0;
         }
 
         if (QYCX_ScanTDNum == QYCX_NeedTDNum) {
-            QYCX_QYNo_Doing++;  // ÕıÔÚÉ¨ÃèÇøÓò
-            QYCX_ScanTDNum = 0; // ÒÑÉ¨ÃèÌõ´øÊı
+            QYCX_QYNo_Doing++;  // æ­£åœ¨æ‰«æåŒºåŸŸ
+            QYCX_ScanTDNum = 0; // å·²æ‰«ææ¡å¸¦æ•°
         }
-        if (0 == QYCX_ScanTDNum) // ÒÑÉ¨Ìõ´øÊıÊÇ·ñÎªÁã
+        if (0 == QYCX_ScanTDNum) // å·²æ‰«æ¡å¸¦æ•°æ˜¯å¦ä¸ºé›¶
         {
-            QYCX_DointQY_flag = 0; // ÊÇ·ñÕıÔÚÖ´ĞĞÒ»¸öÇøÓò
+            QYCX_DointQY_flag = 0; // æ˜¯å¦æ­£åœ¨æ‰§è¡Œä¸€ä¸ªåŒºåŸŸ
         } else {
-            QYCX_DointQY_flag = 1; // ÊÇ·ñÕıÔÚÖ´ĞĞÒ»¸öÇøÓò
+            QYCX_DointQY_flag = 1; // æ˜¯å¦æ­£åœ¨æ‰§è¡Œä¸€ä¸ªåŒºåŸŸ
         }
     }
 
-    if (1 == QYCX_DointQY_flag) // ÕıÔÚÖ´ĞĞÒ»¸öÇøÓò
+    if (1 == QYCX_DointQY_flag) // æ­£åœ¨æ‰§è¡Œä¸€ä¸ªåŒºåŸŸ
     {
         QYCX_GetTDstart();
-        KJ_start_pi.WKJ = QYCX_TDAgl_WKJ_first + QYCX_ScanTDNum * QYCX_WKJ_change; // µ±ÒÑÉ¨ÃèÌõ´øÊıÔö¼Ó£¬ÆğÊ¼½Ç»á±ä»¯£¬
-        KJ_start_pi.NKJ = QYCX_TDAgl_NKJ_first + QYCX_ScanTDNum * QYCX_NKJ_change; // changeÁ¿¼ÆËãÔÚ2556ĞĞ£¬TDNum±ä»¯ÔÚ774ĞĞ
+        KJ_start_pi.WKJ = QYCX_TDAgl_WKJ_first + QYCX_ScanTDNum * QYCX_WKJ_change; // å½“å·²æ‰«ææ¡å¸¦æ•°å¢åŠ ï¼Œèµ·å§‹è§’ä¼šå˜åŒ–ï¼Œ
+        KJ_start_pi.NKJ = QYCX_TDAgl_NKJ_first + QYCX_ScanTDNum * QYCX_NKJ_change; // changeé‡è®¡ç®—åœ¨2556è¡Œï¼ŒTDNumå˜åŒ–åœ¨774è¡Œ
         KJ_end_pi.WKJ   = KJ_start_pi.WKJ + 0.1745;
         KJ_end_pi.NKJ   = KJ_start_pi.NKJ - 0.1745;
 
-        KJ_omiga_pi.WKJ = QYCX_WKJ_omiga + img_move_omiga_y_pi; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-        KJ_omiga_pi.NKJ = img_move_omiga_x_pi;                  // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+        KJ_omiga_pi.WKJ = QYCX_WKJ_omiga + img_move_omiga_y_pi; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+        KJ_omiga_pi.NKJ = img_move_omiga_x_pi;                  // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
 
-    } else if ((1 == param_Compute_Input_Fromfpga.flag_Speed_OR_Locate) && (0 == QYCX_Over_flag)) // Î´ÕıÔÚÖ´ĞĞÒ»¸öÇøÓò,×ßÎ»ÖÃ,Î´Íê³ÉÈ«²¿É¨Ãè
+    } else if ((1 == param_Compute_Input_Fromfpga.flag_Speed_OR_Locate) && (0 == QYCX_Over_flag)) // æœªæ­£åœ¨æ‰§è¡Œä¸€ä¸ªåŒºåŸŸ,èµ°ä½ç½®,æœªå®Œæˆå…¨éƒ¨æ‰«æ
     {
-        // ¼ÆËã»ñµÃÉ¨Ãèº½Ïò½Ç
+        // è®¡ç®—è·å¾—æ‰«æèˆªå‘è§’
         GetScanTarYaw();
 
-        if (2 < QYCX_QYNo_Doing) // Èç¹ûÈ«²¿±éÀúÁË
+        if (2 < QYCX_QYNo_Doing) // å¦‚æœå…¨éƒ¨éå†äº†
         {
-            if (2 == param_Compute_Input_Fromfc.comp_IR_AREA_IMA_MODE) // Èç¹ûÎªÁ¬Ğø
+            if (2 == param_Compute_Input_Fromfc.comp_IR_AREA_IMA_MODE) // å¦‚æœä¸ºè¿ç»­
             {
-                QYCX_QYNo_Doing = 0; // ´ÓÍ·¿ªÊ¼
-                QYCX_ScanOverTime++; // ÒÑÍê³ÉÉ¨Ãè´ÎÊı
+                QYCX_QYNo_Doing = 0; // ä»å¤´å¼€å§‹
+                QYCX_ScanOverTime++; // å·²å®Œæˆæ‰«ææ¬¡æ•°
             } else {
-                QYCX_Over_flag  = 1; // ÒÑÍê³ÉÉ¨Ãè±êÖ¾
-                TD_PhotoNum     = 0; // Ìõ´øÕÅÊı
-                speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-                location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
-                KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-                KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-                QYCX_QYNo_Doing = 0; // ´ÓÍ·¿ªÊ¼
+                QYCX_Over_flag  = 1; // å·²å®Œæˆæ‰«ææ ‡å¿—
+                TD_PhotoNum     = 0; // æ¡å¸¦å¼ æ•°
+                speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+                location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
+                KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+                KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+                QYCX_QYNo_Doing = 0; // ä»å¤´å¼€å§‹
             }
         }
 
-        if (0 == QYCX_Over_flag) // Î´Íê³ÉÈ«²¿É¨Ãè
+        if (0 == QYCX_Over_flag) // æœªå®Œæˆå…¨éƒ¨æ‰«æ
         {
-            for (temp_int = 1; temp_int < 4; temp_int++) // ×î¶à²éÕÒ3¸ö
+            for (temp_int = 1; temp_int < 4; temp_int++) // æœ€å¤šæŸ¥æ‰¾3ä¸ª
             {
-                // ÈôÇøÓò±àºÅÎŞĞ§
+                // è‹¥åŒºåŸŸç¼–å·æ— æ•ˆ
                 if (0 == param_Compute_Input_Fromfc.comp_area_image_paras_validity[QYCX_QYNo_Doing]) {
-                    QYCX_QYNo_Doing++; // ÕıÔÚÉ¨ÃèÇøÓò
+                    QYCX_QYNo_Doing++; // æ­£åœ¨æ‰«æåŒºåŸŸ
                     if (2 < QYCX_QYNo_Doing) {
-                        if (2 == param_Compute_Input_Fromfc.comp_IR_AREA_IMA_MODE) // Èç¹ûÎªÁ¬Ğø
+                        if (2 == param_Compute_Input_Fromfc.comp_IR_AREA_IMA_MODE) // å¦‚æœä¸ºè¿ç»­
                         {
-                            QYCX_QYNo_Doing = 0; // ´ÓÍ·¿ªÊ¼
-                            QYCX_ScanOverTime++; // ÒÑÍê³ÉÉ¨Ãè´ÎÊı
+                            QYCX_QYNo_Doing = 0; // ä»å¤´å¼€å§‹
+                            QYCX_ScanOverTime++; // å·²å®Œæˆæ‰«ææ¬¡æ•°
                         } else {
-                            QYCX_Over_flag  = 1; // ÒÑÍê³ÉÉ¨Ãè±êÖ¾
-                            TD_PhotoNum     = 0; // Ìõ´øÕÅÊı
-                            speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-                            location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
-                            KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-                            KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-                            QYCX_QYNo_Doing = 0; // ´ÓÍ·¿ªÊ¼
-                            break;               // Ìø³öÑ­»·
+                            QYCX_Over_flag  = 1; // å·²å®Œæˆæ‰«ææ ‡å¿—
+                            TD_PhotoNum     = 0; // æ¡å¸¦å¼ æ•°
+                            speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+                            location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
+                            KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+                            KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+                            QYCX_QYNo_Doing = 0; // ä»å¤´å¼€å§‹
+                            break;               // è·³å‡ºå¾ªç¯
                         }
                     }
-                } else // ÇøÓòÓĞĞ§
+                } else // åŒºåŸŸæœ‰æ•ˆ
                 {
-                    break; // Ìø³öÑ­»·
+                    break; // è·³å‡ºå¾ªç¯
                 }
-            } // ²éÕÒ¿ÉÓÃÇøÓò½áÊø
+            } // æŸ¥æ‰¾å¯ç”¨åŒºåŸŸç»“æŸ
         }
 
-        if (0 == QYCX_Over_flag && 0 == QYCX_DointQY_flag) // Î´Íê³ÉÈ«²¿É¨Ãè
+        if (0 == QYCX_Over_flag && 0 == QYCX_DointQY_flag) // æœªå®Œæˆå…¨éƒ¨æ‰«æ
         {
             GPS_Tar.Lat = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].latitude / 1000;
             GPS_Tar.Lon = param_Compute_Input_Fromfc.comp_area_image_paras[QYCX_QYNo_Doing].longitude / 1000;
@@ -965,25 +941,25 @@ UINT8 comp_QY_Photo_Normal() {
             KJ_end_pi.WKJ   = KJ_start_pi.WKJ + 0.1745;
             KJ_end_pi.NKJ   = KJ_start_pi.NKJ - 0.1745;
 
-            // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê,³ÉÏñÇ°×¼±¸ÓÃ
+            // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡,æˆåƒå‰å‡†å¤‡ç”¨
             GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_start_pi);
 
-            location_time = Sec_KJPosREADY_WKJ;                        // Î»ÖÃĞÅºÅÊ±¼ä  s
-            speed_time    = TD_PhotoNum * QYCX_pfs + Sec_KJSpeedREADY; // ËÙ¶ÈĞÅºÅÊ±¼ä s
+            location_time = Sec_KJPosREADY_WKJ;                        // ä½ç½®ä¿¡å·æ—¶é—´  s
+            speed_time    = TD_PhotoNum * QYCX_pfs + Sec_KJSpeedREADY; // é€Ÿåº¦ä¿¡å·æ—¶é—´ s
 
-            KJ_omiga_pi.WKJ = QYCX_WKJ_omiga + img_move_omiga_y_pi; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-            KJ_omiga_pi.NKJ = img_move_omiga_x_pi;                  // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+            KJ_omiga_pi.WKJ = QYCX_WKJ_omiga + img_move_omiga_y_pi; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+            KJ_omiga_pi.NKJ = img_move_omiga_x_pi;                  // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
 
-            cover_wide = Tar_Range; // ¸²¸Ç·¶Î§
+            cover_wide = Tar_Range; // è¦†ç›–èŒƒå›´
         }
     }
 
-    param_Compute_Output.A818_Beside_tgt_cover = QYCX_P_y * 100; // ÅÔÏòÖØµşÂÊ
-    param_Compute_Output.A818_Couse_tgt_cover  = QYCX_P_x * 100; // Ç°ÏòÖØµşÂÊ
+    param_Compute_Output.A818_Beside_tgt_cover = QYCX_P_y * 100; // æ—å‘é‡å ç‡
+    param_Compute_Output.A818_Couse_tgt_cover  = QYCX_P_x * 100; // å‰å‘é‡å ç‡
 
-    Geolocation(); // ¶¨Î»¼ÆËã
-    ComptLos();    // ¼ÆËãµ±Ç°ÊÓÖá
-    Out_QY();      // ÇøÓòÊä³ö
+    Geolocation(); // å®šä½è®¡ç®—
+    ComptLos();    // è®¡ç®—å½“å‰è§†è½´
+    Out_QY();      // åŒºåŸŸè¾“å‡º
     if (1 == overPara_flag_t) {
         param_Compute_Output.real_area_image_paras[QYCX_QYNo_Doing].IR_IMG_FLAG = V_IR_IMG_FLAG_OVER_BONDS;
     } else {
@@ -994,27 +970,27 @@ UINT8 comp_QY_Photo_Normal() {
     cmd_From_FC.irst_cmd_param_area_image_paras_photoing[2]               = 0;
     cmd_From_FC.irst_cmd_param_area_image_paras_photoing[QYCX_QYNo_Doing] = 1;
 
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
-// 5.ÇøÓò³¬ÏŞ¼ÆËã---251124ÁªÊÔÌí¼Ó
+// 5.åŒºåŸŸè¶…é™è®¡ç®—---251124è”è¯•æ·»åŠ 
 UINT8 comp_QY_over(UINT8 QY_num) {
-    int                overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
+    int                overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
     struct_GPS_float64 GPS_Tar;
     float              Tar_Range;
-    ProcessInPram();                                                            // ´¦Àí½ÓÊÕÊı¾İ
-    Process_Atti_ParaComputer();                                                // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer();                                               // ´¦Àí¿ò¼Ü½Ç
-    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // ¼ÆËãÏà¶Ô¸ß¶È
+    ProcessInPram();                                                            // å¤„ç†æ¥æ”¶æ•°æ®
+    Process_Atti_ParaComputer();                                                // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer();                                               // å¤„ç†æ¡†æ¶è§’
+    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // è®¡ç®—ç›¸å¯¹é«˜åº¦
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
+    // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
     Process_Dis_ParaComputer();
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
-    // ¼ÆËã»ñµÃÉ¨Ãèº½Ïò½Ç
+    // è®¡ç®—è·å¾—æ‰«æèˆªå‘è§’
     GetScanTarYaw();
 
     GPS_Tar.Lat = param_Compute_Input_Fromfc.comp_area_image_paras[QY_num].latitude / 1000;
@@ -1032,225 +1008,225 @@ UINT8 comp_QY_over(UINT8 QY_num) {
         param_Compute_Input_Fromfc.comp_area_image_paras[QY_num].IR_IMG_FLAG = V_IR_IMG_FLAG_NORMAL;
     }
 
-    Out_QY(); // ÇøÓòÊä³ö
+    Out_QY(); // åŒºåŸŸè¾“å‡º
 
     return overPara_flag_t;
 }
 
-// 1.ÇøÓò¼àÊÓ×¼±¸ÖĞ¡ª¡ª¼ìµ÷¹âÓÃ
-// °´ÕÕÇøÓò³ÉÏñµÄÖĞĞÄµã¾­Î³¸ß²ÎÊıÌáÈ¡×óÓÒÇãĞ±·½Ïò£¬·½Î»°´80¡ã£¬ÒÔ¾àÀë50kmÎªÖĞĞÄÄıÊÓ
+// 1.åŒºåŸŸç›‘è§†å‡†å¤‡ä¸­â€”â€”æ£€è°ƒå…‰ç”¨
+// æŒ‰ç…§åŒºåŸŸæˆåƒçš„ä¸­å¿ƒç‚¹ç»çº¬é«˜å‚æ•°æå–å·¦å³å€¾æ–œæ–¹å‘ï¼Œæ–¹ä½æŒ‰80Â°ï¼Œä»¥è·ç¦»50kmä¸ºä¸­å¿ƒå‡è§†
 UINT8 comp_QY_Video_ZB_JTG() {
     float Tar_Lon;
     float Tar_lat;
     float Tar_alt;
-    int   overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
+    int   overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
 
-    ProcessInPram();                                                            // ÊäÈë²ÎÊı´¦Àí
-    Process_Atti_ParaComputer();                                                // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer();                                               // ´¦Àí¿ò¼Ü½Ç
-    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // ¼ÆËãÏà¶Ô¸ß¶È
+    ProcessInPram();                                                            // è¾“å…¥å‚æ•°å¤„ç†
+    Process_Atti_ParaComputer();                                                // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer();                                               // å¤„ç†æ¡†æ¶è§’
+    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // è®¡ç®—ç›¸å¯¹é«˜åº¦
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
-    struct_KJAgl       hope_agl_kj_t;  // ÀíÏë¿ò¼Ü½Ç
-    struct_KJAgl       cal_agl_kj_t;   // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t; // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
+    struct_KJAgl       hope_agl_kj_t;  // ç†æƒ³æ¡†æ¶è§’
+    struct_KJAgl       cal_agl_kj_t;   // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t; // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
 
-    // Ä¿±ê¾­Î³¸ß
+    // ç›®æ ‡ç»çº¬é«˜
     Tar_Lon = param_Compute_Input_Fromfc.comp_area_monitor_paras.longitude / 1000;
     Tar_lat = param_Compute_Input_Fromfc.comp_area_monitor_paras.latitude / 1000;
     Tar_alt = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
-    // ¼ÆËã¿ò¼Ü½Ç
+    // è®¡ç®—æ¡†æ¶è§’
     overPara_flag_t = GeoTrack_ParaComputer(Tar_Lon, Tar_lat, Tar_alt);
-    if (KJ_start_pi.WKJ > 0) // ÓÒÇã
+    if (KJ_start_pi.WKJ > 0) // å³å€¾
     {
         hope_agl_kj_t.WKJ = 80 * Agl_PI;
-    } else // ×óÇã
+    } else // å·¦å€¾
     {
         hope_agl_kj_t.WKJ = -80 * Agl_PI;
     }
-    // ¸³ÖµÀíÏë¿ò¼Ü½Ç
+    // èµ‹å€¼ç†æƒ³æ¡†æ¶è§’
     hope_agl_kj_t.NKJ = acos(planTar_high / 50000);
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &hope_agl_kj_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &ZB_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
 
-// 2.ÇøÓò¼àÊÓ×¼±¸ÖĞ¡ª¡ª¼ìµ÷½¹ÓÃ
-// ÏÈÓÃ¾­Î³¸ßËã×óÓÒ£¬·½Î»°´85¡ã£¬¸©Ñö°´ÕÕ¾àÀë32km¼ÆËã£¬¼ÆËã³ö¾­Î³¸ß(×¼±¸ÖĞ¼ìµ÷½¹ÓÃµÄ  ¾­Î³¸ß)
+// 2.åŒºåŸŸç›‘è§†å‡†å¤‡ä¸­â€”â€”æ£€è°ƒç„¦ç”¨
+// å…ˆç”¨ç»çº¬é«˜ç®—å·¦å³ï¼Œæ–¹ä½æŒ‰85Â°ï¼Œä¿¯ä»°æŒ‰ç…§è·ç¦»32kmè®¡ç®—ï¼Œè®¡ç®—å‡ºç»çº¬é«˜(å‡†å¤‡ä¸­æ£€è°ƒç„¦ç”¨çš„  ç»çº¬é«˜)
 UINT8 comp_QY_Video_ZB_JTJ() {
     float Tar_Lon;
     float Tar_lat;
     float Tar_alt;
-    int   overPara_flag_t = 0;    // ²ÎÊı³¬ÏŞ±êÊ¶
-    ProcessInPram();              // ÊäÈë²ÎÊı´¦Àí
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    int   overPara_flag_t = 0;    // å‚æ•°è¶…é™æ ‡è¯†
+    ProcessInPram();              // è¾“å…¥å‚æ•°å¤„ç†
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
-    struct_KJAgl       hope_agl_kj_t;  // ÀíÏë¿ò¼Ü½Ç
-    struct_KJAgl       cal_agl_kj_t;   // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t; // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
+    struct_KJAgl       hope_agl_kj_t;  // ç†æƒ³æ¡†æ¶è§’
+    struct_KJAgl       cal_agl_kj_t;   // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t; // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
 
     Tar_Lon = param_Compute_Input_Fromfc.comp_area_monitor_paras.longitude / 1000;
     Tar_lat = param_Compute_Input_Fromfc.comp_area_monitor_paras.latitude / 1000;
     Tar_alt = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
 
-    overPara_flag_t = GeoTrack_ParaComputer(Tar_Lon, Tar_lat, Tar_alt); // ¼ÆËã¿ò¼Ü½Ç
-    if (KJ_start_pi.WKJ > 0)                                            // ÓÒÇã
+    overPara_flag_t = GeoTrack_ParaComputer(Tar_Lon, Tar_lat, Tar_alt); // è®¡ç®—æ¡†æ¶è§’
+    if (KJ_start_pi.WKJ > 0)                                            // å³å€¾
     {
         hope_agl_kj_t.WKJ = 85 * Agl_PI;
-    } else // ×óÇã
+    } else // å·¦å€¾
     {
         hope_agl_kj_t.WKJ = -85 * Agl_PI;
     }
-    // ¸³ÖµÀíÏë¿ò¼Ü½Ç
+    // èµ‹å€¼ç†æƒ³æ¡†æ¶è§’
     hope_agl_kj_t.NKJ = acos(planTar_high / 32000);
-    // ¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê
+    // ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡
     GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &hope_agl_kj_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &ZB_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
 
-// 3.ÇøÓò¼àÊÓ--°´ÕÕ×¼±¸¼ÆËã³öµÄ¾­Î³¸ß½øĞĞ³ÉÏñ
+// 3.åŒºåŸŸç›‘è§†--æŒ‰ç…§å‡†å¤‡è®¡ç®—å‡ºçš„ç»çº¬é«˜è¿›è¡Œæˆåƒ
 UINT8 comp_QY_Video_ZB() {
-    int overPara_flag_t = 0;      // ²ÎÊı³¬ÏŞ±êÊ¶
-    ProcessInPram();              // ÊäÈë²ÎÊı´¦Àí
-    Process_Atti_ParaComputer();  // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer(); // ´¦Àí¿ò¼Ü½Ç
-    // ¼ÆËãÏà¶Ô¸ß¶È
+    int overPara_flag_t = 0;      // å‚æ•°è¶…é™æ ‡è¯†
+    ProcessInPram();              // è¾“å…¥å‚æ•°å¤„ç†
+    Process_Atti_ParaComputer();  // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer(); // å¤„ç†æ¡†æ¶è§’
+    // è®¡ç®—ç›¸å¯¹é«˜åº¦
     tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
-    struct_KJAgl       cal_agl_kj_t;   // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t; // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
+    struct_KJAgl       cal_agl_kj_t;   // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t; // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
 
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &ZB_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    ComptLos();       // ¼ÆËãµ±Ç°ÊÓÖá
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ComptLos();       // è®¡ç®—å½“å‰è§†è½´
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
-// 4.ÇøÓò¼àÊÓ--°´ÕÕÕı³£ÏÂ·¢²ÎÊı½øĞĞ³ÉÏñ
+// 4.åŒºåŸŸç›‘è§†--æŒ‰ç…§æ­£å¸¸ä¸‹å‘å‚æ•°è¿›è¡Œæˆåƒ
 UINT8 comp_QY_Video_Normal() {
-    int   overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
+    int   overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
     float Tar_Lon;
     float Tar_lat;
     float Tar_alt;
-    ProcessInPram();                                                            // ÊäÈë²ÎÊı´¦Àí
-    Process_Atti_ParaComputer();                                                // ´¦Àí×ËÌ¬½Ç
-    Process_KJAgl_ParaComputer();                                               // ´¦Àí¿ò¼Ü½Ç
-    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // ¼ÆËãÏà¶Ô¸ß¶È
+    ProcessInPram();                                                            // è¾“å…¥å‚æ•°å¤„ç†
+    Process_Atti_ParaComputer();                                                // å¤„ç†å§¿æ€è§’
+    Process_KJAgl_ParaComputer();                                               // å¤„ç†æ¡†æ¶è§’
+    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // è®¡ç®—ç›¸å¯¹é«˜åº¦
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
     }
-    Process_Dis_ParaComputer(); // ´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã
-    // ¼ÆËãËÙ¸ß±È£¬X·½ÏòÏñÒÆ²¹³¥¡ã/s£¬Y·½ÏòÏñÒÆ²¹³¥¡ã/s
+    Process_Dis_ParaComputer(); // å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—
+    // è®¡ç®—é€Ÿé«˜æ¯”ï¼ŒXæ–¹å‘åƒç§»è¡¥å¿Â°/sï¼ŒYæ–¹å‘åƒç§»è¡¥å¿Â°/s
     Process_Speed_ParaComputer(&speed_hight, &img_move_omiga_x_pi, &img_move_omiga_y_pi);
 
     Tar_Lon         = param_Compute_Input_Fromfc.comp_area_monitor_paras.longitude / 1000;
@@ -1258,29 +1234,29 @@ UINT8 comp_QY_Video_Normal() {
     Tar_alt         = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
     overPara_flag_t = GeoTrack_ParaComputer(Tar_Lon, Tar_lat, Tar_alt);
 
-    param_Compute_Output.frames_Num           = 1;    // Ìõ´øÕÅÊı
-    param_Compute_Output.toFPGA_time_speed    = 0;    // ËÙ¶ÈĞÅºÅÊ±¼äLSB=0.1ms
-    param_Compute_Output.toFPGA_time_location = 50.6; // Î»ÖÃĞÅºÅÊ±¼äLSB=0.1ms
+    param_Compute_Output.frames_Num           = 1;    // æ¡å¸¦å¼ æ•°
+    param_Compute_Output.toFPGA_time_speed    = 0;    // é€Ÿåº¦ä¿¡å·æ—¶é—´LSB=0.1ms
+    param_Compute_Output.toFPGA_time_location = 50.6; // ä½ç½®ä¿¡å·æ—¶é—´LSB=0.1ms
 
-    TD_PhotoNum     = 1; // Ìõ´øÕÅÊı
-    KJ_omiga_pi.WKJ = 0; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    KJ_omiga_pi.NKJ = 0; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
-    speed_time      = 0; // ËÙ¶ÈĞÅºÅÊ±¼ä
-    location_time   = 1; // Î»ÖÃĞÅºÅÊ±¼ä
+    TD_PhotoNum     = 1; // æ¡å¸¦å¼ æ•°
+    KJ_omiga_pi.WKJ = 0; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    KJ_omiga_pi.NKJ = 0; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
+    speed_time      = 0; // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    location_time   = 1; // ä½ç½®ä¿¡å·æ—¶é—´
 
-    float foc = (float)tocal_foclen_KJ * 0.001; // ½¹¾à
-    float picAngle_y_pi;                        // Y°ÚÉ¨ÏòÊÓ³¡½Ç
+    float foc = (float)tocal_foclen_KJ * 0.001; // ç„¦è·
+    float picAngle_y_pi;                        // Yæ‘†æ‰«å‘è§†åœºè§’
     picAngle_y_pi = 2 * atan((KJ_pixnum_Y * tocal_pixsize_KJ * 0.000001) / (foc * 2));
-    cover_wide    = 2 * planTar_high * tan(picAngle_y_pi / 2); // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+    cover_wide    = 2 * planTar_high * tan(picAngle_y_pi / 2); // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
 
-    param_Compute_Output.A818_Beside_tgt_cover = 1; // ÅÔÏòÖØµşÂÊ
-    param_Compute_Output.A818_Couse_tgt_cover  = 1; // Ç°ÏòÖØµşÂÊ
+    param_Compute_Output.A818_Beside_tgt_cover = 1; // æ—å‘é‡å ç‡
+    param_Compute_Output.A818_Couse_tgt_cover  = 1; // å‰å‘é‡å ç‡
 
-    Geolocation(); // ¶¨Î»¼ÆËã
-    ComptLos();    // ¼ÆËãµ±Ç°ÊÓÖá
-    Out_JS();      // ¼àÊÓ·µ»ØÊı
+    Geolocation(); // å®šä½è®¡ç®—
+    ComptLos();    // è®¡ç®—å½“å‰è§†è½´
+    Out_JS();      // ç›‘è§†è¿”å›æ•°
 
-    // todo ÕıÊ½°æ±¾É¾³ı ÎªÁËÍ¨¹ı²âÊÔ
+    // todo æ­£å¼ç‰ˆæœ¬åˆ é™¤ ä¸ºäº†é€šè¿‡æµ‹è¯•
     param_Compute_Output.real_area_monitor_paras.altitude  = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude - rand() * 0.01 / RAND_MAX;
     param_Compute_Output.real_area_monitor_paras.latitude  = (cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._latitude - rand() * 0.00001 / RAND_MAX) / 100000;
     param_Compute_Output.real_area_monitor_paras.longitude = (cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._longitude - rand() * 0.00001 / RAND_MAX) / 100000;
@@ -1291,27 +1267,27 @@ UINT8 comp_QY_Video_Normal() {
         param_Compute_Output.real_area_monitor_paras.IR_IMG_FLAG = V_IR_IMG_FLAG_NORMAL;
     }
 
-    ProcessOutPram(); // Êä³ö²ÎÊı´¦Àí
+    ProcessOutPram(); // è¾“å‡ºå‚æ•°å¤„ç†
     return overPara_flag_t;
 }
 
-//===============ÄÚ²¿µ÷ÓÃº¯Êı=========================//
-// ------------------------------ÒÀ¾İÀíÏëNEDÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç-------------------------------//
-//  º¯ÊıÃû³Æ£ºJS_NED_ParaComputer
-//  ¹¦ÄÜ£ºÒÀ¾İÀíÏëNEDÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
-//  ÊäÈë²ÎÊı£ºstruct_LSB* ned_lsb NED×ø±êÏµÏÂÊÓÖáÖ¸Ïò£¬struct_IMUAgl* ned_AttiAgl   NED×ø±êÏµ×ËÌ¬½Ç
-//  ·µ»Ø²ÎÊı£º¿ò¼ÜÖ¸Ïò½Ç
-//  ËµÃ÷£ºÎŞ
+//===============å†…éƒ¨è°ƒç”¨å‡½æ•°=========================//
+// ------------------------------ä¾æ®ç†æƒ³NEDè§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’-------------------------------//
+//  å‡½æ•°åç§°ï¼šJS_NED_ParaComputer
+//  åŠŸèƒ½ï¼šä¾æ®ç†æƒ³NEDè§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
+//  è¾“å…¥å‚æ•°ï¼šstruct_LSB* ned_lsb NEDåæ ‡ç³»ä¸‹è§†è½´æŒ‡å‘ï¼Œstruct_IMUAgl* ned_AttiAgl   NEDåæ ‡ç³»å§¿æ€è§’
+//  è¿”å›å‚æ•°ï¼šæ¡†æ¶æŒ‡å‘è§’
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void Process_Atti_ParaComputer(void) {
-    // ´¦ÀíÎ»×ËĞÅÏ¢
-    sin_AttiAgl.Yaw   = sin(AttitudeAC_pi.Yaw);   // º½Ïò½ÇµÄsinÖµ
-    sin_AttiAgl.Pitch = sin(AttitudeAC_pi.Pitch); // ¸©Ñö½ÇµÄsinÖµ
-    sin_AttiAgl.Roll  = sin(AttitudeAC_pi.Roll);  // ºá¹ö½ÇµÄsinÖµ
+    // å¤„ç†ä½å§¿ä¿¡æ¯
+    sin_AttiAgl.Yaw   = sin(AttitudeAC_pi.Yaw);   // èˆªå‘è§’çš„sinå€¼
+    sin_AttiAgl.Pitch = sin(AttitudeAC_pi.Pitch); // ä¿¯ä»°è§’çš„sinå€¼
+    sin_AttiAgl.Roll  = sin(AttitudeAC_pi.Roll);  // æ¨ªæ»šè§’çš„sinå€¼
 
-    cos_AttiAgl.Yaw   = cos(AttitudeAC_pi.Yaw);   // º½Ïò½ÇµÄcosÖµ
-    cos_AttiAgl.Pitch = cos(AttitudeAC_pi.Pitch); // ¸©Ñö½ÇµÄcosÖµ
-    cos_AttiAgl.Roll  = cos(AttitudeAC_pi.Roll);  // ºá¹ö½ÇµÄcosÖµ
+    cos_AttiAgl.Yaw   = cos(AttitudeAC_pi.Yaw);   // èˆªå‘è§’çš„coså€¼
+    cos_AttiAgl.Pitch = cos(AttitudeAC_pi.Pitch); // ä¿¯ä»°è§’çš„coså€¼
+    cos_AttiAgl.Roll  = cos(AttitudeAC_pi.Roll);  // æ¨ªæ»šè§’çš„coså€¼
 
     AC_NED[0][0] = cos_AttiAgl.Yaw * cos_AttiAgl.Pitch;
     AC_NED[0][1] = (cos_AttiAgl.Yaw * sin_AttiAgl.Pitch * sin_AttiAgl.Roll) - (sin_AttiAgl.Yaw * cos_AttiAgl.Roll);
@@ -1325,7 +1301,7 @@ void Process_Atti_ParaComputer(void) {
     AC_NED[2][1] = cos_AttiAgl.Pitch * sin_AttiAgl.Roll;
     AC_NED[2][2] = cos_AttiAgl.Pitch * cos_AttiAgl.Roll;
 
-    // µØÀí×ø±êÏµ×ªµØÇò×ø±êÏµ£¨µÃµ½´ÓµØÀí×ø±êÏµÏòµØÇò×ø±êÏµ×ª»»µÄ¾ØÕóNED_ECEF£¬ÔØ»úÎ»ÖÃ£©
+    // åœ°ç†åæ ‡ç³»è½¬åœ°çƒåæ ‡ç³»ï¼ˆå¾—åˆ°ä»åœ°ç†åæ ‡ç³»å‘åœ°çƒåæ ‡ç³»è½¬æ¢çš„çŸ©é˜µNED_ECEFï¼Œè½½æœºä½ç½®ï¼‰
     NEDToECEF(NED_ECEF, AC_Position_pi);
     AC_ECEF[0][0] = (NED_ECEF[0][0] * AC_NED[0][0]) + (NED_ECEF[0][1] * AC_NED[1][0]) + (NED_ECEF[0][2] * AC_NED[2][0]);
     AC_ECEF[0][1] = (NED_ECEF[0][0] * AC_NED[0][1]) + (NED_ECEF[0][1] * AC_NED[1][1]) + (NED_ECEF[0][2] * AC_NED[2][1]);
@@ -1340,12 +1316,12 @@ void Process_Atti_ParaComputer(void) {
     AC_ECEF[2][2] = (NED_ECEF[2][0] * AC_NED[0][2]) + (NED_ECEF[2][1] * AC_NED[1][2]) + (NED_ECEF[2][2] * AC_NED[2][2]);
     AC_ECEF[2][3] = NED_ECEF[2][3];
 }
-// ------------------------------NED×ø±êÏµµ½ECEF×ø±êÏµ×ª»»¾ØÕó-------------------------------//
-//  º¯ÊıÃû³Æ£ºNEDToECEF()
-//  ¹¦ÄÜ£ºNED×ø±êÏµµ½ECEF×ø±êÏµ×ª»»¾ØÕó
-//  ÊäÈë²ÎÊı£ºGPS_t  ¾­Î³¶È
-//  ·µ»Ø²ÎÊı£ºNED_ECEF_t ×ª»»¾ØÕó
-//  ËµÃ÷£ºÎŞ
+// ------------------------------NEDåæ ‡ç³»åˆ°ECEFåæ ‡ç³»è½¬æ¢çŸ©é˜µ-------------------------------//
+//  å‡½æ•°åç§°ï¼šNEDToECEF()
+//  åŠŸèƒ½ï¼šNEDåæ ‡ç³»åˆ°ECEFåæ ‡ç³»è½¬æ¢çŸ©é˜µ
+//  è¾“å…¥å‚æ•°ï¼šGPS_t  ç»çº¬åº¦
+//  è¿”å›å‚æ•°ï¼šNED_ECEF_t è½¬æ¢çŸ©é˜µ
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void NEDToECEF(float NED_ECEF_t[3][4], struct Struct_GPS_float64 GPS_t) {
     float sin_Lon = sin(GPS_t.Lon);
@@ -1377,33 +1353,33 @@ void NEDToECEF(float NED_ECEF_t[3][4], struct Struct_GPS_float64 GPS_t) {
     NED_ECEF_t[2][2] = (-1) * sin_Lat;
     NED_ECEF_t[2][3] = (-1) * sin_Lat * NED_ECEF4 + NED_ECEF1;
 }
-// ------------------------------´¦Àí¿ò¼Ü½ÇÓĞ¹Ø²ÎÊı¼ÆËã-------------------------------//
-//  º¯ÊıÃû³Æ£ºProcess_KJAgl_ParaComputer()
-//  ¹¦ÄÜ£º´¦Àí¿ò¼Ü½ÇÓĞ¹Ø²ÎÊı¼ÆËã
-//  ÊäÈë²ÎÊı£ºÎŞ
-//  ·µ»Ø²ÎÊı£º¸üĞÂ²ÎÊısin_KJAgl ¿ò¼Ü½Çsin¡£cos_KJAgl¿ò¼Ü½Çcos
-//  ËµÃ÷£ºÎŞ
+// ------------------------------å¤„ç†æ¡†æ¶è§’æœ‰å…³å‚æ•°è®¡ç®—-------------------------------//
+//  å‡½æ•°åç§°ï¼šProcess_KJAgl_ParaComputer()
+//  åŠŸèƒ½ï¼šå¤„ç†æ¡†æ¶è§’æœ‰å…³å‚æ•°è®¡ç®—
+//  è¾“å…¥å‚æ•°ï¼šæ— 
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°å‚æ•°sin_KJAgl æ¡†æ¶è§’sinã€‚cos_KJAglæ¡†æ¶è§’cos
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void Process_KJAgl_ParaComputer(void) {
-    sin_KJAgl.WKJ = sin(KJAgl_pi.WKJ); // ÊµÊ±¿ò·½Î»½Ç
-    sin_KJAgl.NKJ = sin(KJAgl_pi.NKJ); // ÊµÊ±¿ò¼Ü¸©Ñö½Ç
+    sin_KJAgl.WKJ = sin(KJAgl_pi.WKJ); // å®æ—¶æ¡†æ–¹ä½è§’
+    sin_KJAgl.NKJ = sin(KJAgl_pi.NKJ); // å®æ—¶æ¡†æ¶ä¿¯ä»°è§’
     cos_KJAgl.WKJ = cos(KJAgl_pi.WKJ);
     cos_KJAgl.NKJ = cos(KJAgl_pi.NKJ);
 
-    sin_KJAgl_exp.WKJ = sin(KJAgl_exp_pi.WKJ); // ÊµÊ±¿ò·½Î»½Ç
-    sin_KJAgl_exp.NKJ = sin(KJAgl_exp_pi.NKJ); // ÊµÊ±¿ò¼Ü¸©Ñö½Ç
+    sin_KJAgl_exp.WKJ = sin(KJAgl_exp_pi.WKJ); // å®æ—¶æ¡†æ–¹ä½è§’
+    sin_KJAgl_exp.NKJ = sin(KJAgl_exp_pi.NKJ); // å®æ—¶æ¡†æ¶ä¿¯ä»°è§’
     cos_KJAgl_exp.WKJ = cos(KJAgl_exp_pi.WKJ);
     cos_KJAgl_exp.NKJ = cos(KJAgl_exp_pi.NKJ);
 }
-// ------------------------------´¦Àí¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã-------------------------------//
-//  º¯ÊıÃû³Æ£ºProcess_Dis_ParaComputer()
-//  ¹¦ÄÜ£ºÓë¾àÀëÓĞ¹Ø²ÎÊı¼ÆËã£¬°üÀ¨Ä¿±ê¸ß¶È¡¢Ïà¶Ô¸ß¶È¡¢³ÉÏñ¾àÀë´¦
-//  ÊäÈë²ÎÊı£ºÎŞ
-//  ·µ»Ø²ÎÊı£º¸üĞÂ²ÎÊıUINT32* PhotoDis_t ³ÉÏñ¾àÀë£¬Ïà¶Ô¸ß¶È¡¢Ä¿±ê¸ß¶È
-//  ËµÃ÷£ºÎŞ
+// ------------------------------å¤„ç†è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—-------------------------------//
+//  å‡½æ•°åç§°ï¼šProcess_Dis_ParaComputer()
+//  åŠŸèƒ½ï¼šä¸è·ç¦»æœ‰å…³å‚æ•°è®¡ç®—ï¼ŒåŒ…æ‹¬ç›®æ ‡é«˜åº¦ã€ç›¸å¯¹é«˜åº¦ã€æˆåƒè·ç¦»å¤„
+//  è¾“å…¥å‚æ•°ï¼šæ— 
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°å‚æ•°UINT32* PhotoDis_t æˆåƒè·ç¦»ï¼Œç›¸å¯¹é«˜åº¦ã€ç›®æ ‡é«˜åº¦
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void Process_Dis_ParaComputer() {
-    float LOS_NedZ_t; // NED×ø±êÏÂµÄÊÓÖáZ·½Ïò
+    float LOS_NedZ_t; // NEDåæ ‡ä¸‹çš„è§†è½´Zæ–¹å‘
     LOS_NedZ_t = (-sin_AttiAgl.Pitch * cos_KJAgl.WKJ * sin_KJAgl.NKJ) + (cos_AttiAgl.Pitch * sin_AttiAgl.Roll * sin_KJAgl.WKJ * sin_KJAgl.NKJ) + (cos_AttiAgl.Pitch * cos_AttiAgl.Roll * cos_KJAgl.NKJ);
     if (LOS_NedZ_t < 0) {
         LOS_NedZ_t = -LOS_NedZ_t;
@@ -1412,9 +1388,9 @@ void Process_Dis_ParaComputer() {
     if (0 == LOS_NedZ_t) {
         photo_Dis = 300000;
     } else {
-        photo_Dis = planTar_high / LOS_NedZ_t; // ÓÃÏà¶Ô¸ß¶È¼ÆËã³ÉÏñ¾àÀë
+        photo_Dis = planTar_high / LOS_NedZ_t; // ç”¨ç›¸å¯¹é«˜åº¦è®¡ç®—æˆåƒè·ç¦»
     }
-    // ¾àÀëÎªÕıÇÒ´óÓÚ1Ğ¡ÓÚ300km
+    // è·ç¦»ä¸ºæ­£ä¸”å¤§äº1å°äº300km
     if (photo_Dis < 0) {
         photo_Dis = -1 * photo_Dis;
     }
@@ -1425,35 +1401,35 @@ void Process_Dis_ParaComputer() {
         photo_Dis = 300000;
     }
 }
-// ------------------------------´¦ÀíËÙ¶ÈÓĞ¹Ø²ÎÊı¼ÆËã-------------------------------//
-//  º¯ÊıÃû³Æ£ºProcess_Speed_ParaComputer()
-//  ¹¦ÄÜ£º´¦ÀíËÙ¶ÈÓĞ¹Ø²ÎÊı¼ÆËã£¬°üÀ¨¼ÆËã·ÉĞĞËÙ¶È¡¢ËÙ¸ß±È¡¢ÏñÒÆËÙ¶È²ÎÊı
-//  ÊäÈë²ÎÊı£ºÎŞ
-//  ·µ»Ø²ÎÊı£º¸üĞÂ²ÎÊıfloat* SGB_t ËÙ¸ß±È,float* XOmiga_t X·½ÏòÏñÒÆ²¹³¥ËÙ¶È ¡ã/s,float* YOmiga_t Y·½ÏòÏñÒÆ²¹³¥ËÙ¶È¡ã/s
-//  ËµÃ÷£ºÎŞ
+// ------------------------------å¤„ç†é€Ÿåº¦æœ‰å…³å‚æ•°è®¡ç®—-------------------------------//
+//  å‡½æ•°åç§°ï¼šProcess_Speed_ParaComputer()
+//  åŠŸèƒ½ï¼šå¤„ç†é€Ÿåº¦æœ‰å…³å‚æ•°è®¡ç®—ï¼ŒåŒ…æ‹¬è®¡ç®—é£è¡Œé€Ÿåº¦ã€é€Ÿé«˜æ¯”ã€åƒç§»é€Ÿåº¦å‚æ•°
+//  è¾“å…¥å‚æ•°ï¼šæ— 
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°å‚æ•°float* SGB_t é€Ÿé«˜æ¯”,float* XOmiga_t Xæ–¹å‘åƒç§»è¡¥å¿é€Ÿåº¦ Â°/s,float* YOmiga_t Yæ–¹å‘åƒç§»è¡¥å¿é€Ÿåº¦Â°/s
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void Process_Speed_ParaComputer(float *SGB_t, float *XOmiga_t, float *YOmiga_t) {
-    float AcV_LL_t[3]; // ACLLº½Ïò×ø±êÏµÖĞ·É»úËÙ¶È
+    float AcV_LL_t[3]; // ACLLèˆªå‘åæ ‡ç³»ä¸­é£æœºé€Ÿåº¦
     AcV_LL_t[0] = cos_AttiAgl.Yaw * param_Compute_Input_Fromfpga.north_speed + sin_AttiAgl.Yaw * param_Compute_Input_Fromfpga.east_speed;
     AcV_LL_t[1] = -1 * sin_AttiAgl.Yaw * param_Compute_Input_Fromfpga.north_speed + cos_AttiAgl.Yaw * param_Compute_Input_Fromfpga.east_speed;
     ;
     AcV_LL_t[2] = param_Compute_Input_Fromfpga.ground_speed;
 
-    float AcV_t[3]; // AC×ø±êÏµÏÂ·É»úËÙ¶È
+    float AcV_t[3]; // ACåæ ‡ç³»ä¸‹é£æœºé€Ÿåº¦
     AcV_t[0] = cos_AttiAgl.Pitch * AcV_LL_t[0] - sin_AttiAgl.Pitch * AcV_LL_t[2];
     AcV_t[1] = sin_AttiAgl.Roll * sin_AttiAgl.Pitch * AcV_LL_t[0] + cos_AttiAgl.Roll * AcV_LL_t[1] + sin_AttiAgl.Roll * cos_AttiAgl.Pitch * AcV_LL_t[2];
     AcV_t[2] = cos_AttiAgl.Roll * sin_AttiAgl.Pitch * AcV_LL_t[0] - sin_AttiAgl.Roll * AcV_LL_t[1] + cos_AttiAgl.Roll * cos_AttiAgl.Pitch * AcV_LL_t[2];
 
-    float SOmiga_t[3];  // S×ø±êÏµÏÂ½ÇËÙ¶È
-    if (photo_Dis == 0) // ³ıÁãÅĞ¶Ï
+    float SOmiga_t[3];  // Såæ ‡ç³»ä¸‹è§’é€Ÿåº¦
+    if (photo_Dis == 0) // é™¤é›¶åˆ¤æ–­
     {
         photo_Dis = 1;
     }
     SOmiga_t[0] = (cos_KJAgl.NKJ * cos_KJAgl.WKJ * AcV_t[0] + cos_KJAgl.NKJ * sin_KJAgl.WKJ * AcV_t[1] - sin_KJAgl.NKJ * AcV_t[2]) / photo_Dis;
     SOmiga_t[1] = (-sin_KJAgl.WKJ * AcV_t[0] + cos_KJAgl.WKJ * AcV_t[1]) / photo_Dis;
 
-    // ËÙ¸ß±È
-    if (planTar_high == 0) // ³ıÁãÅĞ¶Ï
+    // é€Ÿé«˜æ¯”
+    if (planTar_high == 0) // é™¤é›¶åˆ¤æ–­
     {
         planTar_high = 1;
     }
@@ -1463,18 +1439,18 @@ void Process_Speed_ParaComputer(float *SGB_t, float *XOmiga_t, float *YOmiga_t) 
     *SGB_t   = AcV_LL_t[0] / planTar_high;
     AC_speed = AcV_LL_t[0];
 
-    *XOmiga_t = -1 * SOmiga_t[0]; // XÏñÒÆ²¹³¥ËÙ¶È*PI_Agl
-    *YOmiga_t = -1 * SOmiga_t[1]; // YÏñÒÆ²¹³¥ËÙ¶È*PI_Agl
+    *XOmiga_t = -1 * SOmiga_t[0]; // Xåƒç§»è¡¥å¿é€Ÿåº¦*PI_Agl
+    *YOmiga_t = -1 * SOmiga_t[1]; // Yåƒç§»è¡¥å¿é€Ÿåº¦*PI_Agl
 }
-// ------------------------------¹ãÓò³ÉÏñ ¼ÆËã»ñµÃÉ¨Ãèº½Ïò½Ç-------------------------------//
-//  º¯ÊıÃû³Æ£ºGY_GetScanTarYaw()
-//  ¹¦ÄÜ£º¼ÆËã»ñµÃÉ¨Ãèº½Ïò½Ç
-//  ÊäÈë²ÎÊı£º
-//  ·µ»Ø²ÎÊı£º¸üĞÂ  ¹ãÓò³ÉÏñ É¨Ãèº½Ïò½ÇGYCX_Tar_YawAgl
-//  ËµÃ÷£ºÎŞ
+// ------------------------------å¹¿åŸŸæˆåƒ è®¡ç®—è·å¾—æ‰«æèˆªå‘è§’-------------------------------//
+//  å‡½æ•°åç§°ï¼šGY_GetScanTarYaw()
+//  åŠŸèƒ½ï¼šè®¡ç®—è·å¾—æ‰«æèˆªå‘è§’
+//  è¾“å…¥å‚æ•°ï¼š
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°  å¹¿åŸŸæˆåƒ æ‰«æèˆªå‘è§’GYCX_Tar_YawAgl
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void GetScanTarYaw(void) {
-    if (fabs(AttitudeAC_pi.Pitch - GYCX_PitchAgl_pi) > 0.00523) // ½Ç¶È´óÓÚ0.3¡ã£¬¸üĞÂÉ¨Ãè¸©Ñö½Ç
+    if (fabs(AttitudeAC_pi.Pitch - GYCX_PitchAgl_pi) > 0.00523) // è§’åº¦å¤§äº0.3Â°ï¼Œæ›´æ–°æ‰«æä¿¯ä»°è§’
     {
         GYCX_PitchAgl_pi = AttitudeAC_pi.Pitch;
     }
@@ -1482,8 +1458,8 @@ void GetScanTarYaw(void) {
     float yaw_sin     = 0;
     float yaw_cos     = 0;
 
-    GYCX_Tar_YawAgl_last_sin[LL_yaw_i] = sin_AttiAgl.Yaw; // ¼ÇÂ¼µ±Ç°º½Ïò½Çsin
-    GYCX_Tar_YawAgl_last_cos[LL_yaw_i] = cos_AttiAgl.Yaw; // ¼ÇÂ¼µ±Ç°º½Ïò½Çcos
+    GYCX_Tar_YawAgl_last_sin[LL_yaw_i] = sin_AttiAgl.Yaw; // è®°å½•å½“å‰èˆªå‘è§’sin
+    GYCX_Tar_YawAgl_last_cos[LL_yaw_i] = cos_AttiAgl.Yaw; // è®°å½•å½“å‰èˆªå‘è§’cos
 
     yaw_sin = (GYCX_Tar_YawAgl_last_sin[0] + GYCX_Tar_YawAgl_last_sin[1] + GYCX_Tar_YawAgl_last_sin[2] + GYCX_Tar_YawAgl_last_sin[3]) / 4;
     yaw_cos = (GYCX_Tar_YawAgl_last_cos[0] + GYCX_Tar_YawAgl_last_cos[1] + GYCX_Tar_YawAgl_last_cos[2] + GYCX_Tar_YawAgl_last_cos[3]) / 4;
@@ -1494,87 +1470,87 @@ void GetScanTarYaw(void) {
         YawAgl_last = atan2(yaw_sin, yaw_cos);
     }
 
-    if (fabs(YawAgl_last - AttitudeAC_pi.Yaw) > 0.0139) // ½Ç¶È´óÓÚ0.8¡ã£¬¸üĞÂÉ¨Ãèº½Ïò½Ç
+    if (fabs(YawAgl_last - AttitudeAC_pi.Yaw) > 0.0139) // è§’åº¦å¤§äº0.8Â°ï¼Œæ›´æ–°æ‰«æèˆªå‘è§’
     {
         GYCX_YawAgl_pi = AttitudeAC_pi.Yaw;
     } else {
         GYCX_YawAgl_pi = YawAgl_last;
     }
-    // ¼ÆÊı¸üĞÂ
+    // è®¡æ•°æ›´æ–°
     LL_yaw_i = (LL_yaw_i + 1) % 4;
 }
-// ------------------------------¼ÆËã¹ãÓò¾àÀëÓÅÏÈÄ£Ê½ÏÂµÄÄÚ¿ò¼ÜÔ¶/½ü½Ç-------------------------------//
+// ------------------------------è®¡ç®—å¹¿åŸŸè·ç¦»ä¼˜å…ˆæ¨¡å¼ä¸‹çš„å†…æ¡†æ¶è¿œ/è¿‘è§’-------------------------------//
 //  Process_TarAgl_GY_Dis_ParaComputer()
-//  ¹¦ÄÜ£º¼ÆËã¹ãÓò¾àÀëÓÅÏÈÄ£Ê½ÏÂµÄÄÚ¿ò¼ÜÔ¶/½ü½Ç
-//  ÊäÈë²ÎÊı£º
-//  ·µ»Ø²ÎÊı£º¸üĞÂ ¾àÀëÓÅÏÈ¹ãÓò³ÉÏñÊ¹ÓÃµÄÄ¿±êÇãĞ±½Ç£¬Ä¿±ê½ü½Ç£¬Ä¿±êÔ¶½Ç
-//  ËµÃ÷£ºÎŞ
+//  åŠŸèƒ½ï¼šè®¡ç®—å¹¿åŸŸè·ç¦»ä¼˜å…ˆæ¨¡å¼ä¸‹çš„å†…æ¡†æ¶è¿œ/è¿‘è§’
+//  è¾“å…¥å‚æ•°ï¼š
+//  è¿”å›å‚æ•°ï¼šæ›´æ–° è·ç¦»ä¼˜å…ˆå¹¿åŸŸæˆåƒä½¿ç”¨çš„ç›®æ ‡å€¾æ–œè§’ï¼Œç›®æ ‡è¿‘è§’ï¼Œç›®æ ‡è¿œè§’
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void Process_TarAgl_GY_Dis_ParaComputer(void) {
-    float temp_agl_low = 0; // ÁÙÊ±½ü½ç½Ç
-    float temp_agl_up  = 0; // ÁÙÊ±Ô¶½ç½Ç
+    float temp_agl_low = 0; // ä¸´æ—¶è¿‘ç•Œè§’
+    float temp_agl_up  = 0; // ä¸´æ—¶è¿œç•Œè§’
     float temp_float1  = 0;
     float temp_dis_low = 0;
     float temp_dis_up  = 0;
-    float temp_agl_mid = 0; // ÁÙÊ±Ä¿±ê½Ç
+    float temp_agl_mid = 0; // ä¸´æ—¶ç›®æ ‡è§’
 
-    // ½ü¶ËµØ¾à
+    // è¿‘ç«¯åœ°è·
     temp_dis_low = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_range_lowline * 1000;
     if (0 == planTar_high) {
         planTar_high = 1;
     }
     temp_agl_low = atan2(temp_dis_low, planTar_high);
 
-    // Ô¶¶ËµØ¾à
+    // è¿œç«¯åœ°è·
     temp_dis_up = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_range_upline * 1000;
     if (0 == temp_dis_up) {
         temp_dis_up = 1;
     }
     temp_agl_up = atan2(temp_dis_up, planTar_high);
 
-    if (temp_agl_up < temp_agl_low) // Èç¹û½ü½ç½Ç´óÓÚÔ¶½ç½Ç£¬Ôò½»»»
+    if (temp_agl_up < temp_agl_low) // å¦‚æœè¿‘ç•Œè§’å¤§äºè¿œç•Œè§’ï¼Œåˆ™äº¤æ¢
     {
         temp_float1  = temp_agl_low;
         temp_agl_low = temp_agl_up;
         temp_agl_up  = temp_float1;
     }
-    temp_agl_mid = (temp_agl_up + temp_agl_low) / 2; // È¡ÖĞ¼äÖµÎªÄ¿±êÇãĞ±½Ç
+    temp_agl_mid = (temp_agl_up + temp_agl_low) / 2; // å–ä¸­é—´å€¼ä¸ºç›®æ ‡å€¾æ–œè§’
 
     GYCX_TarAgl_pi      = temp_agl_mid;
     GYCX_TarAgl_near_pi = temp_agl_low;
     GYCX_TarAgl_far_pi  = temp_agl_up;
 }
-// ------------------------------¼ÆËã¹ãÓò³ÉÏñÌõ´øÖ¡Êı-------------------------------//
-//  º¯ÊıÃû³Æ£ºGYCX_Dis_GetTDPhotoNum()
-//  ¹¦ÄÜ£º ¼ÆËã¹ãÓò³ÉÏñÌõ´øÖ¡Êı
-//  ÊäÈë²ÎÊı£º AC_speed·ÉĞĞËÙ¶È,PlanTar_highÏà¶Ô¸ß,GYCX_TarAglÄ¿±êÇãĞ±½Ç
-//  ·µ»Ø²ÎÊı£º¸üĞÂ  Ìõ´øÖÜÆÚGYCX_TD_Time£»Ìõ´øÖ¡ÊıGYCX_TD_PhotoNum£»Ìõ´ø½ü¶Ë½ÇGYCX_TDAgl_near£»Ìõ´øÆğÊ¼½ÇGYCX_TDAgl_start£»Ìõ´ø½áÊø½ÇGYCX_TDAgl_end
-//  ËµÃ÷£ºÎŞ
+// ------------------------------è®¡ç®—å¹¿åŸŸæˆåƒæ¡å¸¦å¸§æ•°-------------------------------//
+//  å‡½æ•°åç§°ï¼šGYCX_Dis_GetTDPhotoNum()
+//  åŠŸèƒ½ï¼š è®¡ç®—å¹¿åŸŸæˆåƒæ¡å¸¦å¸§æ•°
+//  è¾“å…¥å‚æ•°ï¼š AC_speedé£è¡Œé€Ÿåº¦,PlanTar_highç›¸å¯¹é«˜,GYCX_TarAglç›®æ ‡å€¾æ–œè§’
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°  æ¡å¸¦å‘¨æœŸGYCX_TD_Timeï¼›æ¡å¸¦å¸§æ•°GYCX_TD_PhotoNumï¼›æ¡å¸¦è¿‘ç«¯è§’GYCX_TDAgl_nearï¼›æ¡å¸¦èµ·å§‹è§’GYCX_TDAgl_startï¼›æ¡å¸¦ç»“æŸè§’GYCX_TDAgl_end
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *GY_TarAglOver) {
-    float foc     = tocal_foclen_KJ * 0.001; // ½¹¾à
-    float pic_sec = GYCX_pfs;                // ³ÉÏñÖÜÆÚ
-    float P_x_t;                             // x·½ÏòÖØµşÂÊ
+    float foc     = tocal_foclen_KJ * 0.001; // ç„¦è·
+    float pic_sec = GYCX_pfs;                // æˆåƒå‘¨æœŸ
+    float P_x_t;                             // xæ–¹å‘é‡å ç‡
     P_x_t = GYCX_P_x;
-    float P_y_t; // y·½ÏòÖØµşÂÊ
+    float P_y_t; // yæ–¹å‘é‡å ç‡
     P_y_t = GYCX_P_y;
 
-    float picAngle_x_pi;                                                         // X°ÚÉ¨ÏòÊÓ³¡½Ç
+    float picAngle_x_pi;                                                         // Xæ‘†æ‰«å‘è§†åœºè§’
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                 // È¥µôÖØµşÂÊ
+    float picAngle_x_overlap_pi;                                                 // å»æ‰é‡å ç‡
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
-    float k               = GYCX_Near_K;                           // ¹ãÓò³ÉÏñ½üµØµãÏµÊı
-    float Tloc            = Sec_KJPosREADY_NKJ + Sec_KJSpeedREADY; // ¿ò¼Üµ½Î»Ê±¼ä
+    float k               = GYCX_Near_K;                           // å¹¿åŸŸæˆåƒè¿‘åœ°ç‚¹ç³»æ•°
+    float Tloc            = Sec_KJPosREADY_NKJ + Sec_KJSpeedREADY; // æ¡†æ¶åˆ°ä½æ—¶é—´
 
-    float Max_TDNum_t = Max_TDNum;                       // ×î´óÌõ´øÊı
-    GYCX_NKJ_omiga    = picAngle_x_overlap_pi / pic_sec; // ¹ãÓò³ÉÏñÄÚ¿ò¼Ü½ÇËÙ¶È
-    float temp1;                                         // ·ÉĞĞ·½Ïò Ny*b*(1-px)=Ny*4.5*10^-6*(1-px)
+    float Max_TDNum_t = Max_TDNum;                       // æœ€å¤§æ¡å¸¦æ•°
+    GYCX_NKJ_omiga    = picAngle_x_overlap_pi / pic_sec; // å¹¿åŸŸæˆåƒå†…æ¡†æ¶è§’é€Ÿåº¦
+    float temp1;                                         // é£è¡Œæ–¹å‘ Ny*b*(1-px)=Ny*4.5*10^-6*(1-px)
     temp1 = (KJ_pixnum_Y * tocal_pixsize_KJ * 0.000001) * (1 - P_y_t);
     float temp2; // k*omega_*Nx*b*(1-px)
     temp2 = k * GYCX_NKJ_omiga * temp1;
 
-    float A_far    = 0; // Ô¶½Ç
-    float A_near   = 0; // ½ü½Ç
+    float A_far    = 0; // è¿œè§’
+    float A_near   = 0; // è¿‘è§’
     float A        = 0;
     float B        = 0;
     float C        = 0;
@@ -1585,10 +1561,10 @@ void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *
     float fan      = 0;
     float f_an     = 0;
     float T_gd     = 0;
-    float Angl_sm  = 0;        // É¨Ãè½Ç
-    float compTime = 0;        // ¼ÆËã´ÎÊı
-    float max_GYTD_waveagl_pi; // ×î´ó°ÚÉ¨½Ç·¶Î§
-    float temp_speed_hight;    // ¼ÆËãÓÃËÙ¸ß±È
+    float Angl_sm  = 0;        // æ‰«æè§’
+    float compTime = 0;        // è®¡ç®—æ¬¡æ•°
+    float max_GYTD_waveagl_pi; // æœ€å¤§æ‘†æ‰«è§’èŒƒå›´
+    float temp_speed_hight;    // è®¡ç®—ç”¨é€Ÿé«˜æ¯”
     if (speed_hight < 0.001) {
         temp_speed_hight = 0.001;
     } else {
@@ -1599,20 +1575,20 @@ void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *
     A_near = GYCX_TarAgl_pi - k * max_GYTD_waveagl_pi;
     A_far  = GYCX_TarAgl_pi + (1 - k) * max_GYTD_waveagl_pi;
 
-    if (1.569 < A_far) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI//ÓÃ89.9×÷ÎªÏŞÖÆ
+    if (1.569 < A_far) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI//ç”¨89.9ä½œä¸ºé™åˆ¶
     {
         A_far = 1.569;
     }
-    if (NKJ_Min_PI > A_near) // ÄÚ¿ò¼Ü³¬×îµÍ
+    if (NKJ_Min_PI > A_near) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         A_near = NKJ_Min_PI;
     }
-    T_gd = (temp1 / foc * cos(A_near) * temp_speed_hight); // ¼ÆËã°ÚÉ¨ÖÜÆÚ
+    T_gd = (temp1 / foc * cos(A_near) * temp_speed_hight); // è®¡ç®—æ‘†æ‰«å‘¨æœŸ
 
-    float temp_maxtime; // ×î´óÌõ´øÊ±¼ä
+    float temp_maxtime; // æœ€å¤§æ¡å¸¦æ—¶é—´
     temp_maxtime = Max_TDNum * pic_sec + Tloc;
 
-    if (temp_maxtime > T_gd) // Ê±¼ä³¬ÏŞ£¬²»ÄÜÊ¹ÓÃ×î´óÖ¡
+    if (temp_maxtime > T_gd) // æ—¶é—´è¶…é™ï¼Œä¸èƒ½ä½¿ç”¨æœ€å¤§å¸§
     {
         A = (temp2 / (foc * temp_speed_hight));
         B = cos(GYCX_TarAgl_pi);
@@ -1620,7 +1596,7 @@ void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *
 
         while ((0.00001745 < derta) && (a < GYCX_TarAgl_pi) && (a > 0) && (compTime < 20)) {
             // fan = (a+D)*cos(temp_abs_TarAgl-a)-A;
-            compTime = compTime + 1; // Ñ­»·´ÎÊı¼ÓÒ»
+            compTime = compTime + 1; // å¾ªç¯æ¬¡æ•°åŠ ä¸€
             fan      = -(C / 5040) * (a * a * a * a * a * a * a * a) - (B / 720 + C * D / 5040) * (a * a * a * a * a * a * a) + (C / 120 + B * D / 720) * (a * a * a * a * a * a) + (B / 24 + C * D / 120) * (a * a * a * a * a) - (C / 6 + B * D / 24) * (a * a * a * a) - (B / 2 + C * D / 6) * (a * a * a) + (C + B * D / 2) * (a * a) + (B + C * D) * a + (B * D) - A;
 
             f_an  = -8 * (C / 5040) * (a * a * a * a * a * a * a) - 7 * (B / 720 + C * D / 5040) * (a * a * a * a * a * a) + 6 * (C / 120 + B * D / 720) * (a * a * a * a * a) + 5 * (B / 24 + C * D / 120) * (a * a * a * a) - 4 * (C / 6 + B * D / 24) * (a * a * a) - 3 * (B / 2 + C * D / 6) * (a * a) + 2 * (C + B * D / 2) * (a) + B + C * D;
@@ -1628,68 +1604,68 @@ void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *
             derta = sqrt((a_ - a) * (a_ - a));
             a     = a_;
         }
-        compTime = 0;                            // Ñ­»·´ÎÊıÇåÁã
-        Angl_sm  = a / k;                        // É¨Ãè½Ç£¬
+        compTime = 0;                            // å¾ªç¯æ¬¡æ•°æ¸…é›¶
+        Angl_sm  = a / k;                        // æ‰«æè§’ï¼Œ
         A_near   = GYCX_TarAgl_pi - k * Angl_sm; // theta - k*Anglbs_gd;
         A_far    = GYCX_TarAgl_pi + (1 - k) * Angl_sm;
     } else {
         Angl_sm = max_GYTD_waveagl_pi;
     }
 
-    TD_PhotoNum = floor(Angl_sm / picAngle_x_overlap_pi); // Ìõ´øÅÄÕÕÕÅÊı
-    if (TD_PhotoNum < 1)                                  // Èç¹ûĞ¡ÓÚ1ÕÅ£¬°´Ò»ÕÅÅÄÉã
+    TD_PhotoNum = floor(Angl_sm / picAngle_x_overlap_pi); // æ¡å¸¦æ‹ç…§å¼ æ•°
+    if (TD_PhotoNum < 1)                                  // å¦‚æœå°äº1å¼ ï¼ŒæŒ‰ä¸€å¼ æ‹æ‘„
     {
         TD_PhotoNum = 1;
     }
     *TDAgl_bigger_t  = GYCX_TarAgl_pi + (1 - k) * (picAngle_x_overlap_pi * (TD_PhotoNum - 1)); // 0.097974;
     *TDAgl_smaller_t = GYCX_TarAgl_pi - k * (picAngle_x_overlap_pi * (TD_PhotoNum - 1));
 
-    //----------ÓÃ¸ø¶¨¹ãÓòÆğÊ¼½áÊø½ÇÔÙÅĞ¶Ï----------------
-    if (NKJ_Max_PI < *TDAgl_bigger_t) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    //----------ç”¨ç»™å®šå¹¿åŸŸèµ·å§‹ç»“æŸè§’å†åˆ¤æ–­----------------
+    if (NKJ_Max_PI < *TDAgl_bigger_t) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         *TDAgl_bigger_t = NKJ_Max_PI;
     }
-    if (NKJ_Min_PI > *TDAgl_smaller_t) // ÄÚ¿ò¼Ü³¬×îµÍ
+    if (NKJ_Min_PI > *TDAgl_smaller_t) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         *TDAgl_smaller_t = NKJ_Min_PI;
     }
 
-    *GY_TarAglOver = 0; // ¹ãÓò³ÉÏñ¸ø¶¨Ä¿±êÆğÊ¼½áÊø½Ç³¬ÏŞ 0-²»³¬ÏŞ£¬1-³¬ÏŞ
+    *GY_TarAglOver = 0; // å¹¿åŸŸæˆåƒç»™å®šç›®æ ‡èµ·å§‹ç»“æŸè§’è¶…é™ 0-ä¸è¶…é™ï¼Œ1-è¶…é™
 
     if (*TDAgl_bigger_t > (GYCX_TarAgl_far_pi + picAngle_x_overlap_pi)) {
         *TDAgl_bigger_t = (GYCX_TarAgl_far_pi + picAngle_x_overlap_pi);
     } else {
-        *GY_TarAglOver = 1; // ¹ãÓò³ÉÏñ¸ø¶¨Ä¿±êÆğÊ¼½áÊø½Ç³¬ÏŞ 0-²»³¬ÏŞ£¬1-³¬ÏŞ
+        *GY_TarAglOver = 1; // å¹¿åŸŸæˆåƒç»™å®šç›®æ ‡èµ·å§‹ç»“æŸè§’è¶…é™ 0-ä¸è¶…é™ï¼Œ1-è¶…é™
     }
     if (*TDAgl_smaller_t < (GYCX_TarAgl_near_pi - picAngle_x_overlap_pi)) {
         *TDAgl_smaller_t = (GYCX_TarAgl_near_pi - picAngle_x_overlap_pi);
     } else {
-        *GY_TarAglOver = 1; // ¹ãÓò³ÉÏñ¸ø¶¨Ä¿±êÆğÊ¼½áÊø½Ç³¬ÏŞ  0-²»³¬ÏŞ£¬1-³¬ÏŞ
+        *GY_TarAglOver = 1; // å¹¿åŸŸæˆåƒç»™å®šç›®æ ‡èµ·å§‹ç»“æŸè§’è¶…é™  0-ä¸è¶…é™ï¼Œ1-è¶…é™
     }
 
-    TD_PhotoNum = floor((*TDAgl_bigger_t - *TDAgl_smaller_t) / picAngle_x_overlap_pi); // Ìõ´øÅÄÕÕÕÅÊı
-    if (TD_PhotoNum < 1)                                                               // Èç¹ûĞ¡ÓÚ1ÕÅ£¬°´Ò»ÕÅÅÄÉã
+    TD_PhotoNum = floor((*TDAgl_bigger_t - *TDAgl_smaller_t) / picAngle_x_overlap_pi); // æ¡å¸¦æ‹ç…§å¼ æ•°
+    if (TD_PhotoNum < 1)                                                               // å¦‚æœå°äº1å¼ ï¼ŒæŒ‰ä¸€å¼ æ‹æ‘„
     {
         TD_PhotoNum = 1;
     }
     *TDAgl_bigger_t  = GYCX_TarAgl_pi + (1 - k) * (picAngle_x_overlap_pi * (TD_PhotoNum - 1)); // 0.097974;
     *TDAgl_smaller_t = GYCX_TarAgl_pi - k * (picAngle_x_overlap_pi * (TD_PhotoNum - 1));
     A_near           = *TDAgl_smaller_t;
-    TD_Time          = (temp1 / (foc * temp_speed_hight * cos(A_near))); // °ÚÉ¨ÖÜÆÚÊ±¼ä
+    TD_Time          = (temp1 / (foc * temp_speed_hight * cos(A_near))); // æ‘†æ‰«å‘¨æœŸæ—¶é—´
     if (1 == TD_PhotoNum) {
         TD_Time        = Tloc + pic_sec;
         GYCX_NKJ_omiga = 0;
     }
 }
-// ------------------------------¹ãÓò³ÉÏñÌõ´øÆğÊ¼½Ç¼ÆËã£¨±£³Öº½Ïßº½Ïò½ÇºÍ¸©Ñö½Ç£©-------------------------------//
-//  º¯ÊıÃû³Æ£ºGYCX_GetKJPos_simple()
-//  ¹¦ÄÜ£º¹ãÓò³ÉÏñÌõ´øÆğÊ¼½Ç¼ÆËã£¨±£³Öº½Ïßº½Ïò½ÇºÍ¸©Ñö½Ç£©
-//  ÊäÈë²ÎÊı£ºGPS_t  ¾­Î³¶È
-//  ·µ»Ø²ÎÊı£ºECEF_t µØÇò×ø±ê
-//  ËµÃ÷£ºÎŞ
+// ------------------------------å¹¿åŸŸæˆåƒæ¡å¸¦èµ·å§‹è§’è®¡ç®—ï¼ˆä¿æŒèˆªçº¿èˆªå‘è§’å’Œä¿¯ä»°è§’ï¼‰-------------------------------//
+//  å‡½æ•°åç§°ï¼šGYCX_GetKJPos_simple()
+//  åŠŸèƒ½ï¼šå¹¿åŸŸæˆåƒæ¡å¸¦èµ·å§‹è§’è®¡ç®—ï¼ˆä¿æŒèˆªçº¿èˆªå‘è§’å’Œä¿¯ä»°è§’ï¼‰
+//  è¾“å…¥å‚æ•°ï¼šGPS_t  ç»çº¬åº¦
+//  è¿”å›å‚æ•°ï¼šECEF_t åœ°çƒåæ ‡
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void GYCX_GetKJPos_simple(struct_KJAgl *KJ_Agl_t, struct_AttiAgl AttitudeAC_t, struct_KJAgl Hope_KJ_Agl_t, float Tar_YawAgl_t, float Tar_PitchAgl_t) {
-    struct_LSB_float64 Losac_HopPhoto; // Ïà»ú×ø±êÏµÏÂÊÓÖá
+    struct_LSB_float64 Losac_HopPhoto; // ç›¸æœºåæ ‡ç³»ä¸‹è§†è½´
 
     float cos_dertaYaw = cos(AttitudeAC_t.Yaw - Tar_YawAgl_t);
     float sin_dertaYaw = sin(AttitudeAC_t.Yaw - Tar_YawAgl_t);
@@ -1737,86 +1713,86 @@ void GYCX_GetKJPos_simple(struct_KJAgl *KJ_Agl_t, struct_AttiAgl AttitudeAC_t, s
     Losac_HopPhoto.X = temp_X1 + temp_X2 + temp_X3;
     Losac_HopPhoto.Y = temp_Y1 + temp_Y2 + temp_Y3;
     Losac_HopPhoto.Z = temp_Z1 + temp_Z2 + temp_Z3;
-    // Íâ¿ò¼Ü¸©Ñö½Ç
+    // å¤–æ¡†æ¶ä¿¯ä»°è§’
     KJ_Agl_t->WKJ = atan2(Losac_HopPhoto.Y, Losac_HopPhoto.X);
-    // ÄÚ¿ò¼Ü·½Î»½Ç
+    // å†…æ¡†æ¶æ–¹ä½è§’
     KJ_Agl_t->NKJ = acos(Losac_HopPhoto.Z);
     // KJ_Agl_t->NKJ = atan2(sqrt(Losac_HopPhoto.Y*Losac_HopPhoto.Y + Losac_HopPhoto.X*Losac_HopPhoto.X),Losac_HopPhoto.Z);
 }
-// ------------------------------¼ÆËã¹ãÓò·½Î»ÓÅÏÈÄ£Ê½ÏÂµÄÄÚ¿ò¼ÜÔ¶/½ü½Ç-------------------------------//
+// ------------------------------è®¡ç®—å¹¿åŸŸæ–¹ä½ä¼˜å…ˆæ¨¡å¼ä¸‹çš„å†…æ¡†æ¶è¿œ/è¿‘è§’-------------------------------//
 //  Process_TarAgl_GY_AZ_ParaComputer()
-//  ¹¦ÄÜ£º¼ÆËã¹ãÓò·½Î»ÓÅÏÈÄ£Ê½ÏÂµÄÍâ¿ò¼ÜÔ¶/½ü½Ç
-//  ÊäÈë²ÎÊı£º
-//  ·µ»Ø²ÎÊı£º¸üĞÂ ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñÊ¹ÓÃµÄÄ¿±êÇãĞ±½Ç£¬Ä¿±ê½ü½Ç£¬Ä¿±êÔ¶½Ç
-//  ËµÃ÷£ºÎŞ
+//  åŠŸèƒ½ï¼šè®¡ç®—å¹¿åŸŸæ–¹ä½ä¼˜å…ˆæ¨¡å¼ä¸‹çš„å¤–æ¡†æ¶è¿œ/è¿‘è§’
+//  è¾“å…¥å‚æ•°ï¼š
+//  è¿”å›å‚æ•°ï¼šæ›´æ–° æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒä½¿ç”¨çš„ç›®æ ‡å€¾æ–œè§’ï¼Œç›®æ ‡è¿‘è§’ï¼Œç›®æ ‡è¿œè§’
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void Process_TarAgl_GY_AZ_ParaComputer(void) {
     float temp_float1 = 0;
     float temp_dis    = 0;
     float temp_agl    = 0;
 
-    // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ¸©Ñö½Ç´ó½Ç »¡¶È
+    // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ ä¿¯ä»°è§’å¤§è§’ å¼§åº¦
     // GYCX_TarAgl_FYAgl_pi = acos(planTar_high/(param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE*1000));
-    temp_dis = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE * 1000; // Ä¿±ê¾àÀë
+    temp_dis = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE * 1000; // ç›®æ ‡è·ç¦»
     if (temp_dis == 0) {
         temp_dis = 1;
     }
-    temp_agl = acos(planTar_high / temp_dis); // ÇãĞ±½Ç
-    if (1.569 < temp_agl)                     // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI//ÓÃ89.9×÷ÎªÏŞÖÆ
+    temp_agl = acos(planTar_high / temp_dis); // å€¾æ–œè§’
+    if (1.569 < temp_agl)                     // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI//ç”¨89.9ä½œä¸ºé™åˆ¶
     {
         temp_agl = 1.569;
     }
-    if (NKJ_Min_PI > temp_agl) // ÄÚ¿ò¼Ü³¬×îµÍ
+    if (NKJ_Min_PI > temp_agl) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         temp_agl = NKJ_Min_PI;
     }
     GYCX_TarAgl_FYAgl_pi = temp_agl;
 
-    float temp_min = 0; // ×îĞ¡
-    float temp_max = 0; // ×î´ó
+    float temp_min = 0; // æœ€å°
+    float temp_max = 0; // æœ€å¤§
 
     temp_min = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_scan_start_angle / 1000;
     temp_max = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_scan_end_angle / 1000;
 
-    if (temp_max < temp_min) // Èç¹û½ü½ç½Ç´óÓÚÔ¶½ç½Ç£¬Ôò½»»»
+    if (temp_max < temp_min) // å¦‚æœè¿‘ç•Œè§’å¤§äºè¿œç•Œè§’ï¼Œåˆ™äº¤æ¢
     {
         temp_float1 = temp_min;
         temp_min    = temp_max;
         temp_max    = temp_float1;
     }
 
-    GYCX_TarAgl_min_pi = temp_min; // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ·½Î»½ÇĞ¡½Ç »¡¶È
-    GYCX_TarAgl_max_pi = temp_max; // ·½Î»ÓÅÏÈ¹ãÓò³ÉÏñ ·½Î»½Ç´ó½Ç »¡¶È
+    GYCX_TarAgl_min_pi = temp_min; // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ æ–¹ä½è§’å°è§’ å¼§åº¦
+    GYCX_TarAgl_max_pi = temp_max; // æ–¹ä½ä¼˜å…ˆå¹¿åŸŸæˆåƒ æ–¹ä½è§’å¤§è§’ å¼§åº¦
 
     GYCX_TarAgl_pi = (temp_max + temp_min) / 2;
 }
-// ------------------------------¼ÆËã¹ãÓò³ÉÏñÌõ´øÖ¡Êı-·½Î»ÓÅÏÈ-------------------------------//
-//  º¯ÊıÃû³Æ£ºGYCX_AZ_GetTDPhotoNum()
-//  ¹¦ÄÜ£º ¼ÆËã¹ãÓò³ÉÏñÌõ´øÖ¡Êı-·½Î»ÓÅÏÈ
-//  ÊäÈë²ÎÊı£º AC_speed·ÉĞĞËÙ¶È,PlanTar_highÏà¶Ô¸ß,GYCX_TarAglÄ¿±êÇãĞ±½Ç
-//  ·µ»Ø²ÎÊı£º¸üĞÂ  Ìõ´øÖÜÆÚGYCX_TD_Time£»Ìõ´øÖ¡ÊıGYCX_TD_PhotoNum£»Ìõ´ø½ü¶Ë½ÇGYCX_TDAgl_near£»Ìõ´øÆğÊ¼½ÇGYCX_TDAgl_start£»Ìõ´ø½áÊø½ÇGYCX_TDAgl_end
-//  ËµÃ÷£ºÎŞ
+// ------------------------------è®¡ç®—å¹¿åŸŸæˆåƒæ¡å¸¦å¸§æ•°-æ–¹ä½ä¼˜å…ˆ-------------------------------//
+//  å‡½æ•°åç§°ï¼šGYCX_AZ_GetTDPhotoNum()
+//  åŠŸèƒ½ï¼š è®¡ç®—å¹¿åŸŸæˆåƒæ¡å¸¦å¸§æ•°-æ–¹ä½ä¼˜å…ˆ
+//  è¾“å…¥å‚æ•°ï¼š AC_speedé£è¡Œé€Ÿåº¦,PlanTar_highç›¸å¯¹é«˜,GYCX_TarAglç›®æ ‡å€¾æ–œè§’
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°  æ¡å¸¦å‘¨æœŸGYCX_TD_Timeï¼›æ¡å¸¦å¸§æ•°GYCX_TD_PhotoNumï¼›æ¡å¸¦è¿‘ç«¯è§’GYCX_TDAgl_nearï¼›æ¡å¸¦èµ·å§‹è§’GYCX_TDAgl_startï¼›æ¡å¸¦ç»“æŸè§’GYCX_TDAgl_end
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void GYCX_AZ_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *GY_TarAglOver) {
-    float foc     = (float)tocal_foclen_KJ * 0.001; // ½¹¾à
-    float pic_sec = GYCX_pfs;                       // ³ÉÏñÖÜÆÚ
-    float P_x_t;                                    // x·½ÏòÖØµşÂÊ
+    float foc     = (float)tocal_foclen_KJ * 0.001; // ç„¦è·
+    float pic_sec = GYCX_pfs;                       // æˆåƒå‘¨æœŸ
+    float P_x_t;                                    // xæ–¹å‘é‡å ç‡
     P_x_t = GYCX_P_x;
-    float P_y_t; // y·½ÏòÖØµşÂÊ
+    float P_y_t; // yæ–¹å‘é‡å ç‡
     P_y_t = GYCX_P_y;
 
-    float picAngle_x_pi;                                                               // X°ÚÉ¨ÏòÊÓ³¡½Ç
+    float picAngle_x_pi;                                                               // Xæ‘†æ‰«å‘è§†åœºè§’
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                       // È¥µôÖØµşÂÊ
+    float picAngle_x_overlap_pi;                                                       // å»æ‰é‡å ç‡
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
-    float picAngle_y_pi;                                                               // Y°ÚÉ¨ÏòÊÓ³¡½Ç
+    float picAngle_y_pi;                                                               // Yæ‘†æ‰«å‘è§†åœºè§’
     picAngle_y_pi = 2 * atan((KJ_pixnum_Y * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_y_overlap_pi;                                                       // È¥µôÖØµşÂÊ
+    float picAngle_y_overlap_pi;                                                       // å»æ‰é‡å ç‡
     picAngle_y_overlap_pi = picAngle_y_pi * (1 - P_y_t);
-    float k               = GYCX_Near_K;                           // ¹ãÓò³ÉÏñ½üµØµãÏµÊı
-    float Tloc            = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // ¿ò¼Üµ½Î»Ê±¼ä
-    //    float Max_TDNum_t = Max_TDNum;//×î´óÌõ´øÊı
-    GYCX_WKJ_omiga = picAngle_y_overlap_pi / pic_sec; // ¹ãÓò³ÉÏñÍâ¿ò¼Ü½ÇËÙ¶È
+    float k               = GYCX_Near_K;                           // å¹¿åŸŸæˆåƒè¿‘åœ°ç‚¹ç³»æ•°
+    float Tloc            = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // æ¡†æ¶åˆ°ä½æ—¶é—´
+    //    float Max_TDNum_t = Max_TDNum;//æœ€å¤§æ¡å¸¦æ•°
+    GYCX_WKJ_omiga = picAngle_y_overlap_pi / pic_sec; // å¹¿åŸŸæˆåƒå¤–æ¡†æ¶è§’é€Ÿåº¦
 
     float temp1;
     float temp2;
@@ -1831,9 +1807,9 @@ void GYCX_AZ_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *G
     }
     temp3        = (tan(temp1) - tan(temp2)) * planTar_high;
     float T_gd   = 0;
-    T_gd         = temp3 / AC_speed; // Ê±¼ä
+    T_gd         = temp3 / AC_speed; // æ—¶é—´
     float T_num1 = 0;
-    T_num1       = floor((T_gd - Tloc) / pic_sec); // ¼ÆËãÌõ´øÖ¡Êı
+    T_num1       = floor((T_gd - Tloc) / pic_sec); // è®¡ç®—æ¡å¸¦å¸§æ•°
     if (T_num1 < 1) {
         T_num1 = 1;
     }
@@ -1845,69 +1821,69 @@ void GYCX_AZ_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *G
         agl_sum = GYCX_TarAgl_max_pi - GYCX_TarAgl_min_pi;
     }
     float T_num    = 0;
-    T_num          = floor(agl_sum / picAngle_y_overlap_pi) + 2; // ¸ø¶¨Ìõ´øÖ¡Êı
-    *GY_TarAglOver = 0;                                          // ¹ãÓò³ÉÏñ¸ø¶¨Ä¿±êÆğÊ¼½áÊø½Ç³¬ÏŞ  0-²»³¬ÏŞ£¬1-³¬ÏŞ
+    T_num          = floor(agl_sum / picAngle_y_overlap_pi) + 2; // ç»™å®šæ¡å¸¦å¸§æ•°
+    *GY_TarAglOver = 0;                                          // å¹¿åŸŸæˆåƒç»™å®šç›®æ ‡èµ·å§‹ç»“æŸè§’è¶…é™  0-ä¸è¶…é™ï¼Œ1-è¶…é™
     if (T_num > T_num1) {
         T_num          = T_num1;
-        *GY_TarAglOver = 1; // ¹ãÓò³ÉÏñ¸ø¶¨Ä¿±êÆğÊ¼½áÊø½Ç³¬ÏŞ  0-²»³¬ÏŞ£¬1-³¬ÏŞ
+        *GY_TarAglOver = 1; // å¹¿åŸŸæˆåƒç»™å®šç›®æ ‡èµ·å§‹ç»“æŸè§’è¶…é™  0-ä¸è¶…é™ï¼Œ1-è¶…é™
     }
-    TD_PhotoNum      = T_num; // Ìõ´øÖ¡Êı
-    TD_Time          = T_gd;  // Ìõ´øÊ±¼ä
+    TD_PhotoNum      = T_num; // æ¡å¸¦å¸§æ•°
+    TD_Time          = T_gd;  // æ¡å¸¦æ—¶é—´
     *TDAgl_bigger_t  = GYCX_TarAgl_pi + k * picAngle_y_overlap_pi * (TD_PhotoNum - 1);
     *TDAgl_smaller_t = GYCX_TarAgl_pi - k * picAngle_y_overlap_pi * (TD_PhotoNum - 1);
 
-    if (TD_PhotoNum < 2) // Èç¹ûĞ¡ÓÚ1ÕÅ£¬°´Ò»ÕÅÅÄÉã
+    if (TD_PhotoNum < 2) // å¦‚æœå°äº1å¼ ï¼ŒæŒ‰ä¸€å¼ æ‹æ‘„
     {
         TD_PhotoNum    = 1;
         TD_Time        = Tloc + pic_sec;
-        GYCX_WKJ_omiga = 0; // µ¥Ö¡ËÙ¶ÈÎªÁã
+        GYCX_WKJ_omiga = 0; // å•å¸§é€Ÿåº¦ä¸ºé›¶
     }
 }
-// ------------------------------µØÀí¸ú×ÙÏà¹ØÊı¾İ-------------------------------//
-//  º¯ÊıÃû³Æ£ºGeoTrack_ParaComputer()
-//  ¹¦ÄÜ£º¸ù¾İÄ¿±ê¾­Î³¸ß£¬¼ÆËãĞèÒªµÄËùÓĞ²ÎÊı
-//  ÊäÈë²ÎÊı£ºfloat64 Tar_Lon_t Ä¿±ê¾­¶È,float64 Tar_Lat_t Ä¿±êÎ³¶È,float Tar_Alt_t Ä¿±ê¸ß¶È
-//  ·µ»Ø²ÎÊı£º·µ»Ø³¬ÏŞ±êÊ¶
-//  ËµÃ÷£º¸üĞÂ²ÎÊı¼ÆËãÓĞ¹ØµÄÈ«¾Ö±äÁ¿
+// ------------------------------åœ°ç†è·Ÿè¸ªç›¸å…³æ•°æ®-------------------------------//
+//  å‡½æ•°åç§°ï¼šGeoTrack_ParaComputer()
+//  åŠŸèƒ½ï¼šæ ¹æ®ç›®æ ‡ç»çº¬é«˜ï¼Œè®¡ç®—éœ€è¦çš„æ‰€æœ‰å‚æ•°
+//  è¾“å…¥å‚æ•°ï¼šfloat64 Tar_Lon_t ç›®æ ‡ç»åº¦,float64 Tar_Lat_t ç›®æ ‡çº¬åº¦,float Tar_Alt_t ç›®æ ‡é«˜åº¦
+//  è¿”å›å‚æ•°ï¼šè¿”å›è¶…é™æ ‡è¯†
+//  è¯´æ˜ï¼šæ›´æ–°å‚æ•°è®¡ç®—æœ‰å…³çš„å…¨å±€å˜é‡
 // ---------------------------------------------------------------------------//
 int GeoTrack_ParaComputer(float Tar_Lon_t, float Tar_Lat_t, float Tar_Alt_t) {
-    tar_high                           = Tar_Alt_t; // ¸³ÖµÄ¿±ê¸ß¶È
-    int                overPara_flag_t = 0;         // ²ÎÊı³¬ÏŞ±êÊ¶
-    struct_KJAgl       cal_agl_kj_t;                // ¼ÆËã¿ò¼Ü½Ç
-    struct_LSB_float64 hope_ned_lsb_t;              // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
+    tar_high                           = Tar_Alt_t; // èµ‹å€¼ç›®æ ‡é«˜åº¦
+    int                overPara_flag_t = 0;         // å‚æ•°è¶…é™æ ‡è¯†
+    struct_KJAgl       cal_agl_kj_t;                // è®¡ç®—æ¡†æ¶è§’
+    struct_LSB_float64 hope_ned_lsb_t;              // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
 
-    // ¼ÆËãÄ¿±êÔÚECEFÏÂ×ø±ê
+    // è®¡ç®—ç›®æ ‡åœ¨ECEFä¸‹åæ ‡
     GPSToECEF(&GeoTrack_ecef_Tar, Tar_Lon_t, Tar_Lat_t, Tar_Alt_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &GeoTrack_ecef_Tar);
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &hope_ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç
-    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç
-    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç
+    KJ_start_pi.NKJ = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.NKJ   = cal_agl_kj_t.NKJ; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’
+    KJ_start_pi.WKJ = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’
+    KJ_end_pi.WKJ   = cal_agl_kj_t.WKJ; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’
 
-    return overPara_flag_t; // ·µ»Ø²ÎÊı³¬ÏŞ±êÊ¶
+    return overPara_flag_t; // è¿”å›å‚æ•°è¶…é™æ ‡è¯†
 }
-// ------------------------------¾­Î³¶È×ø±ê×ªECEF×ø±ê-------------------------------//
-//  º¯ÊıÃû³Æ£ºGPSToECEF()
-//  ¹¦ÄÜ£º ¾­Î³¶È×ø±ê×ªECEF×ø±ê
-//  ÊäÈë²ÎÊı£ºfloat64 Tar_Lon_tÄ¿±ê¾­¶È,float64 Tar_Lat_tÄ¿±êÎ³¶È,float Tar_Alt_tÄ¿±ê¸ß¶È
-//  ·µ»Ø²ÎÊı£º¸üĞÂ  struct_Position_float64* Tar_ecef_t,Ä¿±êÔÚECEF×ø±ê
-//  ËµÃ÷£ºÎŞ
+// ------------------------------ç»çº¬åº¦åæ ‡è½¬ECEFåæ ‡-------------------------------//
+//  å‡½æ•°åç§°ï¼šGPSToECEF()
+//  åŠŸèƒ½ï¼š ç»çº¬åº¦åæ ‡è½¬ECEFåæ ‡
+//  è¾“å…¥å‚æ•°ï¼šfloat64 Tar_Lon_tç›®æ ‡ç»åº¦,float64 Tar_Lat_tç›®æ ‡çº¬åº¦,float Tar_Alt_tç›®æ ‡é«˜åº¦
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°  struct_Position_float64* Tar_ecef_t,ç›®æ ‡åœ¨ECEFåæ ‡
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void GPSToECEF(struct_Position_float64 *Tar_ecef_t, float Tar_Lon_t, float Tar_Lat_t, float Tar_Alt_t) {
     float sin_Lon = sin(Tar_Lon_t);
@@ -1928,12 +1904,12 @@ void GPSToECEF(struct_Position_float64 *Tar_ecef_t, float Tar_Lon_t, float Tar_L
     Tar_ecef_t->Y = sin_Lon * (-1) * cos_Lat * NED_ECEF4;
     Tar_ecef_t->Z = (-1) * sin_Lat * NED_ECEF4 + NED_ECEF1;
 }
-// ------------------------------ECEF×ø±êÏµµ½NED×ø±êÏµ×ª»»¾ØÕó-------------------------------//
-//  º¯ÊıÃû³Æ£ºECEFToNED()
-//  ¹¦ÄÜ£ºECEFµ½NED×ø±êÏµ×ø±êÏµ×ª»»¾ØÕó
-//  ÊäÈë²ÎÊı£ºGPS_t  ¾­Î³¶È
-//  ·µ»Ø²ÎÊı£ºECEF_NED_t ×ª»»¾ØÕó
-//  ËµÃ÷£ºÎŞ
+// ------------------------------ECEFåæ ‡ç³»åˆ°NEDåæ ‡ç³»è½¬æ¢çŸ©é˜µ-------------------------------//
+//  å‡½æ•°åç§°ï¼šECEFToNED()
+//  åŠŸèƒ½ï¼šECEFåˆ°NEDåæ ‡ç³»åæ ‡ç³»è½¬æ¢çŸ©é˜µ
+//  è¾“å…¥å‚æ•°ï¼šGPS_t  ç»çº¬åº¦
+//  è¿”å›å‚æ•°ï¼šECEF_NED_t è½¬æ¢çŸ©é˜µ
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void ECEFToNED(double ECEF_NED_t[3][4], struct_GPS_float64 GPS_t) {
     float RnAC;
@@ -1964,21 +1940,21 @@ void ECEFToNED(double ECEF_NED_t[3][4], struct_GPS_float64 GPS_t) {
     ECEF_NED_t[2][2] = -1 * sin_lat;
     ECEF_NED_t[2][3] = -1 * sin_lat * ECEF_NED1 + RnAC + GPS_t.Alt;
 }
-// ------------------------------ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿-------------------------------//
-//  º¯ÊıÃû³Æ£ºGetOneLSBbyTarECEF_ParaComputer()
-//  ¹¦ÄÜ£ºÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
-//  ÊäÈë²ÎÊı£ºstruct_Position_float64* ecef_Tar_t Ä¿±êÔÚECEFÖĞ×ø±ê
-//  ·µ»Ø²ÎÊı£ºstruct_LSB_float64* oneLSB_t µ¥Î»ÊÓÖáÏòÁ¿
-//  ËµÃ÷£ºÎŞ
+// ------------------------------ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡-------------------------------//
+//  å‡½æ•°åç§°ï¼šGetOneLSBbyTarECEF_ParaComputer()
+//  åŠŸèƒ½ï¼šä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
+//  è¾“å…¥å‚æ•°ï¼šstruct_Position_float64* ecef_Tar_t ç›®æ ‡åœ¨ECEFä¸­åæ ‡
+//  è¿”å›å‚æ•°ï¼šstruct_LSB_float64* oneLSB_t å•ä½è§†è½´å‘é‡
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void GetOneLSBbyTarECEF_ParaComputer(struct_LSB_float64 *oneLSB_t, struct_Position_float64 *ecef_Tar_t) {
-    // Ä¿±ê ÔÚ·É»úÎªÖĞĞÄNED×ø±ê
+    // ç›®æ ‡ åœ¨é£æœºä¸ºä¸­å¿ƒNEDåæ ‡
     double NEDAC_Tar[3];
     NEDAC_Tar[0] = ECEF_NED_Plan[0][0] * ecef_Tar_t->X + ECEF_NED_Plan[0][1] * ecef_Tar_t->Y + ECEF_NED_Plan[0][2] * ecef_Tar_t->Z + ECEF_NED_Plan[0][3];
     NEDAC_Tar[1] = ECEF_NED_Plan[1][0] * ecef_Tar_t->X + ECEF_NED_Plan[1][1] * ecef_Tar_t->Y + ECEF_NED_Plan[1][2] * ecef_Tar_t->Z + ECEF_NED_Plan[1][3];
     NEDAC_Tar[2] = ECEF_NED_Plan[2][0] * ecef_Tar_t->X + ECEF_NED_Plan[2][1] * ecef_Tar_t->Y + ECEF_NED_Plan[2][2] * ecef_Tar_t->Z + ECEF_NED_Plan[2][3];
 
-    // ÊÓÖáµ½Ä¿±êµãµ¥Î»ÏòÁ¿
+    // è§†è½´åˆ°ç›®æ ‡ç‚¹å•ä½å‘é‡
     double temp_T[3];
     temp_T[0] = NEDAC_Tar[0];
     temp_T[1] = NEDAC_Tar[1];
@@ -1989,7 +1965,7 @@ void GetOneLSBbyTarECEF_ParaComputer(struct_LSB_float64 *oneLSB_t, struct_Positi
         norm_T = 1;
     }
 
-    double one_T[3]; // µ¥Î»ÏòÁ¿
+    double one_T[3]; // å•ä½å‘é‡
     one_T[0] = temp_T[0] / norm_T;
     one_T[1] = temp_T[1] / norm_T;
     one_T[2] = temp_T[2] / norm_T;
@@ -1998,36 +1974,36 @@ void GetOneLSBbyTarECEF_ParaComputer(struct_LSB_float64 *oneLSB_t, struct_Positi
     oneLSB_t->Y = one_T[1];
     oneLSB_t->Z = one_T[2];
 }
-// ------------------------------ÒÀ¾İÀíÏëNEDÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç-------------------------------//
-//  º¯ÊıÃû³Æ£ºJS_NED_ParaComputer
-//  ¹¦ÄÜ£ºÒÀ¾İÀíÏëNEDÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
-//  ÊäÈë²ÎÊı£ºstruct_LSB* ned_lsb NED×ø±êÏµÏÂÊÓÖáÖ¸Ïò£¬struct_IMUAgl* ned_AttiAgl   NED×ø±êÏµ×ËÌ¬½Ç
-//  ·µ»Ø²ÎÊı£º¿ò¼ÜÖ¸Ïò½Ç
-//  ËµÃ÷£ºÎŞ
+// ------------------------------ä¾æ®ç†æƒ³NEDè§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’-------------------------------//
+//  å‡½æ•°åç§°ï¼šJS_NED_ParaComputer
+//  åŠŸèƒ½ï¼šä¾æ®ç†æƒ³NEDè§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
+//  è¾“å…¥å‚æ•°ï¼šstruct_LSB* ned_lsb NEDåæ ‡ç³»ä¸‹è§†è½´æŒ‡å‘ï¼Œstruct_IMUAgl* ned_AttiAgl   NEDåæ ‡ç³»å§¿æ€è§’
+//  è¿”å›å‚æ•°ï¼šæ¡†æ¶æŒ‡å‘è§’
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 
 void GetKJAglbyLSB_ParaComputer(struct_KJAgl *kj_Agl_t, const struct_LSB_float64 *ned_lsb_t) {
 
-    // Ä¿±êµãÖ¸Ïò¿ò¼Ü½Ç
-    struct_LSB_float64 temp_lsb_ac; // ¼ÆËãAC×ø±êÏµÏÂÊÓÖáÏòÁ¿
+    // ç›®æ ‡ç‚¹æŒ‡å‘æ¡†æ¶è§’
+    struct_LSB_float64 temp_lsb_ac; // è®¡ç®—ACåæ ‡ç³»ä¸‹è§†è½´å‘é‡
 
     temp_lsb_ac.X = cos_AttiAgl.Pitch * cos_AttiAgl.Yaw * ned_lsb_t->X + cos_AttiAgl.Pitch * sin_AttiAgl.Yaw * ned_lsb_t->Y - sin_AttiAgl.Pitch * ned_lsb_t->Z;
     temp_lsb_ac.Y = (sin_AttiAgl.Roll * sin_AttiAgl.Pitch * cos_AttiAgl.Yaw - cos_AttiAgl.Roll * sin_AttiAgl.Yaw) * ned_lsb_t->X + (sin_AttiAgl.Roll * sin_AttiAgl.Pitch * sin_AttiAgl.Yaw + cos_AttiAgl.Roll * cos_AttiAgl.Yaw) * ned_lsb_t->Y + sin_AttiAgl.Roll * cos_AttiAgl.Pitch * ned_lsb_t->Z;
     temp_lsb_ac.Z = (cos_AttiAgl.Roll * sin_AttiAgl.Pitch * cos_AttiAgl.Yaw + sin_AttiAgl.Roll * sin_AttiAgl.Yaw) * ned_lsb_t->X + (cos_AttiAgl.Roll * sin_AttiAgl.Pitch * sin_AttiAgl.Yaw - sin_AttiAgl.Roll * cos_AttiAgl.Yaw) * ned_lsb_t->Y + cos_AttiAgl.Roll * cos_AttiAgl.Pitch * ned_lsb_t->Z;
-    // ·µ»ØÄÚ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å†…æ¡†æ¶è§’è®¡ç®—ç»“æœ
     kj_Agl_t->WKJ = atan2(temp_lsb_ac.Y, temp_lsb_ac.X);
-    // ·µ»ØÍâ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å¤–æ¡†æ¶è§’è®¡ç®—ç»“æœ
     kj_Agl_t->NKJ = acos(temp_lsb_ac.Z);
 }
-// ------------------------------¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê-------------------------------//
-//  º¯ÊıÃû³Æ£ºGetTarECEFbyKJAgl_ParaComputer(struct_KJAgl* hope_agl_kj)
-//  ¹¦ÄÜ£º¸ø¶¨Íâ¿ò¼ÜºÍÄÚ¿ò¼Ü½Ç£¬¼ÆËãµÃµ½Ä¿±êÔÚECEFÖĞ×ø±ê
-//  ÊäÈë²ÎÊı£ºstruct_KJAgl* hope_agl_kj ¸ø¶¨¿ò¼ÜÖ¸Ïò½Ç
-//  ·µ»Ø²ÎÊı£ºÖ¸Ïò½Ç
-//  ËµÃ÷£ºÎŞ
+// ------------------------------ç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡-------------------------------//
+//  å‡½æ•°åç§°ï¼šGetTarECEFbyKJAgl_ParaComputer(struct_KJAgl* hope_agl_kj)
+//  åŠŸèƒ½ï¼šç»™å®šå¤–æ¡†æ¶å’Œå†…æ¡†æ¶è§’ï¼Œè®¡ç®—å¾—åˆ°ç›®æ ‡åœ¨ECEFä¸­åæ ‡
+//  è¾“å…¥å‚æ•°ï¼šstruct_KJAgl* hope_agl_kj ç»™å®šæ¡†æ¶æŒ‡å‘è§’
+//  è¿”å›å‚æ•°ï¼šæŒ‡å‘è§’
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void GetTarECEFbyKJAgl_ParaComputer(struct_Position_float64 *ecef_Tar_t, const struct_KJAgl *hope_agl_kj_t) {
-    double       ECEFTarget_t[3]; // ECEF×ø±êÏµÏÂÄ¿±ê
+    double       ECEFTarget_t[3]; // ECEFåæ ‡ç³»ä¸‹ç›®æ ‡
     double       k[3], b[3];
     float        B_STar[3];
     struct_KJAgl sin_KJAgl_t;
@@ -2047,24 +2023,24 @@ void GetTarECEFbyKJAgl_ParaComputer(struct_Position_float64 *ecef_Tar_t, const s
     k[1] = AC_ECEF[1][0] * B_STar[0] + AC_ECEF[1][1] * B_STar[1] + AC_ECEF[1][2] * B_STar[2];
     k[2] = AC_ECEF[2][0] * B_STar[0] + AC_ECEF[2][1] * B_STar[1] + AC_ECEF[2][2] * B_STar[2];
 
-    // µØÇò×ø±êÏµÏÂ×ø±êÏà»úÔ­µã
+    // åœ°çƒåæ ‡ç³»ä¸‹åæ ‡ç›¸æœºåŸç‚¹
     b[0] = NED_ECEF[0][3];
     b[1] = NED_ECEF[1][3];
     b[2] = NED_ECEF[2][3];
 
-    // Çó½âÄ¿±êÔÚECEF×ø±êÏµÏÂ×ø±ê
+    // æ±‚è§£ç›®æ ‡åœ¨ECEFåæ ‡ç³»ä¸‹åæ ‡
     ECEFGeolocat(ECEFTarget_t, k, b, tar_high);
 
     ecef_Tar_t->X = ECEFTarget_t[0];
     ecef_Tar_t->Y = ECEFTarget_t[1];
     ecef_Tar_t->Z = ECEFTarget_t[2];
 }
-// ------------------------------ÓÃÄ¿±êÍ¶Ó°ÔÚµØÇò×ø±êÇóÄ¿±êÔÚµØÇò×ø±êÏµ×ø±ê-------------------------------//
-//  º¯ÊıÃû³Æ£ºECEFGeolocat
-//  ¹¦ÄÜ£ºÒÀ¾İÀíÏëNEDÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
-//  ÊäÈë²ÎÊı£ºfloat k_t[3],float b_t[3],float GeodeticHeightTarget_t  Ä¿±ê¸ß¶È
-//  ·µ»Ø²ÎÊı£ºfloat ECEFTarget_t[3] ECEFÖĞÄ¿±êÎ»ÖÃ
-//  ËµÃ÷£ºÎŞ
+// ------------------------------ç”¨ç›®æ ‡æŠ•å½±åœ¨åœ°çƒåæ ‡æ±‚ç›®æ ‡åœ¨åœ°çƒåæ ‡ç³»åæ ‡-------------------------------//
+//  å‡½æ•°åç§°ï¼šECEFGeolocat
+//  åŠŸèƒ½ï¼šä¾æ®ç†æƒ³NEDè§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
+//  è¾“å…¥å‚æ•°ï¼šfloat k_t[3],float b_t[3],float GeodeticHeightTarget_t  ç›®æ ‡é«˜åº¦
+//  è¿”å›å‚æ•°ï¼šfloat ECEFTarget_t[3] ECEFä¸­ç›®æ ‡ä½ç½®
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], float GeodeticHeightTarget_t) {
     double bTarget;
@@ -2074,7 +2050,7 @@ void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], float Ge
     b[1] = b_t[1];
     b[2] = b_t[2];
 
-    // ¸³Öµ°ë³¤Öá¼ÆËãÓÃ
+    // èµ‹å€¼åŠé•¿è½´è®¡ç®—ç”¨
     bTarget = (6356752 + GeodeticHeightTarget_t) * (6356752 + GeodeticHeightTarget_t);
     double aa, bb, cc;
     double xx[2], yy[2], zz[2], Distance2[2];
@@ -2110,7 +2086,7 @@ void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], float Ge
     yy[1]        = temp_7 + b[1];
     Distance2[1] = temp_6 * temp_6 + temp_7 * temp_7 + (zz[1] - b[2]) * (zz[1] - b[2]);
 
-    // ½â½á¹û
+    // è§£ç»“æœ
     if (Distance2[1] > Distance2[0]) {
         ECEFTarget_t[0] = xx[0];
         ECEFTarget_t[1] = yy[0];
@@ -2121,7 +2097,7 @@ void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], float Ge
         ECEFTarget_t[2] = zz[1];
     }
 }
-// µØÇò×ø±êÏµÏÂ×ø±ê×ªGPS£¬µÃµ½GPSTarget
+// åœ°çƒåæ ‡ç³»ä¸‹åæ ‡è½¬GPSï¼Œå¾—åˆ°GPSTarget
 void ECEFToGPS(double GPS_t[3], double ECEF_t[3]) {
     int    i;
     double ZECEF = ECEF_t[2];
@@ -2129,14 +2105,14 @@ void ECEFToGPS(double GPS_t[3], double ECEF_t[3]) {
     long   aEarth = 6378137;
     Rn            = aEarth * 1.0;
 
-    // ¾­¶È
+    // ç»åº¦
     Longitude = atan(ECEF_t[1] / ECEF_t[0]);
     if ((ECEF_t[0] < 0) && (Longitude > 0)) {
         Longitude = Longitude - PI;
     } else if ((ECEF_t[0] < 0) && (Longitude < 0)) {
         Longitude = Longitude + PI;
     }
-    // Î³¶È
+    // çº¬åº¦
     double temp_1 = ECEF_t[0] * ECEF_t[0];
     double temp_2 = ECEF_t[1] * ECEF_t[1];
     double temp_3 = 0.006694478197993;
@@ -2159,46 +2135,46 @@ void ECEFToGPS(double GPS_t[3], double ECEF_t[3]) {
     GPS_t[2] = GeodeticHeight;
 }
 
-// ------------------------------ÇøÓò³ÉÏñ¼ÆËãÌõ´øÊı¡¢Ìõ´øÖ¡ÊıºÍÆğÊ¼½Ç-------------------------------//
-//  º¯ÊıÃû³Æ£ºQYCX_GetTDPhotoNum
-//  ¹¦ÄÜ£ºÇøÓò³ÉÏñ¼ÆËãÌõ´øÊı¡¢Ìõ´øÖ¡ÊıºÍÆğÊ¼½Ç
-//  ÊäÈë²ÎÊı£ºfloat64 Tar_Lon_t Ä¿±ê¾­¶È,float64 Tar_Lat_t Ä¿±êÎ³¶È,float Tar_Alt_t Ä¿±ê¸ß¶È
-//  ·µ»Ø²ÎÊı£º¸üĞÂ  Ìõ´øÖÜÆÚGYCX_TD_Time£»Ìõ´øÖ¡ÊıGYCX_TD_PhotoNum£»Ìõ´ø½ü¶Ë½ÇGYCX_TDAgl_near
-//  ËµÃ÷£ºÎŞ
+// ------------------------------åŒºåŸŸæˆåƒè®¡ç®—æ¡å¸¦æ•°ã€æ¡å¸¦å¸§æ•°å’Œèµ·å§‹è§’-------------------------------//
+//  å‡½æ•°åç§°ï¼šQYCX_GetTDPhotoNum
+//  åŠŸèƒ½ï¼šåŒºåŸŸæˆåƒè®¡ç®—æ¡å¸¦æ•°ã€æ¡å¸¦å¸§æ•°å’Œèµ·å§‹è§’
+//  è¾“å…¥å‚æ•°ï¼šfloat64 Tar_Lon_t ç›®æ ‡ç»åº¦,float64 Tar_Lat_t ç›®æ ‡çº¬åº¦,float Tar_Alt_t ç›®æ ‡é«˜åº¦
+//  è¿”å›å‚æ•°ï¼šæ›´æ–°  æ¡å¸¦å‘¨æœŸGYCX_TD_Timeï¼›æ¡å¸¦å¸§æ•°GYCX_TD_PhotoNumï¼›æ¡å¸¦è¿‘ç«¯è§’GYCX_TDAgl_near
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
-    int                overPara_flag_t = 0; // ²ÎÊı³¬ÏŞ±êÊ¶
+    int                overPara_flag_t = 0; // å‚æ•°è¶…é™æ ‡è¯†
     struct_LSB_float64 ned_lsb_t;
-    struct_KJAgl       cal_agl_kj_t;                         // ¼ÆËã¿ò¼Ü½Ç
-    float              foc = (float)tocal_foclen_KJ * 0.001; // ½¹¾à
-    float              P_x_t;                                // x·½ÏòÖØµşÂÊ
+    struct_KJAgl       cal_agl_kj_t;                         // è®¡ç®—æ¡†æ¶è§’
+    float              foc = (float)tocal_foclen_KJ * 0.001; // ç„¦è·
+    float              P_x_t;                                // xæ–¹å‘é‡å ç‡
     P_x_t = QYCX_P_x;
-    float P_y_t; // y·½ÏòÖØµşÂÊ
+    float P_y_t; // yæ–¹å‘é‡å ç‡
     P_y_t = QYCX_P_y;
-    float picAngle_x_pi;                                                               // X°ÚÉ¨ÏòÊÓ³¡½Ç
+    float picAngle_x_pi;                                                               // Xæ‘†æ‰«å‘è§†åœºè§’
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                       // È¥µôÖØµşÂÊ
+    float picAngle_x_overlap_pi;                                                       // å»æ‰é‡å ç‡
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
-    float picAngle_y_pi;                                                               // Y°ÚÉ¨ÏòÊÓ³¡½Ç
+    float picAngle_y_pi;                                                               // Yæ‘†æ‰«å‘è§†åœºè§’
     picAngle_y_pi = 2 * atan((KJ_pixnum_Y * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_y_overlap_pi;                                                       // È¥µôÖØµşÂÊ
+    float picAngle_y_overlap_pi;                                                       // å»æ‰é‡å ç‡
     picAngle_y_overlap_pi = picAngle_y_pi * (1 - P_y_t);
-    float pic_sec         = QYCX_pfs;                        // ³ÉÏñÖÜÆÚ
-    QYCX_WKJ_omiga        = picAngle_y_overlap_pi / pic_sec; // ¹ãÓò³ÉÏñÍâ¿ò¼Ü½ÇËÙ¶È
+    float pic_sec         = QYCX_pfs;                        // æˆåƒå‘¨æœŸ
+    QYCX_WKJ_omiga        = picAngle_y_overlap_pi / pic_sec; // å¹¿åŸŸæˆåƒå¤–æ¡†æ¶è§’é€Ÿåº¦
 
-    // ¼ÆËãÖĞĞÄµã·½Ïò
-    struct_LSB_float64 hope_ned_lsb_t; // ÀíÏëÊÓÖáÔÚNEDÖĞÖ¸Ïò
-    // ¼ÆËãÄ¿±êÔÚECEFÏÂ×ø±ê
+    // è®¡ç®—ä¸­å¿ƒç‚¹æ–¹å‘
+    struct_LSB_float64 hope_ned_lsb_t; // ç†æƒ³è§†è½´åœ¨NEDä¸­æŒ‡å‘
+    // è®¡ç®—ç›®æ ‡åœ¨ECEFä¸‹åæ ‡
     GPSToECEF(&GeoTrack_ecef_Tar, GPS_Tar.Lon, GPS_Tar.Lat, GPS_Tar.Alt);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
 
-    // ÒÀ¾İÄ¿±êÔÚECEFÖĞ×ø±ê£¬¸ø³öÊÓÖáµ¥Î»ÏòÁ¿
+    // ä¾æ®ç›®æ ‡åœ¨ECEFä¸­åæ ‡ï¼Œç»™å‡ºè§†è½´å•ä½å‘é‡
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &GeoTrack_ecef_Tar);
 
-    //----------------ÒÀ¾İ·ÉĞĞËÙ¶ÈÅĞ¶Ï³¬ÏŞ------------------------------//
-    float Tloc = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // ¿ò¼Üµ½Î»Ê±¼ä
-    float lsb_fy;                                       // ÊÓÖáÔÚNEDÏÂ¸©Ñö½Ç
+    //----------------ä¾æ®é£è¡Œé€Ÿåº¦åˆ¤æ–­è¶…é™------------------------------//
+    float Tloc = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // æ¡†æ¶åˆ°ä½æ—¶é—´
+    float lsb_fy;                                       // è§†è½´åœ¨NEDä¸‹ä¿¯ä»°è§’
     lsb_fy = acos(hope_ned_lsb_t.Z);
     float temp1;
     float temp2;
@@ -2213,37 +2189,37 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     }
     temp3        = (tan(temp1) - tan(temp2)) * planTar_high;
     float T_gd   = 0;
-    T_gd         = temp3 / AC_speed; // Ê±¼ä
+    T_gd         = temp3 / AC_speed; // æ—¶é—´
     float T_num1 = 0;
-    T_num1       = floor((T_gd - Tloc) / pic_sec); // ¼ÆËãÌõ´øÖ¡Êı
-    float temp_range;                              // Ô¤¼Æ°ÚÉ¨·¶Î§
+    T_num1       = floor((T_gd - Tloc) / pic_sec); // è®¡ç®—æ¡å¸¦å¸§æ•°
+    float temp_range;                              // é¢„è®¡æ‘†æ‰«èŒƒå›´
     temp_range = temp3 * T_num1 * 0.5;
-    //    float temp_lesscent;//ËõĞ¡±ÈÀı
-    if (temp_range < Tar_Range) // Èç¹û³¬ÏŞ
+    //    float temp_lesscent;//ç¼©å°æ¯”ä¾‹
+    if (temp_range < Tar_Range) // å¦‚æœè¶…é™
     {
-        overPara_flag_t = 1;          // ³¬ÏŞ
-        Tar_Range       = temp_range; // ËõĞ¡±ÈÀı
+        overPara_flag_t = 1;          // è¶…é™
+        Tar_Range       = temp_range; // ç¼©å°æ¯”ä¾‹
     }
-    //-----------ÒÀ¾İ·ÉĞĞÅĞ¶Ï³¬ÏŞ  ½áÊø--------------------------
+    //-----------ä¾æ®é£è¡Œåˆ¤æ–­è¶…é™  ç»“æŸ--------------------------
 
-    float lsb_yaw; // ÊÓÖáÔÚNEDÏÂ·½Î»½Ç
+    float lsb_yaw; // è§†è½´åœ¨NEDä¸‹æ–¹ä½è§’
     lsb_yaw = atan2(hope_ned_lsb_t.Y, hope_ned_lsb_t.X);
 
-    float NED_ECEF_Tar[4][4]; // NEDµ½Ä¿±ê×ø±êÏµ×ª»»¾ØÕó
+    float NED_ECEF_Tar[4][4]; // NEDåˆ°ç›®æ ‡åæ ‡ç³»è½¬æ¢çŸ©é˜µ
 
-    float KJ_PI_A[2]; // AµãÊÓÖáÖ¸Ïò
-    float KJ_PI_B[2]; // BµãÊÓÖáÖ¸Ïò
-    float KJ_PI_C[2]; // CµãÊÓÖáÖ¸Ïò
-    //	float KJ_PI_D[2];//DµãÊÓÖáÖ¸Ïò
+    float KJ_PI_A[2]; // Aç‚¹è§†è½´æŒ‡å‘
+    float KJ_PI_B[2]; // Bç‚¹è§†è½´æŒ‡å‘
+    float KJ_PI_C[2]; // Cç‚¹è§†è½´æŒ‡å‘
+    //	float KJ_PI_D[2];//Dç‚¹è§†è½´æŒ‡å‘
 
-    // ÔÚLL×ø±êÏµÏÂÄ¿±êËÄ½Çµã
+    // åœ¨LLåæ ‡ç³»ä¸‹ç›®æ ‡å››è§’ç‚¹
     float LL_TarArea_A[2];
     float LL_TarArea_B[2];
     float LL_TarArea_C[2];
     float LL_TarArea_D[2];
 
     //  ^	C	D
-    // Ä¿±êÇøÓòµÄËÄ¸ö½Ç            |   A   B
+    // ç›®æ ‡åŒºåŸŸçš„å››ä¸ªè§’            |   A   B
     float TarArea_A[2];
     float TarArea_B[2];
     float TarArea_C[2];
@@ -2258,7 +2234,7 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     double RnAC;
     double temp_1;
     temp_1 = sqrt(1 - (0.00669447819799 * sin_Lat * sin_Lat));
-    // ³ıÊı²»ÎªÁã
+    // é™¤æ•°ä¸ä¸ºé›¶
     if (temp_1 != 0) {
         RnAC = 6378137 / temp_1;
     } else {
@@ -2284,7 +2260,7 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     NED_ECEF_Tar[2][2] = (-1) * sin_Lat;
     NED_ECEF_Tar[2][3] = (-1) * sin_Lat * NED_ECEF4 + NED_ECEF1;
 
-    temp_float      = Tar_Range * 0.707; // ·¶Î§
+    temp_float      = Tar_Range * 0.707; // èŒƒå›´
     LL_TarArea_A[0] = -1 * temp_float;
     LL_TarArea_B[0] = -1 * temp_float;
     LL_TarArea_C[0] = temp_float;
@@ -2314,52 +2290,52 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     ECEF_TarA[1] = NED_ECEF_Tar[1][0] * TarArea_A[0] + NED_ECEF_Tar[1][1] * TarArea_A[1] + NED_ECEF_Tar[1][3];
     ECEF_TarA[2] = NED_ECEF_Tar[2][0] * TarArea_A[0] + NED_ECEF_Tar[2][1] * TarArea_A[1] + NED_ECEF_Tar[2][3];
 
-    // Ä¿±ê ÔÚ·É»úÎªÖĞĞÄNED×ø±ê
+    // ç›®æ ‡ åœ¨é£æœºä¸ºä¸­å¿ƒNEDåæ ‡
     double NEDAC_TarA[3];
     NEDAC_TarA[0] = ECEF_NED_Plan[0][0] * ECEF_TarA[0] + ECEF_NED_Plan[0][1] * ECEF_TarA[1] + ECEF_NED_Plan[0][2] * ECEF_TarA[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarA[1] = ECEF_NED_Plan[1][0] * ECEF_TarA[0] + ECEF_NED_Plan[1][1] * ECEF_TarA[1] + ECEF_NED_Plan[1][2] * ECEF_TarA[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarA[2] = ECEF_NED_Plan[2][0] * ECEF_TarA[0] + ECEF_NED_Plan[2][1] * ECEF_TarA[1] + ECEF_NED_Plan[2][2] * ECEF_TarA[2] + ECEF_NED_Plan[2][3];
 
-    // ÊÓÖáµ½Aµãµ¥Î»ÏòÁ¿
+    // è§†è½´åˆ°Aç‚¹å•ä½å‘é‡
     float temp_A[3];
     temp_A[0] = NEDAC_TarA[0];
     temp_A[1] = NEDAC_TarA[1];
     temp_A[2] = NEDAC_TarA[2];
     float norm_A;
     norm_A = sqrt(fabs(temp_A[0] * temp_A[0] + temp_A[1] * temp_A[1] + temp_A[2] * temp_A[2]));
-    // ±»³ıÊı²»ÎªÁã
+    // è¢«é™¤æ•°ä¸ä¸ºé›¶
     if (norm_A == 0) {
         norm_A = 1;
     }
-    float one_A[3]; // µ¥Î»ÏòÁ¿
+    float one_A[3]; // å•ä½å‘é‡
     one_A[0] = temp_A[0] / norm_A;
     one_A[1] = temp_A[1] / norm_A;
     one_A[2] = temp_A[2] / norm_A;
 
-    // Ä¿±êÔÚECEF×ø±ê
+    // ç›®æ ‡åœ¨ECEFåæ ‡
     double ECEF_TarB[3];
     ECEF_TarB[0] = NED_ECEF_Tar[0][0] * TarArea_B[0] + NED_ECEF_Tar[0][1] * TarArea_B[1] + NED_ECEF_Tar[0][3];
     ECEF_TarB[1] = NED_ECEF_Tar[1][0] * TarArea_B[0] + NED_ECEF_Tar[1][1] * TarArea_B[1] + NED_ECEF_Tar[1][3];
     ECEF_TarB[2] = NED_ECEF_Tar[2][0] * TarArea_B[0] + NED_ECEF_Tar[2][1] * TarArea_B[1] + NED_ECEF_Tar[2][3];
 
-    // Ä¿±ê ÔÚ·É»úÎªÖĞĞÄNED×ø±ê
+    // ç›®æ ‡ åœ¨é£æœºä¸ºä¸­å¿ƒNEDåæ ‡
     float NEDAC_TarB[3];
     NEDAC_TarB[0] = ECEF_NED_Plan[0][0] * ECEF_TarB[0] + ECEF_NED_Plan[0][1] * ECEF_TarB[1] + ECEF_NED_Plan[0][2] * ECEF_TarB[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarB[1] = ECEF_NED_Plan[1][0] * ECEF_TarB[0] + ECEF_NED_Plan[1][1] * ECEF_TarB[1] + ECEF_NED_Plan[1][2] * ECEF_TarB[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarB[2] = ECEF_NED_Plan[2][0] * ECEF_TarB[0] + ECEF_NED_Plan[2][1] * ECEF_TarB[1] + ECEF_NED_Plan[2][2] * ECEF_TarB[2] + ECEF_NED_Plan[2][3];
 
-    // ÊÓÖáµ½Bµãµ¥Î»ÏòÁ¿
+    // è§†è½´åˆ°Bç‚¹å•ä½å‘é‡
     float temp_B[3];
     temp_B[0] = NEDAC_TarB[0];
     temp_B[1] = NEDAC_TarB[1];
     temp_B[2] = NEDAC_TarB[2];
     float norm_B;
     norm_B = sqrt(temp_B[0] * temp_B[0] + temp_B[1] * temp_B[1] + temp_B[2] * temp_B[2]);
-    // ±»³ıÊı²»ÎªÁã
+    // è¢«é™¤æ•°ä¸ä¸ºé›¶
     if (norm_B == 0) {
         norm_B = 1;
     }
-    float one_B[3]; // µ¥Î»ÏòÁ¿
+    float one_B[3]; // å•ä½å‘é‡
     one_B[0] = temp_B[0] / norm_B;
     one_B[1] = temp_B[1] / norm_B;
     one_B[2] = temp_B[2] / norm_B;
@@ -2368,13 +2344,13 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     ECEF_TarC[1] = NED_ECEF_Tar[1][0] * TarArea_C[0] + NED_ECEF_Tar[1][1] * TarArea_C[1] + NED_ECEF_Tar[1][3];
     ECEF_TarC[2] = NED_ECEF_Tar[2][0] * TarArea_C[0] + NED_ECEF_Tar[2][1] * TarArea_C[1] + NED_ECEF_Tar[2][3];
 
-    // Ä¿±ê ÔÚ·É»úÎªÖĞĞÄNED×ø±ê
+    // ç›®æ ‡ åœ¨é£æœºä¸ºä¸­å¿ƒNEDåæ ‡
     float NEDAC_TarC[3];
     NEDAC_TarC[0] = ECEF_NED_Plan[0][0] * ECEF_TarC[0] + ECEF_NED_Plan[0][1] * ECEF_TarC[1] + ECEF_NED_Plan[0][2] * ECEF_TarC[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarC[1] = ECEF_NED_Plan[1][0] * ECEF_TarC[0] + ECEF_NED_Plan[1][1] * ECEF_TarC[1] + ECEF_NED_Plan[1][2] * ECEF_TarC[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarC[2] = ECEF_NED_Plan[2][0] * ECEF_TarC[0] + ECEF_NED_Plan[2][1] * ECEF_TarC[1] + ECEF_NED_Plan[2][2] * ECEF_TarC[2] + ECEF_NED_Plan[2][3];
 
-    // ÊÓÖáµ½Cµãµ¥Î»ÏòÁ¿
+    // è§†è½´åˆ°Cç‚¹å•ä½å‘é‡
     float temp_C[3];
     temp_C[0] = NEDAC_TarC[0];
     temp_C[1] = NEDAC_TarC[1];
@@ -2382,242 +2358,242 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
 
     float norm_C;
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
-    // ±»³ıÊı²»ÎªÁã
+    // è¢«é™¤æ•°ä¸ä¸ºé›¶
     if (norm_C == 0) {
         norm_C = 1;
     }
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
-    float one_C[3]; // µ¥Î»ÏòÁ¿
+    float one_C[3]; // å•ä½å‘é‡
     one_C[0] = temp_C[0] / norm_C;
     one_C[1] = temp_C[1] / norm_C;
     one_C[2] = temp_C[2] / norm_C;
 
-    // Ä¿±êÔÚECEF×ø±ê
+    // ç›®æ ‡åœ¨ECEFåæ ‡
     double ECEF_TarD[3];
     ECEF_TarD[0] = NED_ECEF_Tar[0][0] * TarArea_D[0] + NED_ECEF_Tar[0][1] * TarArea_D[1] + NED_ECEF_Tar[0][3];
     ECEF_TarD[1] = NED_ECEF_Tar[1][0] * TarArea_D[0] + NED_ECEF_Tar[1][1] * TarArea_D[1] + NED_ECEF_Tar[1][3];
     ECEF_TarD[2] = NED_ECEF_Tar[2][0] * TarArea_D[0] + NED_ECEF_Tar[2][1] * TarArea_D[1] + NED_ECEF_Tar[2][3];
 
-    // Ä¿±ê ÔÚ·É»úÎªÖĞĞÄNED×ø±ê
+    // ç›®æ ‡ åœ¨é£æœºä¸ºä¸­å¿ƒNEDåæ ‡
     float NEDAC_TarD[3];
     NEDAC_TarD[0] = ECEF_NED_Plan[0][0] * ECEF_TarD[0] + ECEF_NED_Plan[0][1] * ECEF_TarD[1] + ECEF_NED_Plan[0][2] * ECEF_TarD[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarD[1] = ECEF_NED_Plan[1][0] * ECEF_TarD[0] + ECEF_NED_Plan[1][1] * ECEF_TarD[1] + ECEF_NED_Plan[1][2] * ECEF_TarD[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarD[2] = ECEF_NED_Plan[2][0] * ECEF_TarD[0] + ECEF_NED_Plan[2][1] * ECEF_TarD[1] + ECEF_NED_Plan[2][2] * ECEF_TarD[2] + ECEF_NED_Plan[2][3];
 
-    // ÊÓÖáµ½Dµãµ¥Î»ÏòÁ¿
+    // è§†è½´åˆ°Dç‚¹å•ä½å‘é‡
     float temp_D[3];
     temp_D[0] = NEDAC_TarD[0];
     temp_D[1] = NEDAC_TarD[1];
     temp_D[2] = NEDAC_TarD[2];
     float norm_D;
     norm_D = sqrt(temp_D[0] * temp_D[0] + temp_D[1] * temp_D[1] + temp_D[2] * temp_D[2]);
-    // ±»³ıÊı²»ÎªÁã
+    // è¢«é™¤æ•°ä¸ä¸ºé›¶
     if (norm_D == 0) {
         norm_D = 1;
     }
-    float one_D[3]; // µ¥Î»ÏòÁ¿
+    float one_D[3]; // å•ä½å‘é‡
     one_D[0] = temp_D[0] / norm_D;
     one_D[1] = temp_D[1] / norm_D;
     one_D[2] = temp_D[2] / norm_D;
 
-    // AµãÖ¸Ïò¿ò¼Ü½Ç
+    // Aç‚¹æŒ‡å‘æ¡†æ¶è§’
     ned_lsb_t.X = one_A[0];
     ned_lsb_t.Y = one_A[1];
     ned_lsb_t.Z = one_A[2];
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
-    // Íâ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å¤–æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.WKJ > WKJ_Max_PI) {
         cal_agl_kj_t.WKJ = WKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.WKJ < WKJ_Min_PI) {
         cal_agl_kj_t.WKJ = WKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    // Íâ¿ò¼Üºá¹ö½Ç
+    // å¤–æ¡†æ¶æ¨ªæ»šè§’
     KJ_PI_A[0] = cal_agl_kj_t.WKJ;
-    // ÄÚ¿ò¼Ü¸©Ñö½Ç
+    // å†…æ¡†æ¶ä¿¯ä»°è§’
     KJ_PI_A[1] = cal_agl_kj_t.NKJ;
 
-    // BµãÖ¸Ïò¿ò¼Ü½Ç
+    // Bç‚¹æŒ‡å‘æ¡†æ¶è§’
     ned_lsb_t.X = one_B[0];
     ned_lsb_t.Y = one_B[1];
     ned_lsb_t.Z = one_B[2];
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
-    // Íâ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å¤–æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.WKJ > WKJ_Max_PI) {
         cal_agl_kj_t.WKJ = WKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.WKJ < WKJ_Min_PI) {
         cal_agl_kj_t.WKJ = WKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    // Íâ¿ò¼Üºá¹ö½Ç
+    // å¤–æ¡†æ¶æ¨ªæ»šè§’
     KJ_PI_B[0] = cal_agl_kj_t.WKJ;
-    // ÄÚ¿ò¼Ü¸©Ñö½Ç
+    // å†…æ¡†æ¶ä¿¯ä»°è§’
     KJ_PI_B[1] = cal_agl_kj_t.NKJ;
 
-    // CµãÖ¸Ïò¿ò¼Ü½Ç
+    // Cç‚¹æŒ‡å‘æ¡†æ¶è§’
     ned_lsb_t.X = one_C[0];
     ned_lsb_t.Y = one_C[1];
     ned_lsb_t.Z = one_C[2];
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
-    // Íâ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å¤–æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.WKJ > WKJ_Max_PI) {
         cal_agl_kj_t.WKJ = WKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.WKJ < WKJ_Min_PI) {
         cal_agl_kj_t.WKJ = WKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    // Íâ¿ò¼Üºá¹ö½Ç
+    // å¤–æ¡†æ¶æ¨ªæ»šè§’
     KJ_PI_C[0] = cal_agl_kj_t.WKJ;
-    // ÄÚ¿ò¼Ü¸©Ñö½Ç
+    // å†…æ¡†æ¶ä¿¯ä»°è§’
     KJ_PI_C[1] = cal_agl_kj_t.NKJ;
 
-    // DµãÖ¸Ïò¿ò¼Ü½Ç
+    // Dç‚¹æŒ‡å‘æ¡†æ¶è§’
     ned_lsb_t.X = one_D[0];
     ned_lsb_t.Y = one_D[1];
     ned_lsb_t.Z = one_D[2];
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
-    // Íâ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å¤–æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.WKJ > WKJ_Max_PI) {
         cal_agl_kj_t.WKJ = WKJ_Max_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.WKJ < WKJ_Min_PI) {
         cal_agl_kj_t.WKJ = WKJ_Min_PI;
-        overPara_flag_t  = 1; // ³¬ÏŞ±êÊ¶
+        overPara_flag_t  = 1; // è¶…é™æ ‡è¯†
     }
 
-    // Íâ¿ò¼Üºá¹ö½Ç
+    // å¤–æ¡†æ¶æ¨ªæ»šè§’
     // 	KJ_PI_D[0] = cal_agl_kj_t.WKJ;
-    // ÄÚ¿ò¼Ü¸©Ñö½Ç
+    // å†…æ¡†æ¶ä¿¯ä»°è§’
     // 	KJ_PI_D[1] = cal_agl_kj_t.NKJ;
 
-    float derta_agl_nkj;                                               // ÄÚ¿ò¼Ü²îÖµ
-    derta_agl_nkj  = fabs(KJ_PI_A[1] - KJ_PI_C[1]);                    // ÄÚ¿ò¼Ü²îÖµ
-    QYCX_NeedTDNum = (int)(derta_agl_nkj / picAngle_x_overlap_pi) + 3; // Ìõ´øÊı
-    float derta_agl_wkj;                                               // Íâ¿ò¼Ü²îÖµ
-    if ((KJ_PI_A[0] * KJ_PI_B[0]) > 0)                                 // ÔÚÒ»²à
+    float derta_agl_nkj;                                               // å†…æ¡†æ¶å·®å€¼
+    derta_agl_nkj  = fabs(KJ_PI_A[1] - KJ_PI_C[1]);                    // å†…æ¡†æ¶å·®å€¼
+    QYCX_NeedTDNum = (int)(derta_agl_nkj / picAngle_x_overlap_pi) + 3; // æ¡å¸¦æ•°
+    float derta_agl_wkj;                                               // å¤–æ¡†æ¶å·®å€¼
+    if ((KJ_PI_A[0] * KJ_PI_B[0]) > 0)                                 // åœ¨ä¸€ä¾§
     {
-        derta_agl_wkj = fabs(KJ_PI_A[0] - KJ_PI_B[0]);                    // Íâ¿ò¼Ü²îÖµ
-        TD_PhotoNum   = (int)(derta_agl_wkj / picAngle_y_overlap_pi) + 3; // Ìõ´øÖ¡Êı
+        derta_agl_wkj = fabs(KJ_PI_A[0] - KJ_PI_B[0]);                    // å¤–æ¡†æ¶å·®å€¼
+        TD_PhotoNum   = (int)(derta_agl_wkj / picAngle_y_overlap_pi) + 3; // æ¡å¸¦å¸§æ•°
     } else {
-        derta_agl_wkj = fabs(KJ_PI_A[0]) + fabs(KJ_PI_B[0]);              // Íâ¿ò¼Ü²îÖµ
-        TD_PhotoNum   = (int)(derta_agl_wkj / picAngle_y_overlap_pi) + 3; // Ìõ´øÖ¡Êı
+        derta_agl_wkj = fabs(KJ_PI_A[0]) + fabs(KJ_PI_B[0]);              // å¤–æ¡†æ¶å·®å€¼
+        TD_PhotoNum   = (int)(derta_agl_wkj / picAngle_y_overlap_pi) + 3; // æ¡å¸¦å¸§æ•°
     }
 
-    QYCX_TDAgl_WKJ_first = KJ_PI_A[0]; // Íâ¿ò¼Ü
-    QYCX_TDAgl_NKJ_first = KJ_PI_A[1]; // ÄÚ¿ò¼Ü
+    QYCX_TDAgl_WKJ_first = KJ_PI_A[0]; // å¤–æ¡†æ¶
+    QYCX_TDAgl_NKJ_first = KJ_PI_A[1]; // å†…æ¡†æ¶
 
     if (QYCX_NeedTDNum == 1) {
 
         QYCX_WKJ_change = 0;
         QYCX_NKJ_change = 0;
     } else {
-        QYCX_WKJ_change = (KJ_PI_C[0] - KJ_PI_A[0]) / (QYCX_NeedTDNum - 1); // ÇøÓòÓÃÍâ¿ò¼Ü±ä»¯Á¿
-        QYCX_NKJ_change = (KJ_PI_C[1] - KJ_PI_A[1]) / (QYCX_NeedTDNum - 1); // ÇøÓòÓÃÄÚ¿ò¼Ü±ä»¯Á¿
+        QYCX_WKJ_change = (KJ_PI_C[0] - KJ_PI_A[0]) / (QYCX_NeedTDNum - 1); // åŒºåŸŸç”¨å¤–æ¡†æ¶å˜åŒ–é‡
+        QYCX_NKJ_change = (KJ_PI_C[1] - KJ_PI_A[1]) / (QYCX_NeedTDNum - 1); // åŒºåŸŸç”¨å†…æ¡†æ¶å˜åŒ–é‡
     }
 
     return overPara_flag_t;
 }
 
-// ÇøÓò³ÉÏñ¼ÆËãÌõ´øÆğÊ¼½Ç
+// åŒºåŸŸæˆåƒè®¡ç®—æ¡å¸¦èµ·å§‹è§’
 void QYCX_GetTDstart() {
-    //	int overPara_flag_t = 0;//²ÎÊı³¬ÏŞ±êÊ¶
+    //	int overPara_flag_t = 0;//å‚æ•°è¶…é™æ ‡è¯†
     struct_LSB_float64 ned_lsb_t;
-    struct_KJAgl       cal_agl_kj_t;                         // ¼ÆËã¿ò¼Ü½Ç
-    float              KJ_PI_A[2];                           // AµãÊÓÖáÖ¸Ïò
-    float              KJ_PI_C[2];                           // CµãÊÓÖáÖ¸Ïò
-    float              foc = (float)tocal_foclen_KJ * 0.001; // ½¹¾à
-    float              P_x_t;                                // x·½ÏòÖØµşÂÊ
+    struct_KJAgl       cal_agl_kj_t;                         // è®¡ç®—æ¡†æ¶è§’
+    float              KJ_PI_A[2];                           // Aç‚¹è§†è½´æŒ‡å‘
+    float              KJ_PI_C[2];                           // Cç‚¹è§†è½´æŒ‡å‘
+    float              foc = (float)tocal_foclen_KJ * 0.001; // ç„¦è·
+    float              P_x_t;                                // xæ–¹å‘é‡å ç‡
     P_x_t = QYCX_P_x;
-    float picAngle_x_pi;                                                               // X°ÚÉ¨ÏòÊÓ³¡½Ç
+    float picAngle_x_pi;                                                               // Xæ‘†æ‰«å‘è§†åœºè§’
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                       // È¥µôÖØµşÂÊ
+    float picAngle_x_overlap_pi;                                                       // å»æ‰é‡å ç‡
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
-    // ½«ECEF×ø±êÏµ×ªµ½ÒÔÄ¿±êÖĞĞÄÎªÔ­µã ×ª»»¾ØÕó
+    // å°†ECEFåæ ‡ç³»è½¬åˆ°ä»¥ç›®æ ‡ä¸­å¿ƒä¸ºåŸç‚¹ è½¬æ¢çŸ©é˜µ
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
 
-    // Ä¿±ê ÔÚ·É»úÎªÖĞĞÄNED×ø±ê
+    // ç›®æ ‡ åœ¨é£æœºä¸ºä¸­å¿ƒNEDåæ ‡
     float NEDAC_TarA[3];
     NEDAC_TarA[0] = ECEF_NED_Plan[0][0] * ECEF_TarA[0] + ECEF_NED_Plan[0][1] * ECEF_TarA[1] + ECEF_NED_Plan[0][2] * ECEF_TarA[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarA[1] = ECEF_NED_Plan[1][0] * ECEF_TarA[0] + ECEF_NED_Plan[1][1] * ECEF_TarA[1] + ECEF_NED_Plan[1][2] * ECEF_TarA[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarA[2] = ECEF_NED_Plan[2][0] * ECEF_TarA[0] + ECEF_NED_Plan[2][1] * ECEF_TarA[1] + ECEF_NED_Plan[2][2] * ECEF_TarA[2] + ECEF_NED_Plan[2][3];
 
-    // ÊÓÖáµ½Aµãµ¥Î»ÏòÁ¿
+    // è§†è½´åˆ°Aç‚¹å•ä½å‘é‡
     float temp_A[3];
     temp_A[0] = NEDAC_TarA[0];
     temp_A[1] = NEDAC_TarA[1];
     temp_A[2] = NEDAC_TarA[2];
     float norm_A;
     norm_A = sqrt(fabs(temp_A[0] * temp_A[0] + temp_A[1] * temp_A[1] + temp_A[2] * temp_A[2]));
-    // ±»³ıÊı²»ÎªÁã
+    // è¢«é™¤æ•°ä¸ä¸ºé›¶
     if (norm_A == 0) {
         norm_A = 1;
     }
-    float one_A[3]; // µ¥Î»ÏòÁ¿
+    float one_A[3]; // å•ä½å‘é‡
     one_A[0] = temp_A[0] / norm_A;
     one_A[1] = temp_A[1] / norm_A;
     one_A[2] = temp_A[2] / norm_A;
 
-    // Ä¿±ê ÔÚ·É»úÎªÖĞĞÄNED×ø±ê
+    // ç›®æ ‡ åœ¨é£æœºä¸ºä¸­å¿ƒNEDåæ ‡
     float NEDAC_TarC[3];
     NEDAC_TarC[0] = ECEF_NED_Plan[0][0] * ECEF_TarC[0] + ECEF_NED_Plan[0][1] * ECEF_TarC[1] + ECEF_NED_Plan[0][2] * ECEF_TarC[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarC[1] = ECEF_NED_Plan[1][0] * ECEF_TarC[0] + ECEF_NED_Plan[1][1] * ECEF_TarC[1] + ECEF_NED_Plan[1][2] * ECEF_TarC[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarC[2] = ECEF_NED_Plan[2][0] * ECEF_TarC[0] + ECEF_NED_Plan[2][1] * ECEF_TarC[1] + ECEF_NED_Plan[2][2] * ECEF_TarC[2] + ECEF_NED_Plan[2][3];
 
-    // ÊÓÖáµ½Cµãµ¥Î»ÏòÁ¿
+    // è§†è½´åˆ°Cç‚¹å•ä½å‘é‡
     float temp_C[3];
     temp_C[0] = NEDAC_TarC[0];
     temp_C[1] = NEDAC_TarC[1];
@@ -2625,145 +2601,145 @@ void QYCX_GetTDstart() {
 
     float norm_C;
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
-    // ±»³ıÊı²»ÎªÁã
+    // è¢«é™¤æ•°ä¸ä¸ºé›¶
     if (norm_C == 0) {
         norm_C = 1;
     }
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
-    float one_C[3]; // µ¥Î»ÏòÁ¿
+    float one_C[3]; // å•ä½å‘é‡
     one_C[0] = temp_C[0] / norm_C;
     one_C[1] = temp_C[1] / norm_C;
     one_C[2] = temp_C[2] / norm_C;
 
-    // AµãÖ¸Ïò¿ò¼Ü½Ç
+    // Aç‚¹æŒ‡å‘æ¡†æ¶è§’
     ned_lsb_t.X = one_A[0];
     ned_lsb_t.Y = one_A[1];
     ned_lsb_t.Z = one_A[2];
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
-    // Íâ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å¤–æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.WKJ > WKJ_Max_PI) {
         cal_agl_kj_t.WKJ = WKJ_Max_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.WKJ < WKJ_Min_PI) {
         cal_agl_kj_t.WKJ = WKJ_Min_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
 
-    // Íâ¿ò¼Üºá¹ö½Ç
+    // å¤–æ¡†æ¶æ¨ªæ»šè§’
     KJ_PI_A[0] = cal_agl_kj_t.WKJ;
-    // ÄÚ¿ò¼Ü¸©Ñö½Ç
+    // å†…æ¡†æ¶ä¿¯ä»°è§’
     KJ_PI_A[1] = cal_agl_kj_t.NKJ;
 
-    // CµãÖ¸Ïò¿ò¼Ü½Ç
+    // Cç‚¹æŒ‡å‘æ¡†æ¶è§’
     ned_lsb_t.X = one_C[0];
     ned_lsb_t.Y = one_C[1];
     ned_lsb_t.Z = one_C[2];
-    // ÒÀ¾İÀíÏëÊÓÖáÏòÁ¿¼°µ±Ç°×ËÌ¬½Ç£¬¸ø³ö¿ò¼ÜÖ¸Ïò½Ç
+    // ä¾æ®ç†æƒ³è§†è½´å‘é‡åŠå½“å‰å§¿æ€è§’ï¼Œç»™å‡ºæ¡†æ¶æŒ‡å‘è§’
     GetKJAglbyLSB_ParaComputer(&cal_agl_kj_t, &ned_lsb_t);
 
-    // ÄÚ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å†…æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.NKJ > NKJ_Max_PI) {
         cal_agl_kj_t.NKJ = NKJ_Max_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.NKJ < NKJ_Min_PI) {
         cal_agl_kj_t.NKJ = NKJ_Min_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
-    // Íâ¿ò¼Ü½ÇÊÇ·ñ³¬ÏŞ
+    // å¤–æ¡†æ¶è§’æ˜¯å¦è¶…é™
     if (cal_agl_kj_t.WKJ > WKJ_Max_PI) {
         cal_agl_kj_t.WKJ = WKJ_Max_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
     if (cal_agl_kj_t.WKJ < WKJ_Min_PI) {
         cal_agl_kj_t.WKJ = WKJ_Min_PI;
-        //        overPara_flag_t = 1;//³¬ÏŞ±êÊ¶
+        //        overPara_flag_t = 1;//è¶…é™æ ‡è¯†
     }
 
-    // Íâ¿ò¼Üºá¹ö½Ç
+    // å¤–æ¡†æ¶æ¨ªæ»šè§’
     KJ_PI_C[0] = cal_agl_kj_t.WKJ;
-    // ÄÚ¿ò¼Ü¸©Ñö½Ç
+    // å†…æ¡†æ¶ä¿¯ä»°è§’
     KJ_PI_C[1] = cal_agl_kj_t.NKJ;
 
-    float derta_agl_nkj;                                               // ÄÚ¿ò¼Ü²îÖµ
-    derta_agl_nkj  = fabs(KJ_PI_A[1] - KJ_PI_C[1]);                    // ÄÚ¿ò¼Ü²îÖµ
-    QYCX_NeedTDNum = (int)(derta_agl_nkj / picAngle_x_overlap_pi) + 3; // Ìõ´øÊı
+    float derta_agl_nkj;                                               // å†…æ¡†æ¶å·®å€¼
+    derta_agl_nkj  = fabs(KJ_PI_A[1] - KJ_PI_C[1]);                    // å†…æ¡†æ¶å·®å€¼
+    QYCX_NeedTDNum = (int)(derta_agl_nkj / picAngle_x_overlap_pi) + 3; // æ¡å¸¦æ•°
 
-    QYCX_TDAgl_WKJ_first = KJ_PI_A[0]; // Íâ¿ò¼Ü
-    QYCX_TDAgl_NKJ_first = KJ_PI_A[1]; // ÄÚ¿ò¼Ü
+    QYCX_TDAgl_WKJ_first = KJ_PI_A[0]; // å¤–æ¡†æ¶
+    QYCX_TDAgl_NKJ_first = KJ_PI_A[1]; // å†…æ¡†æ¶
 
     if (QYCX_NeedTDNum == 1) {
 
         QYCX_WKJ_change = 0;
         QYCX_NKJ_change = 0;
     } else {
-        QYCX_WKJ_change = (KJ_PI_C[0] - KJ_PI_A[0]) / (QYCX_NeedTDNum - 1); // ÇøÓòÓÃÍâ¿ò¼Ü±ä»¯Á¿
-        QYCX_NKJ_change = (KJ_PI_C[1] - KJ_PI_A[1]) / (QYCX_NeedTDNum - 1); // ÇøÓòÓÃÄÚ¿ò¼Ü±ä»¯Á¿
+        QYCX_WKJ_change = (KJ_PI_C[0] - KJ_PI_A[0]) / (QYCX_NeedTDNum - 1); // åŒºåŸŸç”¨å¤–æ¡†æ¶å˜åŒ–é‡
+        QYCX_NKJ_change = (KJ_PI_C[1] - KJ_PI_A[1]) / (QYCX_NeedTDNum - 1); // åŒºåŸŸç”¨å†…æ¡†æ¶å˜åŒ–é‡
     }
 }
 
-// ------------------------------Ä¿±êµØÀí¶¨Î»-------------------------------//
-//  º¯ÊıÃû³Æ£ºGeolocation
-//  ¹¦ÄÜ£ºÄ¿±êµØÀí¶¨Î»
-//  ÊäÈë²ÎÊı
-//  ·µ»Ø²ÎÊı£º
-//  ËµÃ÷£ºÎŞ
+// ------------------------------ç›®æ ‡åœ°ç†å®šä½-------------------------------//
+//  å‡½æ•°åç§°ï¼šGeolocation
+//  åŠŸèƒ½ï¼šç›®æ ‡åœ°ç†å®šä½
+//  è¾“å…¥å‚æ•°
+//  è¿”å›å‚æ•°ï¼š
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void Geolocation() {
     float              x; //
     float              y; //
     struct_GPS_float64 Tar_gps;
-    //==============ÓÒÉÏµã================
-    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // ·ÉĞĞ·½Ïò
-    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // É¨Ãè·½Ïò
+    //==============å³ä¸Šç‚¹================
+    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // é£è¡Œæ–¹å‘
+    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // æ‰«ææ–¹å‘
 
     ComptGps(x, y, &Tar_gps);
 
     param_Compute_Output.imaging_right_up_latitude  = Tar_gps.Lat;
     param_Compute_Output.imaging_right_up_longitude = Tar_gps.Lon;
 
-    //==============ÓÒÏÂµã================
-    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2;      // ·ÉĞĞ·½Ïò
-    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // É¨Ãè·½Ïò
+    //==============å³ä¸‹ç‚¹================
+    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2;      // é£è¡Œæ–¹å‘
+    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // æ‰«ææ–¹å‘
 
     ComptGps(x, y, &Tar_gps);
 
     param_Compute_Output.imaging_right_down_latitude  = Tar_gps.Lat;
     param_Compute_Output.imaging_right_down_longitude = Tar_gps.Lon;
 
-    //==============×óÉÏµã================
-    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // ·ÉĞĞ·½Ïò
-    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2;      // É¨Ãè·½Ïò
+    //==============å·¦ä¸Šç‚¹================
+    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // é£è¡Œæ–¹å‘
+    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2;      // æ‰«ææ–¹å‘
 
     ComptGps(x, y, &Tar_gps);
 
     param_Compute_Output.imaging_left_up_latitude  = Tar_gps.Lat;
     param_Compute_Output.imaging_left_up_longitude = Tar_gps.Lon;
 
-    //==============×óÏÂµã================
-    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // ·ÉĞĞ·½Ïò
-    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // É¨Ãè·½Ïò
+    //==============å·¦ä¸‹ç‚¹================
+    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // é£è¡Œæ–¹å‘
+    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // æ‰«ææ–¹å‘
 
     ComptGps(x, y, &Tar_gps);
 
     param_Compute_Output.imaging_left_down_latitude  = Tar_gps.Lat;
     param_Compute_Output.imaging_left_down_longitude = Tar_gps.Lon;
 
-    //==============ÖĞĞÄµã================
-    x = 0; // ·ÉĞĞ·½Ïò
-    y = 0; // É¨Ãè·½Ïò
+    //==============ä¸­å¿ƒç‚¹================
+    x = 0; // é£è¡Œæ–¹å‘
+    y = 0; // æ‰«ææ–¹å‘
 
     ComptGps(x, y, &Tar_gps);
 
@@ -2774,10 +2750,10 @@ void Geolocation() {
     param_Compute_Output.view_fov_center_azimuth   = (KJAgl_exp_pi.WKJ + KFKZAgl_exp_pi.WKJ + geo_WKJ_ParaErro) * PI_Agl;
     param_Compute_Output.view_fov_center_elevation = (KJAgl_exp_pi.NKJ + KFKZAgl_exp_pi.NKJ + geo_NKJ_ParaErro) * PI_Agl;
 }
-// Ä¿±êµØÀí¶¨Î»
+// ç›®æ ‡åœ°ç†å®šä½
 void ComptGps(float x, float y, struct_GPS_float64 *Tar_gps) {
     double GPSTarget[3];
-    double b[3]; // µØÇò×ø±êÏµÏÂ×ø±êÏà»úÔ­µã
+    double b[3]; // åœ°çƒåæ ‡ç³»ä¸‹åæ ‡ç›¸æœºåŸç‚¹
     b[0] = NED_ECEF[0][3];
     b[1] = NED_ECEF[1][3];
     b[2] = NED_ECEF[2][3];
@@ -2790,7 +2766,7 @@ void ComptGps(float x, float y, struct_GPS_float64 *Tar_gps) {
     cos_NKJ = cos(KJAgl_exp_pi.NKJ + KFKZAgl_exp_pi.NKJ / 2.5 + geo_NKJ_ParaErro);
     sin_WKJ = sin(KJAgl_exp_pi.WKJ + KFKZAgl_exp_pi.WKJ / 2.5 + geo_WKJ_ParaErro);
     sin_NKJ = sin(KJAgl_exp_pi.NKJ + KFKZAgl_exp_pi.NKJ / 2.5 + geo_NKJ_ParaErro);
-    // ³¤½¹2.5£¬¶Ì½¹0.5
+    // é•¿ç„¦2.5ï¼ŒçŸ­ç„¦0.5
 
     float  z = -tocal_foclen_KJ * 0.001; //
     float  B_STar[3];
@@ -2805,7 +2781,7 @@ void ComptGps(float x, float y, struct_GPS_float64 *Tar_gps) {
     k[2] = AC_ECEF[2][0] * B_STar[0] + AC_ECEF[2][1] * B_STar[1] + AC_ECEF[2][2] * B_STar[2];
 
     double ECEFTarget[3];
-    // Çó½âÄ¿±êÔÚµØÇò×ø±êÏµÏÂ×ø±ê
+    // æ±‚è§£ç›®æ ‡åœ¨åœ°çƒåæ ‡ç³»ä¸‹åæ ‡
     ECEFGeolocat(ECEFTarget, k, b, tar_high);
     ECEFToGPS(GPSTarget, ECEFTarget);
 
@@ -2813,10 +2789,10 @@ void ComptGps(float x, float y, struct_GPS_float64 *Tar_gps) {
     Tar_gps->Lon = GPSTarget[1] * PI_Agl;
     Tar_gps->Alt = GPSTarget[2];
 }
-// ¾àÀëÓÅÏÈ¹ãÓò·µ»Ø²ÎÊı
+// è·ç¦»ä¼˜å…ˆå¹¿åŸŸè¿”å›å‚æ•°
 void Out_GY_Dis() {
-    // Êµ¼Ê³ÉÏñ²ÎÊı,ÔØºÉÕæÊµµÄ³ÉÏñ²ÎÊı
-    // Ãû  ³Æ:IR¹ãÓò³ÉÏñ·¶Î§²ÎÊı1
+    // å®é™…æˆåƒå‚æ•°,è½½è·çœŸå®çš„æˆåƒå‚æ•°
+    // å  ç§°:IRå¹¿åŸŸæˆåƒèŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_IR_wide_image_paras, 0, sizeof(COMP_IR_WIDE_IMAGE_PARAS));
     param_Compute_Output.real_IR_wide_image_paras.IR_range_lowline        = range_lowline / 1000;
     param_Compute_Output.real_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION;
@@ -2824,15 +2800,15 @@ void Out_GY_Dis() {
     param_Compute_Output.real_IR_wide_image_paras.D_area_altitude         = tar_high;
     param_Compute_Output.real_IR_wide_image_paras.IR_range_upline         = range_upline / 1000;
 
-    // Ãû  ³Æ:IRÇøÓò³ÉÏñ·¶Î§²ÎÊı,¸ù¾İÇøÓò±àºÅ»º´æÈı¸ö1
+    // å  ç§°:IRåŒºåŸŸæˆåƒèŒƒå›´å‚æ•°,æ ¹æ®åŒºåŸŸç¼–å·ç¼“å­˜ä¸‰ä¸ª1
     memset(&param_Compute_Output.real_area_image_paras[0], 0, sizeof(COMP_AREA_IMAGE_PARAS) * 3);
-    // Ãû  ³Æ:IRÇøÓò¼àÊÓ·¶Î§²ÎÊı1
+    // å  ç§°:IRåŒºåŸŸç›‘è§†èŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_area_monitor_paras, 0, sizeof(COMP_AREA_MONITOR_PARAS));
 }
-// ·½Î»ÓÅÏÈ¹ãÓò·µ»Ø²ÎÊı
+// æ–¹ä½ä¼˜å…ˆå¹¿åŸŸè¿”å›å‚æ•°
 void Out_GY_Az() {
-    // Êµ¼Ê³ÉÏñ²ÎÊı,ÔØºÉÕæÊµµÄ³ÉÏñ²ÎÊı
-    // Ãû  ³Æ:IR¹ãÓò³ÉÏñ·¶Î§²ÎÊı1
+    // å®é™…æˆåƒå‚æ•°,è½½è·çœŸå®çš„æˆåƒå‚æ•°
+    // å  ç§°:IRå¹¿åŸŸæˆåƒèŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_IR_wide_image_paras, 0, sizeof(COMP_IR_WIDE_IMAGE_PARAS));
     param_Compute_Output.real_IR_wide_image_paras.AZ_area_altitude    = tar_high;
     param_Compute_Output.real_IR_wide_image_paras.IR_scan_start_angle = KJ_start_pi.WKJ * 1000;
@@ -2840,40 +2816,40 @@ void Out_GY_Az() {
     param_Compute_Output.real_IR_wide_image_paras.IR_scan_end_angle   = KJ_end_pi.WKJ * 1000;
     param_Compute_Output.real_IR_wide_image_paras.IR_WIDE_IMAGE_MODE  = V_IR_WIDE_IMAGE_MODE_AZ_PRIO;
 
-    // Ãû  ³Æ:IRÇøÓò³ÉÏñ·¶Î§²ÎÊı,¸ù¾İÇøÓò±àºÅ»º´æÈı¸ö1
+    // å  ç§°:IRåŒºåŸŸæˆåƒèŒƒå›´å‚æ•°,æ ¹æ®åŒºåŸŸç¼–å·ç¼“å­˜ä¸‰ä¸ª1
     memset(&param_Compute_Output.real_area_image_paras[0], 0, sizeof(COMP_AREA_IMAGE_PARAS) * 3);
-    // Ãû  ³Æ:IRÇøÓò¼àÊÓ·¶Î§²ÎÊı1
+    // å  ç§°:IRåŒºåŸŸç›‘è§†èŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_area_monitor_paras, 0, sizeof(COMP_AREA_MONITOR_PARAS));
 }
-// ÇøÓò·µ»Ø²ÎÊı
+// åŒºåŸŸè¿”å›å‚æ•°
 void Out_QY() {
-    // Êµ¼Ê³ÉÏñ²ÎÊı,ÔØºÉÕæÊµµÄ³ÉÏñ²ÎÊı
-    // Ãû  ³Æ:IR¹ãÓò³ÉÏñ·¶Î§²ÎÊı1
+    // å®é™…æˆåƒå‚æ•°,è½½è·çœŸå®çš„æˆåƒå‚æ•°
+    // å  ç§°:IRå¹¿åŸŸæˆåƒèŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_IR_wide_image_paras, 0, sizeof(COMP_IR_WIDE_IMAGE_PARAS));
-    // Ãû  ³Æ:IRÇøÓò³ÉÏñ·¶Î§²ÎÊı,¸ù¾İÇøÓò±àºÅ»º´æÈı¸ö1
+    // å  ç§°:IRåŒºåŸŸæˆåƒèŒƒå›´å‚æ•°,æ ¹æ®åŒºåŸŸç¼–å·ç¼“å­˜ä¸‰ä¸ª1
     memcpy(&param_Compute_Output.real_area_image_paras[0], &param_Compute_Input_Fromfc.comp_area_image_paras[0], sizeof(COMP_AREA_IMAGE_PARAS) * 3);
 
-    // Ãû  ³Æ:IRÇøÓò¼àÊÓ·¶Î§²ÎÊı1
+    // å  ç§°:IRåŒºåŸŸç›‘è§†èŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_area_monitor_paras, 0, sizeof(COMP_AREA_MONITOR_PARAS));
 }
-// ¼àÊÓ·µ»Ø²ÎÊı
+// ç›‘è§†è¿”å›å‚æ•°
 void Out_JS() {
-    // Êµ¼Ê³ÉÏñ²ÎÊı,ÔØºÉÕæÊµµÄ³ÉÏñ²ÎÊı
-    // Ãû  ³Æ:IR¹ãÓò³ÉÏñ·¶Î§²ÎÊı1
+    // å®é™…æˆåƒå‚æ•°,è½½è·çœŸå®çš„æˆåƒå‚æ•°
+    // å  ç§°:IRå¹¿åŸŸæˆåƒèŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_IR_wide_image_paras, 0, sizeof(COMP_IR_WIDE_IMAGE_PARAS));
-    // Ãû  ³Æ:IRÇøÓò³ÉÏñ·¶Î§²ÎÊı,¸ù¾İÇøÓò±àºÅ»º´æÈı¸ö1
+    // å  ç§°:IRåŒºåŸŸæˆåƒèŒƒå›´å‚æ•°,æ ¹æ®åŒºåŸŸç¼–å·ç¼“å­˜ä¸‰ä¸ª1
     memset(&param_Compute_Output.real_area_image_paras[0], 0, sizeof(COMP_AREA_IMAGE_PARAS) * 3);
-    // Ãû  ³Æ:IRÇøÓò¼àÊÓ·¶Î§²ÎÊı1
+    // å  ç§°:IRåŒºåŸŸç›‘è§†èŒƒå›´å‚æ•°1
     memset(&param_Compute_Output.real_area_monitor_paras, 0, sizeof(COMP_AREA_MONITOR_PARAS));
 
     param_Compute_Output.real_area_monitor_paras.latitude  = param_Compute_Output.image_center_latitude * Agl_PI * 1000;
     param_Compute_Output.real_area_monitor_paras.longitude = param_Compute_Output.image_center_longitude * Agl_PI * 1000;
     param_Compute_Output.real_area_monitor_paras.altitude  = param_Compute_Output.A818_ImageCenterHeight;
 }
-// ¼ÆËãµ±Ç°ÊÓÖá
+// è®¡ç®—å½“å‰è§†è½´
 void ComptLos() {
-    KJAgl_AC_pi.NKJ = KJAgl_pi.NKJ; // AC×ø±êÏµÏÂÄÚ¿ò¼Ü½Ç
-    KJAgl_AC_pi.WKJ = KJAgl_pi.WKJ; // AC×ø±êÏµÏÂÍâ¿ò¼Ü½Ç
+    KJAgl_AC_pi.NKJ = KJAgl_pi.NKJ; // ACåæ ‡ç³»ä¸‹å†…æ¡†æ¶è§’
+    KJAgl_AC_pi.WKJ = KJAgl_pi.WKJ; // ACåæ ‡ç³»ä¸‹å¤–æ¡†æ¶è§’
 
     float sin_WKJ;
     float sin_NKJ;
@@ -2895,13 +2871,13 @@ void ComptLos() {
     los_ned.Y = AC_NED[1][0] * los_ac[0] + AC_NED[1][1] * los_ac[1] + AC_NED[1][2] * los_ac[2];
     los_ned.Z = AC_NED[2][0] * los_ac[0] + AC_NED[2][1] * los_ac[1] + AC_NED[2][2] * los_ac[2];
 
-    // ·µ»ØÄÚ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å†…æ¡†æ¶è§’è®¡ç®—ç»“æœ
     KJAgl_NED_pi.WKJ = atan2(los_ned.Y, los_ned.X);
-    // ·µ»ØÍâ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å¤–æ¡†æ¶è§’è®¡ç®—ç»“æœ
     KJAgl_NED_pi.NKJ = acos(los_ned.Z);
 }
 
-// ¼ÆËã½ü¾àÔ¶¾à
+// è®¡ç®—è¿‘è·è¿œè·
 void ComptRange() {
 
     struct_KJAgl            temp_startAgl;
@@ -2914,20 +2890,20 @@ void ComptRange() {
     float                   los_ac[3];
     struct_Position_float64 los_ned;
 
-    if (NKJ_Max_PI < KJ_start_pi.NKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (NKJ_Max_PI < KJ_start_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         temp_startAgl.NKJ = NKJ_Max_PI;
-    } else if (NKJ_Min_PI > KJ_start_pi.NKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    } else if (NKJ_Min_PI > KJ_start_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         temp_startAgl.NKJ = NKJ_Min_PI;
     } else {
         temp_startAgl.NKJ = KJ_start_pi.NKJ;
     }
 
-    if (WKJ_Max_PI < KJ_start_pi.WKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (WKJ_Max_PI < KJ_start_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         temp_startAgl.WKJ = WKJ_Max_PI;
-    } else if (WKJ_Min_PI > KJ_start_pi.WKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    } else if (WKJ_Min_PI > KJ_start_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         temp_startAgl.WKJ = WKJ_Min_PI;
     } else {
@@ -2947,29 +2923,29 @@ void ComptRange() {
     los_ned.Y = AC_NED[1][0] * los_ac[0] + AC_NED[1][1] * los_ac[1] + AC_NED[1][2] * los_ac[2];
     los_ned.Z = AC_NED[2][0] * los_ac[0] + AC_NED[2][1] * los_ac[1] + AC_NED[2][2] * los_ac[2];
 
-    // ·µ»ØÄÚ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å†…æ¡†æ¶è§’è®¡ç®—ç»“æœ
     temp_KJAgl_NED.WKJ = atan2(los_ned.Y, los_ned.X);
-    // ·µ»ØÍâ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å¤–æ¡†æ¶è§’è®¡ç®—ç»“æœ
     temp_KJAgl_NED.NKJ = acos(los_ned.Z);
 
-    range_lowline = tan(temp_KJAgl_NED.NKJ) * planTar_high; // ½ü¾à
+    range_lowline = tan(temp_KJAgl_NED.NKJ) * planTar_high; // è¿‘è·
 
-    //-------------Ô¶¾à
+    //-------------è¿œè·
 
-    if (NKJ_Max_PI < KJ_end_pi.NKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (NKJ_Max_PI < KJ_end_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         temp_endAgl.NKJ = NKJ_Max_PI;
-    } else if (NKJ_Min_PI > KJ_end_pi.NKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    } else if (NKJ_Min_PI > KJ_end_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         temp_endAgl.NKJ = NKJ_Min_PI;
     } else {
         temp_endAgl.NKJ = KJ_end_pi.NKJ;
     }
 
-    if (WKJ_Max_PI < KJ_end_pi.WKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (WKJ_Max_PI < KJ_end_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         temp_endAgl.WKJ = WKJ_Max_PI;
-    } else if (WKJ_Min_PI > KJ_end_pi.WKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    } else if (WKJ_Min_PI > KJ_end_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         temp_endAgl.WKJ = WKJ_Min_PI;
     } else {
@@ -2989,61 +2965,61 @@ void ComptRange() {
     los_ned.Y = AC_NED[1][0] * los_ac[0] + AC_NED[1][1] * los_ac[1] + AC_NED[1][2] * los_ac[2];
     los_ned.Z = AC_NED[2][0] * los_ac[0] + AC_NED[2][1] * los_ac[1] + AC_NED[2][2] * los_ac[2];
 
-    // ·µ»ØÄÚ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å†…æ¡†æ¶è§’è®¡ç®—ç»“æœ
     temp_KJAgl_NED.WKJ = atan2(los_ned.Y, los_ned.X);
-    // ·µ»ØÍâ¿ò¼Ü½Ç¼ÆËã½á¹û
+    // è¿”å›å¤–æ¡†æ¶è§’è®¡ç®—ç»“æœ
     temp_KJAgl_NED.NKJ = acos(los_ned.Z);
 
-    range_upline = tan(temp_KJAgl_NED.NKJ) * planTar_high; // Ô¶¾à
+    range_upline = tan(temp_KJAgl_NED.NKJ) * planTar_high; // è¿œè·
 }
-// ------------------------------ÊäÈë²ÎÊı´¦Àí-------------------------------//
-//  º¯ÊıÃû³Æ£ºProcessInPram
-//  ¹¦ÄÜ£º´¦Àí¼ÆËãĞèÒªµÄ²ÎÊı
-//  ÊäÈë²ÎÊı£º
-//  ·µ»Ø²ÎÊı£º
-//  ËµÃ÷£ºÎŞ
+// ------------------------------è¾“å…¥å‚æ•°å¤„ç†-------------------------------//
+//  å‡½æ•°åç§°ï¼šProcessInPram
+//  åŠŸèƒ½ï¼šå¤„ç†è®¡ç®—éœ€è¦çš„å‚æ•°
+//  è¾“å…¥å‚æ•°ï¼š
+//  è¿”å›å‚æ•°ï¼š
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void ProcessInPram() {
-    AC_Position_pi.Lat  = param_Compute_Input_Fromfpga.latitude;     // ÔØ»úÎ³¶È
-    AC_Position_pi.Lon  = param_Compute_Input_Fromfpga.longitude;    // ÔØ»ú¾­¶È
-    AC_Position_pi.Alt  = param_Compute_Input_Fromfpga.altitude;     // ÔØ»ú¸ß¶È
-    AttitudeAC_pi.Yaw   = param_Compute_Input_Fromfpga.true_heading; // º½Ïò½Ç
-    AttitudeAC_pi.Pitch = param_Compute_Input_Fromfpga.pitch;        // ¸©Ñö½Ç
-    AttitudeAC_pi.Roll  = param_Compute_Input_Fromfpga.roll;         // ºá¹ö½Ç
+    AC_Position_pi.Lat  = param_Compute_Input_Fromfpga.latitude;     // è½½æœºçº¬åº¦
+    AC_Position_pi.Lon  = param_Compute_Input_Fromfpga.longitude;    // è½½æœºç»åº¦
+    AC_Position_pi.Alt  = param_Compute_Input_Fromfpga.altitude;     // è½½æœºé«˜åº¦
+    AttitudeAC_pi.Yaw   = param_Compute_Input_Fromfpga.true_heading; // èˆªå‘è§’
+    AttitudeAC_pi.Pitch = param_Compute_Input_Fromfpga.pitch;        // ä¿¯ä»°è§’
+    AttitudeAC_pi.Roll  = param_Compute_Input_Fromfpga.roll;         // æ¨ªæ»šè§’
 
-    KJAgl_pi.WKJ     = param_Compute_Input_Fromfpga.rtime_direction_frame * Agl_PI;       // ÊµÊ±Íâ¿ò¼Ü½Ç
-    KJAgl_pi.NKJ     = (param_Compute_Input_Fromfpga.rtime_pitch_frame + 90) * Agl_PI;    // ÊµÊ±ÄÚ¿ò¼Ü½Ç
-    KJAgl_exp_pi.WKJ = param_Compute_Input_Fromfpga.exposure_direction_frame * Agl_PI;    // ÆØ¹âÊ±¿ÌÍâ¿ò¼Ü½Ç
-    KJAgl_exp_pi.NKJ = (param_Compute_Input_Fromfpga.exposure_pitch_frame + 90) * Agl_PI; // ÆØ¹âÊ±¿ÌÄÚ¿ò¼Ü½Ç
+    KJAgl_pi.WKJ     = param_Compute_Input_Fromfpga.rtime_direction_frame * Agl_PI;       // å®æ—¶å¤–æ¡†æ¶è§’
+    KJAgl_pi.NKJ     = (param_Compute_Input_Fromfpga.rtime_pitch_frame + 90) * Agl_PI;    // å®æ—¶å†…æ¡†æ¶è§’
+    KJAgl_exp_pi.WKJ = param_Compute_Input_Fromfpga.exposure_direction_frame * Agl_PI;    // æ›å…‰æ—¶åˆ»å¤–æ¡†æ¶è§’
+    KJAgl_exp_pi.NKJ = (param_Compute_Input_Fromfpga.exposure_pitch_frame + 90) * Agl_PI; // æ›å…‰æ—¶åˆ»å†…æ¡†æ¶è§’
 
-    KFKZAgl_exp_pi.WKJ = param_Compute_Input_Fromfpga.kfbgskfwbcwz * Agl_PI; // ÆØ¹âÊ±¿Ì¿ì·´½Ç
-    KFKZAgl_exp_pi.NKJ = param_Compute_Input_Fromfpga.kfbgskfybcwz * Agl_PI; // ÆØ¹âÊ±¿Ì¿ì·´½Ç
+    KFKZAgl_exp_pi.WKJ = param_Compute_Input_Fromfpga.kfbgskfwbcwz * Agl_PI; // æ›å…‰æ—¶åˆ»å¿«åè§’
+    KFKZAgl_exp_pi.NKJ = param_Compute_Input_Fromfpga.kfbgskfybcwz * Agl_PI; // æ›å…‰æ—¶åˆ»å¿«åè§’
 
-    if (1 == param_Compute_Input_Fromfpga.flag_view_State) // Ğ¡ÊÓ³¡
+    if (1 == param_Compute_Input_Fromfpga.flag_view_State) // å°è§†åœº
     {
-        tocal_foclen_KJ = param_Compute_Input_Fromfpga.jj_Big_KJ; // ¿É¼û´óÊÓ³¡-¶Ì½¹
+        tocal_foclen_KJ = param_Compute_Input_Fromfpga.jj_Big_KJ; // å¯è§å¤§è§†åœº-çŸ­ç„¦
         if (tocal_foclen_KJ > 492 || tocal_foclen_KJ < 292) {
             tocal_foclen_KJ = 392;
         }
     } else {
-        tocal_foclen_KJ = param_Compute_Input_Fromfpga.jj_Small_KJ; // ¿É¼ûĞ¡ÊÓ³¡-³¤½¹ 1960mm
+        tocal_foclen_KJ = param_Compute_Input_Fromfpga.jj_Small_KJ; // å¯è§å°è§†åœº-é•¿ç„¦ 1960mm
         if (tocal_foclen_KJ > 1990 || tocal_foclen_KJ < 1930) {
             tocal_foclen_KJ = 1960;
         }
     }
 
-    tocal_pixsize_KJ = 4.5; // ÏñÔª³ß´ç4.5
+    tocal_pixsize_KJ = 4.5; // åƒå…ƒå°ºå¯¸4.5
 }
-// ------------------------------Êä³ö²ÎÊı´¦Àí-------------------------------//
-//  º¯ÊıÃû³Æ£ºProcessOutPram
-//  ¹¦ÄÜ£º´¦Àí¼ÆËãĞèÒªµÄ²ÎÊı
-//  ÊäÈë²ÎÊı£º
-//  ·µ»Ø²ÎÊı£º
-//  ËµÃ÷£ºÎŞ
+// ------------------------------è¾“å‡ºå‚æ•°å¤„ç†-------------------------------//
+//  å‡½æ•°åç§°ï¼šProcessOutPram
+//  åŠŸèƒ½ï¼šå¤„ç†è®¡ç®—éœ€è¦çš„å‚æ•°
+//  è¾“å…¥å‚æ•°ï¼š
+//  è¿”å›å‚æ•°ï¼š
+//  è¯´æ˜ï¼šæ— 
 // ---------------------------------------------------------------------------//
 void ProcessOutPram() {
-    param_Compute_Output.toKJ_direction_speed = KJ_omiga_pi.WKJ * PI_Agl; // ¿ò¼Ü·½Î»É¨ÃèËÙ¶ÈÖ¸Áî¡ã/s
-    param_Compute_Output.toKJ_pitch_speed     = KJ_omiga_pi.NKJ * PI_Agl; // ¿ò¼Ü¸©ÑöÉ¨ÃèËÙ¶ÈÖ¸Áî ¡ã/s
+    param_Compute_Output.toKJ_direction_speed = KJ_omiga_pi.WKJ * PI_Agl; // æ¡†æ¶æ–¹ä½æ‰«æé€Ÿåº¦æŒ‡ä»¤Â°/s
+    param_Compute_Output.toKJ_pitch_speed     = KJ_omiga_pi.NKJ * PI_Agl; // æ¡†æ¶ä¿¯ä»°æ‰«æé€Ÿåº¦æŒ‡ä»¤ Â°/s
     if (param_Compute_Output.toKJ_direction_speed > 20) {
         param_Compute_Output.toKJ_direction_speed = 20;
     }
@@ -3057,69 +3033,69 @@ void ProcessOutPram() {
         param_Compute_Output.toKJ_pitch_speed = -20;
     }
 
-    if (WKJ_Max_PI < KJ_start_pi.WKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (WKJ_Max_PI < KJ_start_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         KJ_start_pi.WKJ = WKJ_Max_PI;
     }
-    if (WKJ_Min_PI > KJ_start_pi.WKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    if (WKJ_Min_PI > KJ_start_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         KJ_start_pi.WKJ = WKJ_Min_PI;
     }
 
-    param_Compute_Output.toKJ_direction_start = KJ_start_pi.WKJ * PI_Agl; // ¿ò¼Ü·½Î»Ö¸Áî   ÆğÊ¼½Ç£¨LSB=0.0001¡ã£©
+    param_Compute_Output.toKJ_direction_start = KJ_start_pi.WKJ * PI_Agl; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   èµ·å§‹è§’ï¼ˆLSB=0.0001Â°ï¼‰
 
-    if (WKJ_Max_PI < KJ_end_pi.WKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (WKJ_Max_PI < KJ_end_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         KJ_end_pi.WKJ = WKJ_Max_PI;
     }
-    if (WKJ_Min_PI > KJ_end_pi.WKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    if (WKJ_Min_PI > KJ_end_pi.WKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         KJ_end_pi.WKJ = WKJ_Min_PI;
     }
-    param_Compute_Output.toKJ_direction_end = KJ_end_pi.WKJ * PI_Agl; // ¿ò¼Ü·½Î»Ö¸Áî   ½áÊø½Ç ¡ã
+    param_Compute_Output.toKJ_direction_end = KJ_end_pi.WKJ * PI_Agl; // æ¡†æ¶æ–¹ä½æŒ‡ä»¤   ç»“æŸè§’ Â°
 
-    if (NKJ_Max_PI < KJ_start_pi.NKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (NKJ_Max_PI < KJ_start_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         KJ_start_pi.NKJ = NKJ_Max_PI;
     }
-    if (NKJ_Min_PI > KJ_start_pi.NKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    if (NKJ_Min_PI > KJ_start_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         KJ_start_pi.NKJ = NKJ_Min_PI;
     }
-    param_Compute_Output.toKJ_pitch_start = KJ_start_pi.NKJ * PI_Agl - 90; // ¿ò¼Ü¸©ÑöÖ¸Áî   ÆğÊ¼½Ç ¡ã
+    param_Compute_Output.toKJ_pitch_start = KJ_start_pi.NKJ * PI_Agl - 90; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   èµ·å§‹è§’ Â°
 
-    if (NKJ_Max_PI < KJ_end_pi.NKJ) // ÄÚ¿ò¼Ü³¬×î¸ßNKJ_Max_PI
+    if (NKJ_Max_PI < KJ_end_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€é«˜NKJ_Max_PI
     {
         KJ_end_pi.NKJ = NKJ_Max_PI;
     }
-    if (NKJ_Min_PI > KJ_end_pi.NKJ) // ÄÚ¿ò¼Ü³¬×îµÍ
+    if (NKJ_Min_PI > KJ_end_pi.NKJ) // å†…æ¡†æ¶è¶…æœ€ä½
     {
         KJ_end_pi.NKJ = NKJ_Min_PI;
     }
-    param_Compute_Output.toKJ_pitch_end = KJ_end_pi.NKJ * PI_Agl - 90; // ¿ò¼Ü¸©ÑöÖ¸Áî   ½áÊø½Ç ¡ã
+    param_Compute_Output.toKJ_pitch_end = KJ_end_pi.NKJ * PI_Agl - 90; // æ¡†æ¶ä¿¯ä»°æŒ‡ä»¤   ç»“æŸè§’ Â°
 
-    param_Compute_Output.toKJ_speed_hight                     = speed_hight;                  // ËÙ¸ß±È
-    param_Compute_Output.toKJ_pitch_image_motion_velocity     = img_move_omiga_x_pi * PI_Agl; // Ç°ÏòÏòÏñÒÆËÙ¶È
-    param_Compute_Output.toKJ_direction_image_motion_velocity = img_move_omiga_y_pi * PI_Agl; // ºáÏòÏñÒÆËÙ¶È
+    param_Compute_Output.toKJ_speed_hight                     = speed_hight;                  // é€Ÿé«˜æ¯”
+    param_Compute_Output.toKJ_pitch_image_motion_velocity     = img_move_omiga_x_pi * PI_Agl; // å‰å‘å‘åƒç§»é€Ÿåº¦
+    param_Compute_Output.toKJ_direction_image_motion_velocity = img_move_omiga_y_pi * PI_Agl; // æ¨ªå‘åƒç§»é€Ÿåº¦
 
     param_Compute_Output.toTJ_distance   = photo_Dis;
-    param_Compute_Output.frames_Num      = TD_PhotoNum;           // Ã¿Ìõ´ø³ÉÏñÖ¡Êı
-    param_Compute_Output.qy_zq_num       = QYCX_ScanOverTime + 1; // ÇøÓòÖÜÆÚºÅ-Á¬Ğø³ÉÏñÕıÔÚÖ´ĞĞµÚ¼¸´Î£¨´Ó1¿ªÊ¼£©
-    param_Compute_Output.qy_td_total_num = QYCX_NeedTDNum;        // µ±Ç°ÇøÓòÌõ´ø×ÜÊı
+    param_Compute_Output.frames_Num      = TD_PhotoNum;           // æ¯æ¡å¸¦æˆåƒå¸§æ•°
+    param_Compute_Output.qy_zq_num       = QYCX_ScanOverTime + 1; // åŒºåŸŸå‘¨æœŸå·-è¿ç»­æˆåƒæ­£åœ¨æ‰§è¡Œç¬¬å‡ æ¬¡ï¼ˆä»1å¼€å§‹ï¼‰
+    param_Compute_Output.qy_td_total_num = QYCX_NeedTDNum;        // å½“å‰åŒºåŸŸæ¡å¸¦æ€»æ•°
 
-    param_Compute_Output.toFPGA_time_speed    = speed_time * 1000;    // ËÙ¶ÈĞÅºÅÊ±¼ä
-    param_Compute_Output.toFPGA_time_location = location_time * 1000; // Î»ÖÃĞÅºÅÊ±¼ä
-    param_Compute_Output.QYCX_Over_flag       = QYCX_Over_flag;       // ÒÑÍê³ÉÉ¨Ãè±êÖ¾
+    param_Compute_Output.toFPGA_time_speed    = speed_time * 1000;    // é€Ÿåº¦ä¿¡å·æ—¶é—´
+    param_Compute_Output.toFPGA_time_location = location_time * 1000; // ä½ç½®ä¿¡å·æ—¶é—´
+    param_Compute_Output.QYCX_Over_flag       = QYCX_Over_flag;       // å·²å®Œæˆæ‰«ææ ‡å¿—
 
-    param_Compute_Output.sensor_los_geo_az      = KJAgl_NED_pi.WKJ * 1000;                 // µØÀíÏµ_´«¸ĞÆ÷LOS_·½Î»mrad
-    param_Compute_Output.sensor_los_geo_el      = (KJAgl_NED_pi.NKJ - 90 * Agl_PI) * 1000; // µØÀíÏµ_´«¸ĞÆ÷LOS_¸©Ñömrad
-    param_Compute_Output.sensor_los_platform_az = KJAgl_AC_pi.WKJ * 1000;                  // »úÌåÏµ_´«¸ĞÆ÷LOS_·½Î»mrad
-    param_Compute_Output.sensor_los_platform_el = (KJAgl_AC_pi.NKJ - 90 * Agl_PI) * 1000;  // »úÌåÏµ_´«¸ĞÆ÷LOS_¸©Ñömrad
+    param_Compute_Output.sensor_los_geo_az      = KJAgl_NED_pi.WKJ * 1000;                 // åœ°ç†ç³»_ä¼ æ„Ÿå™¨LOS_æ–¹ä½mrad
+    param_Compute_Output.sensor_los_geo_el      = (KJAgl_NED_pi.NKJ - 90 * Agl_PI) * 1000; // åœ°ç†ç³»_ä¼ æ„Ÿå™¨LOS_ä¿¯ä»°mrad
+    param_Compute_Output.sensor_los_platform_az = KJAgl_AC_pi.WKJ * 1000;                  // æœºä½“ç³»_ä¼ æ„Ÿå™¨LOS_æ–¹ä½mrad
+    param_Compute_Output.sensor_los_platform_el = (KJAgl_AC_pi.NKJ - 90 * Agl_PI) * 1000;  // æœºä½“ç³»_ä¼ æ„Ÿå™¨LOS_ä¿¯ä»°mrad
 
-    param_Compute_Output.wideCover = cover_wide; // ´¹Ö±º½Ïò¸²¸Ç¿í¶È
+    param_Compute_Output.wideCover = cover_wide; // å‚ç›´èˆªå‘è¦†ç›–å®½åº¦
 
-    param_Compute_Output.A818_CUR_RESOLUTION    = (0.0045 / tocal_foclen_KJ) * photo_Dis; // ¿É¼ûÏñÔª·Ö±æÂÊ
-    param_Compute_Output.A818_GROUND_RESOLUTION = (photo_Dis / 30000) * 1.5;              // µØÃæÉãÓ°·Ö±æÂÊ
+    param_Compute_Output.A818_CUR_RESOLUTION    = (0.0045 / tocal_foclen_KJ) * photo_Dis; // å¯è§åƒå…ƒåˆ†è¾¨ç‡
+    param_Compute_Output.A818_GROUND_RESOLUTION = (photo_Dis / 30000) * 1.5;              // åœ°é¢æ‘„å½±åˆ†è¾¨ç‡
 
     //	logMsg("WKJ_V:%d,NKJ_V:%d\r\n",(KJ_omiga_pi.WKJ*57.2957795*1000),(KJ_omiga_pi.NKJ*57.2957795*1000),3,4,5,6);
     //	logMsg("WK_start:%d,WK_end:%d\r\n",(KJ_start_pi.WKJ*57.2957795*1000),(KJ_end_pi.WKJ*57.2957795*1000),3,4,5,6);

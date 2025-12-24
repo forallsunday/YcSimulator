@@ -76,30 +76,14 @@ class CameraSimulator {
     // void compute();
 
     // UDP
-    std::unique_ptr<UdpConnect> udp_;       // udp 连接 接收数据
-    int                         port_;      // udp 监听端口
-    std::string                 ip_contrl_; // udp 机载主控模拟器ip
-    int                         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
+    int         port_;      // udp 监听端口
+    std::string ip_contrl_; // udp 机载主控模拟器ip
+    int         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
 
     /// @brief 接收数据 分类消息 放入队列 (对应原 fc_EventRecv_task )
     /// @param data udp包的指针
     /// @param size udp包的数据长度
     void udpEventRecv(char *data, int size);
-
-    // 发送udp包到机载主控移植
-    int sendPacket(const UdpPacket *ptr_pkt);
-
-    /// @brief udp 发送msg函数
-    /// @param topic_id   主题ID    (V_TOPIC_XXX_XXX)
-    /// @param msg        msg数据指针
-    /// @param size_msg   msg的数据长度
-    void udpSendMsg(uint32_t topic_id, uint8_t *msg, uint32_t size_msg);
-
-    // 发送udp消息到机载移植
-    template <typename T>
-    void udpSendMsg(uint32_t topic_id, T *msg) {
-        udpSendMsg(topic_id, (uint8_t *)msg, sizeof(T));
-    };
 
     // 周期性发送间隔 ms
     int periodic_interval = PERIOD_TASK_TIME;
@@ -138,7 +122,7 @@ class CameraSimulator {
     // 5ms 计时器
     TimerPeriod timer_5ms_;
 
-    // fpga 
+    // fpga
     FpgaSimulator fpga_sim;
 
     // 超时时间 (子线程阻塞时间)

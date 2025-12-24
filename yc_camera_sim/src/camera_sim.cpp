@@ -11,6 +11,8 @@
 
 #include <chrono>
 #include <cstring>
+#include <log.h>
+#include <udp_trans.h>
 
 CameraSimulator::CameraSimulator(int port, std::string ip_control, int port_dst)
     : port_(port), ip_contrl_(ip_control), port_dst_(port_dst),
@@ -99,28 +101,6 @@ void CameraSimulator::updateShmOutput() {
     this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData = unit_status_data;
 }
 
-int CameraSimulator::sendPacket(const UdpPacket *ptr_packet) {
-    return udp_->SendData(
-        reinterpret_cast<const char *>(ptr_packet),
-        sizeofPacket(ptr_packet), ip_contrl_.c_str(), port_dst_);
-}
-
-void CameraSimulator::udpSendMsg(uint32_t topic_id, uint8_t *msg, uint32_t size_msg) {
-    // udp 发送数据包
-    UdpPacket packet;
-
-    // Note: 没有设置目标V_NODE_XXX 改逻辑放在 ControlSimulator 里实现
-    packet.time_tag   = getSysRTC();
-    packet.source     = FUNCTION_NODE_TYPE::V_NODE_IRRM; // 我们发送的永远是这个
-    packet.topicId    = topic_id;
-    size_msg          = size_msg < 2048 ? size_msg : 2048;
-    packet.payloadLen = size_msg;
-    std::memcpy(packet.pPayload, msg, size_msg);
-
-    INFO_UDP_PACKET_SEND("机载移植 Control", ip_contrl_.c_str(), port_dst_, packet);
-    this->sendPacket(&packet);
-}
-
 void CameraSimulator::udpEventRecv(char *data, int size) {
     // 如果没有上电 则不处理
     if (power_status_ != POWER_ON)
@@ -128,7 +108,7 @@ void CameraSimulator::udpEventRecv(char *data, int size) {
 
     // 检查数据大小
     if (size > sizeof(UdpPacket)) {
-        printf("[WARN] received data size (%d) > UdpPacket size (%zu)\n", size, sizeof(UdpPacket));
+        log_warn("Received data size (%d) > UdpPacket size (%zu)", size, sizeof(UdpPacket));
         size = sizeof(UdpPacket); // 避免越界
     }
 
@@ -214,12 +194,12 @@ void CameraSimulator::startHeartbitting() {
         // auto time_step = seconds(1);
         auto time_step = milliseconds(180);
 
+        uint8_t data = 1;
         while (running_hearbit) {
             ++heartbit_;
 
             // 向Control发送OKMSG
-            uint8_t data[1] = {1};
-            this->udpSendMsg(V_TOPIC_OKMSG, data);
+            udpTransSend(MY_TOPIC_OKMSG, &data);
 
             std::this_thread::sleep_for(time_step);
         }
@@ -228,7 +208,7 @@ void CameraSimulator::startHeartbitting() {
 
 void CameraSimulator::startUdpConnect() {
     // 初始化udp连接 设置接受函数
-    initUdpTrans(port_, ip_contrl_.c_str(), port_dst_,
+    udpTransInit(port_, ip_contrl_.c_str(), port_dst_,
                  [this](char *data, int size) { this->udpEventRecv(data, size); });
 }
 
@@ -280,7 +260,7 @@ void CameraSimulator::powerOn(int delay) {
         return;
     }
 
-    printf("[CameraSimulator] Power ON start with (%d s)\n", delay);
+    log_info("[CameraSimulator] Power ON start with (%d s)", delay);
 
     // 如果还没退出 上电线程退出
     if (thread_power_on_.joinable())
@@ -292,10 +272,10 @@ void CameraSimulator::powerOn(int delay) {
         int  interval     = 1; // 1秒间隔
         auto time_step    = seconds(interval);
 
-        this->power_status_ == POWER_CHECKING;
+        this->power_status_ = POWER_CHECKING;
 
         while (remain_time > 0 && power_status_ == POWER_CHECKING) {
-            printf("[CameraSimulator] Power ON remain %d seconds... \n", this->remain_time.load());
+            log_info("[CameraSimulator] Power ON remain %d seconds...", this->remain_time.load());
             // 上电自检中
             // msg
             this->remain_time -= interval;
@@ -304,14 +284,14 @@ void CameraSimulator::powerOn(int delay) {
         }
 
         if (power_status_ == POWER_FREEZE || power_status_ == POWER_OFF) {
-            printf("[CameraSimulator] Power ON terminated\n");
+            log_info("[CameraSimulator] Power ON terminated");
 
         } else {
             // 上电成功
             this->remain_time   = 0;
             this->power_status_ = POWER_ON;
 
-            printf("[CameraSimulator] Power ON complete\n");
+            log_info("[CameraSimulator] Power ON complete");
 
             // !!!启动任务线程
             this->startTaskThreads();
@@ -375,7 +355,7 @@ void CameraSimulator::powerOff() {
 
     this->power_status_ = POWER_OFF;
 
-    printf("[CameraSimulator] Power OFF complete\n");
+    log_info("[CameraSimulator] Power OFF complete");
     // // msg
     // msg_send.m_WORK_STATE_REPORT.bit_process_percent = 0;
     // msg_send.m_WORK_STATE_REPORT.start_remain_time   = 0;
@@ -387,16 +367,12 @@ CameraSimulator::~CameraSimulator() {
 
     this->powerOff();
 
-    // 关闭udp连接
-    if (udp_) {
-        udp_->Close();
-        udp_.reset();
-    }
-
     // 停止心跳
     running_hearbit = false;
     if (thread_heartbit_.joinable())
         thread_heartbit_.join();
 
-    printf("[CameraSimulator] All threads stopped\n");
+    udpTransClose();
+
+    log_info("[CameraSimulator] All threads stopped");
 }

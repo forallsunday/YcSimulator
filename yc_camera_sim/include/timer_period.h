@@ -1,32 +1,28 @@
-
-#ifndef TIMER_PERIOD_H
-#define TIMER_PERIOD_H
+#pragma once
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <functional>
+#include <mutex>
 #include <thread>
 
 class TimerPeriod {
   public:
     using Callback = std::function<void()>;
 
-    // 默认构造（不启动、不占资源）
     TimerPeriod();
-
-    // 析构
     ~TimerPeriod();
 
-    // 禁止拷贝
-    TimerPeriod(const TimerPeriod &)            = delete;
-    TimerPeriod &operator=(const TimerPeriod &) = delete;
-
-    // ️初始化参数（只能调用一次）
+    // 只允许初始化一次
     bool init(std::chrono::nanoseconds period, Callback cb);
 
-    // 启动 / 停止
+    // 开始 / 暂停计时（不创建 / 销毁线程）
     void start();
     void stop();
+
+    // 修改周期
+    void changePeriod(std::chrono::nanoseconds period);
 
     bool isInitialized() const;
     bool isRunning() const;
@@ -40,7 +36,10 @@ class TimerPeriod {
 
     std::atomic<bool> initialized_;
     std::atomic<bool> running_;
-    std::thread       worker_;
-};
+    std::atomic<bool> exit_;
 
-#endif // TIMER_PERIOD_H
+    std::thread worker_;
+
+    std::mutex              mtx_;
+    std::condition_variable cv_;
+};

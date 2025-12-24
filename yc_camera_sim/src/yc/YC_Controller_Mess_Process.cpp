@@ -32,6 +32,7 @@
 // lcy add.
 #include <cstring>
 #include <udp_trans.h>
+#include <utils.h>
 
 // 发送IRST_活动请求通告
 void send_Mess_IRST_ACT_REQ_REPORT(UINT8 activity_state, UINT8 act_refused_reason) {
@@ -1530,8 +1531,8 @@ void make_Mess_To_TXCL_ZSXX_Time_Pos() {
 // FC系统RTC时间获取
 // Note: 修改为系统时间
 UINT64 fcSysRtcGet() {
-    TSS_ADAPTOR_RETURN_CODE_TYPE iRet       = 0;
-    UINT64                       ulLocalRtc = 0;
+    // TSS_ADAPTOR_RETURN_CODE_TYPE iRet       = 0;
+    // UINT64                       ulLocalRtc = 0;
     // TSS_ADAPTOR_PARAM_TYPE       tTssParam  = {0};
     // tTssParam.uiQueryCmd                    = V_TIMESERV_GET_SYS_RTC;
     // tTssParam.uiHandle                      = V_NET_FC;
@@ -1539,7 +1540,8 @@ UINT64 fcSysRtcGet() {
 
     // TSS_Adaptor_Get_Time_Parameter(V_TSS_TIMESERV_MODULE, &tTssParam, &iRet);
 
-    return ulLocalRtc;
+    // return ulLocalRtc;
+    return getSysRTC();
 }
 
 // fpga测试函数

@@ -2,6 +2,7 @@
 #include <chrono>
 #include <control_sim.h>
 #include <cstring>
+#include <log.h>
 #include <udp_packet_log.h>
 
 #define SEND_TOPIC (0xd6 << 24)
@@ -48,16 +49,15 @@ void ControlSimulator::init() {
 
     // udp连接 初始化
     if (udp_icp_->Init()) {
-        printf("[Initilize] UDP ICP receive bind, ip = %s, port = %d\n", ip_0.c_str(), ctrl_port_recv_icp_);
+        log_info("udp初始化成功 监听端口%d", ctrl_port_recv_icp_);
     } else {
-        printf("[ERR] UDP ICP receive bind failed.\n");
-        return;
+        log_warn("udp初始化失败");
     }
+
     if (udp_camera_->Init()) {
-        printf("[Initilize] UDP Camera receive bind, ip = %s, port = %d\n", ip_0.c_str(), ctrl_port_recv_camera_);
+        log_info("udp初始化成功 监听端口%d", ctrl_port_recv_camera_);
     } else {
-        printf("[ERR] UDP Camera receive bind failed.\n");
-        return;
+        log_warn("udp初始化失败");
     }
 
     // 初始化 主题要发送到的节点
@@ -106,7 +106,7 @@ void ControlSimulator::initMapTopicNodes() {
 void ControlSimulator::dataHandlerICP(char *data, int size) {
 
     if (size > sizeof(UdpPacket)) {
-        printf("[WARN] received data size (%d) > UdpPacket size (%zu)\n", size, sizeof(UdpPacket));
+        log_warn("Received data size (%d) > UdpPacket size (%zu)", size, sizeof(UdpPacket));
         size = sizeof(UdpPacket); // 避免越界
     }
 
@@ -122,7 +122,7 @@ void ControlSimulator::dataHandlerICP(char *data, int size) {
 void ControlSimulator::dataHandlerCamera(char *data, int size) {
 
     if (size > sizeof(UdpPacket)) {
-        printf("[WARN] received data size (%d) > UdpPacket size (%zu)\n", size, sizeof(UdpPacket));
+        log_warn("Received data size (%d) > UdpPacket size (%zu)", size, sizeof(UdpPacket));
         size = sizeof(UdpPacket); // 避免越界
     }
 
@@ -132,7 +132,7 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
     INFO_UDP_PACKET_RECV(*ptr_packet);
 
     // 收到后放入队列中
-    if (ptr_packet->topicId == V_TOPIC_OKMSG) {
+    if (ptr_packet->topicId == MY_TOPIC_OKMSG) {
         ++this->num_okmsg_;
         queue_okmsg_.push(this->num_okmsg_);
     } else {
@@ -141,7 +141,7 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
 }
 
 void ControlSimulator::startSendOkMsg() {
-    printf("start sending ok msg.\n");
+    log_info("start sending ok msg.");
     running_send_okmsg_ = true;
     thread_send_okmsg_  = std::thread([this]() {
         using namespace std::chrono;
@@ -186,7 +186,7 @@ void ControlSimulator::startSendOkMsg() {
                     this->sendPkt2IcpNodes(&pkt, ip.c_str(), port);
                 }
             } else {
-                printf("%s ip and port not found.\n", node_name.c_str());
+                log_info("%s ip and port not found.", node_name.c_str());
             }
         };
 
@@ -207,7 +207,7 @@ void ControlSimulator::startSendOkMsg() {
 }
 
 void ControlSimulator::startSend2Camera() {
-    printf("start sending to camera.\n");
+    log_info("start sending to camera.");
     running_send2camera_ = true;
     thread_send2camera_  = std::thread([this]() {
         while (running_send2camera_) {
@@ -224,7 +224,7 @@ void ControlSimulator::startSend2Camera() {
 }
 
 void ControlSimulator::startSend2IcpNodes() {
-    printf("start sending to icp nodes.\n");
+    log_info("start sending to icp nodes.");
     // 消息分类 不同的节点
     running_send2nodes_ = true;
     thread_send2nodes_  = std::thread([this]() {
@@ -252,10 +252,10 @@ void ControlSimulator::startSend2IcpNodes() {
                     int                port = iter_node->second.port;
 
                     // 修改 packet
-                    ptr_packet->topicId = SEND_TOPIC | topic_id;
                     ptr_packet->dest    = node;
-
                     INFO_UDP_PACKET_SEND("ICP Nodes 节点", ip.c_str(), port, *ptr_packet);
+                    ptr_packet->topicId = SEND_TOPIC | topic_id;
+
                     this->sendPkt2IcpNodes(ptr_packet.get(), ip, port);
                 }
 

@@ -17,6 +17,32 @@ extern "C" {
 #include "ICDB_TOPIC_STRUCT_IRRM.H"
 #include "math.h"
 #include "sysTypes.h"
+
+#define Sec_KJPosREADY_NKJ 0.8 // 内框架位置好时间s
+#define Sec_KJPosREADY_WKJ 1.2 // 外框架位置好时间s
+#define Sec_KJSpeedREADY 0.2   // 框架速度好时间s
+
+#define GYCX_Near_K 0.5; // 广域成像近地点系数
+#define Max_TDNum 40     // 最大条带数
+// 框架角极限值
+#define NKJ_Max_PI 1.658063 // 弧度95度
+#define NKJ_Min_PI 0.785398 // 弧度45度
+#define WKJ_Max_PI 1.88495  // 弧度108度
+#define WKJ_Min_PI -1.88495 // 弧度-108度
+
+#define GYCX_P_x 0.15 // 广域成像x重叠率
+#define GYCX_P_y 0.12 // 广域成像y重叠率
+
+#define QYCX_P_x 0.15 // 区域成像x重叠率
+#define QYCX_P_y 0.15 // 区域成像y重叠率
+
+#define GYCX_pfs 0.0667 // 广域成像帧频（15HZ）
+#define QYCX_pfs 0.0667 // 0.0417//区域成像帧频（15HZ）//（24HZ）
+
+#define KJ_pixnum_X 5120 // 可见X方向像素
+#define KJ_pixnum_Y 4096 // 可见Y方向像素
+#define pixsize_KJ 4.5   // 可见像素尺寸
+
 #pragma pack(1)
 
 typedef struct

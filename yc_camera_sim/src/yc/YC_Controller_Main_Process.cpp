@@ -36,8 +36,6 @@
 // #include "ioFcCfg.h"
 // #include "semYc.h"
 
-#include <gpio_sim.h>
-
 #include <global_vars.h>
 #include <utils.h>
 
@@ -1919,7 +1917,8 @@ void prepare_Model_WorkControl() {
         // 场景参数
         // 广域：按照广域成像参数执行摆扫，并成像，执行5s
         // 区域成像、区域监视：按照区域成像的中心点经纬高参数提取左右倾斜方向，方位按80°，俯仰摆扫角度以距离50km为中心摆扫/凝视，执行5s
-    case 0: // 检光-子流程1：计算初始位置
+    case 0:
+        // 检光-子流程1：计算初始位置
         main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_DIM_ING;
         make_Mess_IRST_OPERATIONAL_PARAS(); // 上报工作参数
         make_Mess_To_JLY(JLY_CMD_OPEN);     // 记录仪:开
@@ -1963,7 +1962,8 @@ void prepare_Model_WorkControl() {
         step++;
         cnt_wait = 0;
         break;
-    case 1:                                                                     // 检光-子流程2：预置
+    case 1: // 检光-子流程2：预置
+
         make_Mess_To_KJ(KJ_CMD_ZHNBEI, KJ_CMD_KF_MODE_STOP);                    // 框架：准备
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT);                      // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga停拍
@@ -1981,6 +1981,7 @@ void prepare_Model_WorkControl() {
         break;
 
     case 2: // 检光-子流程3：成像
+
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
 
@@ -2047,7 +2048,8 @@ void prepare_Model_WorkControl() {
             cnt_wait = 0;
         }
         break;
-    case 3:                                                                     // 检光-子流程4：停拍
+    case 3:
+        // 检光-子流程4：停拍
         make_Mess_To_KJ(KJ_CMD_ZHNBEI, KJ_CMD_KF_MODE_STOP);                    // 框架：准备
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT);                      // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga：停止工作
@@ -2099,7 +2101,8 @@ void prepare_Model_WorkControl() {
 
         // 计算完成后，切入地理跟踪模式，开始成像；等待调焦返回检焦完成
         // 最长超时：1min
-    case 5: // 检焦-子流程1：计算初始位置
+    case 5:
+        // 检焦-子流程1：计算初始位置
         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_FOCUSING;
         make_Mess_IRST_OPERATIONAL_PARAS();                      // 上报工作参数
         make_Mess_To_TJ(TJ_CMD_FlyFocus_Pre, TJ_CMD_VIEW_SMALL); // 调焦：小视场切换、调焦电机动
@@ -2208,7 +2211,8 @@ void prepare_Model_WorkControl() {
 
         break;
 
-    case 9:                                                                     // 检焦-子流程4：停拍
+    case 9: // 检焦-子流程4：停拍
+
         make_Mess_To_KJ(KJ_CMD_WAIT, KJ_CMD_KF_MODE_STOP);                      // 框架：停止工作
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_SMALL);                        // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga：停止工作
@@ -2260,7 +2264,8 @@ void prepare_Model_WorkControl() {
         step++;
         cnt_wait = 0;
         break;
-    case 11:                                                                    // 预置子流程2：预置
+    case 11: // 预置子流程2：预置
+
         make_Mess_To_KJ(KJ_CMD_ZHNBEI, KJ_CMD_KF_MODE_STOP);                    // 框架：准备
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT);                      // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga停拍

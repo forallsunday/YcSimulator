@@ -27,7 +27,7 @@
 // ACoreOs_id   bSemId_list_Mess_FromFc_Others;         // FC接收消息缓冲区互斥锁id-其他消 息
 // ACoreOs_name bSemName_list_Mess_FromFc_Others;       // FC接收消息缓冲区互斥锁name-其他消息
 // 主控用标志位
-UINT8            flag_Fpga_Interrupt;  // fpga中断，0为未收到中断，1为已收到中断
+UINT8 flag_Fpga_Interrupt; // fpga中断，0为未收到中断，1为已收到中断
 // int              flag_Fpga_down_times; // 统计fpga未触发次数//fpga掉线次数
 std::atomic<int> flag_Fpga_down_times; // 统计fpga未触发次数//fpga掉线次数
 UINT8            flag_Fpga_bg;         // 曝光信号到达

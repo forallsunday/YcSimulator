@@ -12,7 +12,7 @@
 // #endif
 // #include "ft_gpio.h"
 #include "sysTypes.h"
-#include <gpio_sim.h>
+#include <fpga_sim.h>
 
 #pragma pack(1)
 // extern UINT32	ExpSig_cnt;

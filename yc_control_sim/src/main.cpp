@@ -6,9 +6,12 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <log.h>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include <log_init.hpp>
 
 // 转换为16进制字符串
 std::string hexString(int value) {
@@ -23,6 +26,8 @@ std::string hexString(int value) {
 };
 
 int main() {
+
+    log_init("control_sim.log");
 
     // 从自己写的xml配置文件获取ip和端口
     std::string ip_icp_server, ip_control, ip_camera;
@@ -99,7 +104,7 @@ int main() {
         ++heartbit;
 
         // printf("HeartBit: %llu\n", heartbit); // for uint64_t
-        printf("HeartBit: %u\n", heartbit);
+        log_info("HeartBit: %u\n", heartbit);
 
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
