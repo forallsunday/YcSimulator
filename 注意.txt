@@ -1,0 +1,11 @@
+[root@master1 ycsim]# tree .
+.
+├── cadi_simulator.log
+├── midware
+├── bin 
+└── ModuleConfig.xml
+
+
+bin中存放的是libycSim.so, 在精灵云平台上挂载这个位置后，每次需要将库文件上传，docker直接push后挂载目录内的东西不会存在
+
+另一个也一样

@@ -16,7 +16,8 @@
 
 #include <iostream>
 
-// #include "logger_wrapper.h"
+#include <log.h>
+
 #define MAX_EVENTS 50
 
 /*
@@ -117,16 +118,28 @@ bool UdpConnect::Init() {
 
     this->start_receive = true;
 
-    epfd_ = epoll_create(MAX_EVENTS);
+    // 1) 创建 epoll
+    epfd_ = epoll_create1(0);
     if (epfd_ == -1) {
-        printf("epoll create failed error = %d\n", errno);
+        log_error("epoll_create1 failed, errno=%d", errno);
         return false;
     }
 
-    // 添加 fd once
-    add_del_fd(epfd_, (int)(long)(this->socketWrapperHandle_), 1);
+    // 2) 设置 socket 非阻塞（防止 epoll 水平触发卡住）
+    int flags = fcntl((int)(long)socketWrapperHandle_, F_GETFL, 0);
+    fcntl((int)(long)socketWrapperHandle_, F_SETFL, flags | O_NONBLOCK);
 
-    // 启动成员线程（捕获 this 安全）
+    // 3) 注册 EPOLLIN
+    struct epoll_event ev;
+    ev.events  = EPOLLIN; // 水平触发，最稳妥
+    ev.data.fd = (int)(long)socketWrapperHandle_;
+
+    if (epoll_ctl(epfd_, EPOLL_CTL_ADD,
+                  (int)(long)socketWrapperHandle_, &ev) < 0) {
+        log_error("epoll_ctl ADD failed, errno=%d", errno);
+        return false;
+    }
+
     recv_thread_ = std::thread([this]() {
         char           buf[2048];
         unsigned int   farAddr = 0;
@@ -134,28 +147,70 @@ bool UdpConnect::Init() {
 
         struct epoll_event events[MAX_EVENTS];
 
+        log_info("recv thread started, fd=%d", (int)(long)this->socketWrapperHandle_);
+
         while (this->start_receive) {
-            int numEvents = epoll_wait(this->epfd_, events, MAX_EVENTS, 10);
+
+            int numEvents = epoll_wait(this->epfd_, events, MAX_EVENTS, 1000);
+
             if (numEvents == -1) {
                 if (errno == EINTR)
-                    continue;
-                printf("epoll wait failed\n");
+                    continue; // 被信号中断
+                log_error("epoll_wait fatal error errno=%d", errno);
                 break;
             }
 
+            if (numEvents == 0) {
+                // 周期心跳，证明线程还活着
+                // log_debug("epoll_wait timeout, thread alive");
+                continue;
+            }
+
             for (int i = 0; i < numEvents; ++i) {
+
                 int sockfd = events[i].data.fd;
-                if (sockfd == (int)(long)(this->socketWrapperHandle_)) {
+                if (sockfd != (int)(long)this->socketWrapperHandle_)
+                    continue;
+
+                while (true) {
+
                     int nResult = this->pSocketWrapper_->recvfrom(
-                        this->socketWrapperHandle_, buf, sizeof(buf), &farAddr, &farPort);
+                        this->socketWrapperHandle_,
+                        buf,
+                        sizeof(buf),
+                        &farAddr,
+                        &farPort);
+
+                    int savedErrno = errno; // ← 第一时间保存 errno
 
                     if (nResult > 0) {
-                        // 传入实际接收长度
                         this->dataHandlFunc_(buf, nResult);
+                        continue; // 继续把缓冲区读空
                     }
+
+                    if (nResult == 0) {
+                        // UDP 基本不会，但当作“读完了”
+                        break;
+                    }
+
+                    // nResult < 0
+                    if (savedErrno == EAGAIN || savedErrno == EWOULDBLOCK) {
+                        // 数据已经读干净
+                        break;
+                    }
+
+                    if (savedErrno == EINTR) {
+                        // 被信号打断，继续读
+                        continue;
+                    }
+
+                    log_error("recvfrom fatal errno=%d", savedErrno);
+                    break;
                 }
             }
         }
+
+        log_error("recv thread exit");
     });
 
     return true;

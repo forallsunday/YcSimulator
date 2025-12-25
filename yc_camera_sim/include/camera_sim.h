@@ -37,7 +37,7 @@ class CameraSimulator {
     void powerOff();
 
     // 设置周期性间隔
-    void setPeriodicInterval(int ms) { this->periodic_interval = ms; };
+    void setPeriodicInterval(int ms) { ps::periodic_interval = ms; };
 
   private:
     // 上电状态
@@ -84,9 +84,6 @@ class CameraSimulator {
     /// @param data udp包的指针
     /// @param size udp包的数据长度
     void udpEventRecv(char *data, int size);
-
-    // 周期性发送间隔 ms
-    int periodic_interval = PERIOD_TASK_TIME;
 
     // 运行状态
     std::atomic<bool> running_subsystem_timer_;

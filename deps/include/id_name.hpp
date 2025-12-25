@@ -1,5 +1,7 @@
+// 是定义的枚举或宏所对应的字符串的映射
+#ifndef ID_NAME_HPP
+#define ID_NAME_HPP
 
-// 几个map 是定义的枚举或宏所对应的字符串的映射
 #include <Def/AOXEAppDef.h>
 #include <Def/AppTopicIdDef.h>
 #include <MyTopicIdDef.h>
@@ -31,87 +33,90 @@ lookupOrHex(int id, const IdName *table, char *buf, size_t buf_len) {
 }
 
 static const IdName log_node_name_table[] = {
-    {V_NODE_JASM, "V_NODE_JASM 危险评估单元"},
-    {V_NODE_TGFI, "V_NODE_TGFI 综合识别"},
-    {V_NODE_TGFS, "V_NODE_TGFS 空面目标融合"},
-    {V_NODE_TGFA, "V_NODE_TGFA 空空目标融合"},
-    {V_NODE_CPEG, "V_NODE_CPEG 协同作战"},
-    {V_NODE_NAFM, "V_NODE_NAFM 导航融合处理单元"},
-    {V_NODE_SYMM, "V_NODE_SYMM 系统管理单元"},
-    {V_NODE_SYMD, "V_NODE_SYMD 系统数据库单元"},
-    {V_NODE_APHM, "V_NODE_APHM 飞机系统健康管理单元"},
-    {V_NODE_MPHL, "V_NODE_MPHL 任务系统左健康管理单元"},
-    {V_NODE_MPHR, "V_NODE_MPHR 任务系统右健康管理单元"},
-    {V_NODE_IRRM, "V_NODE_IRRM 光雷管理单元"},
-    {V_NODE_CRSM, "V_NODE_CRSM 通信侦察管理"},
-    {V_NODE_CNLA, "V_NODE_CNLA 数据链代理"},
-    {V_NODE_CNIM, "V_NODE_CNIM CNI系统控制管理"},
-    {V_NODE_EWJM, "V_NODE_EWJM 电子战干扰管理"},
-    {V_NODE_EDRM, "V_NODE_EDRM 预警雷达管理"},
-    {V_NODE_EWSM, "V_NODE_EWSM 电子战管理控制"},
-    {V_NODE_SRMM, "V_NODE_SRMM 传感器任务管理单元"},
-    {V_NODE_RDRM, "V_NODE_RDRM 雷达管理单元"},
-    {V_NODE_PMAM, "V_NODE_PMAM 便携维护接口单元"},
-    {V_NODE_GMPM, "V_NODE_GMPM 地面维护接口单元"},
-    {V_NODE_VCAM, "V_NODE_VCAM 飞控单元A"},
-    {V_NODE_VCBM, "V_NODE_VCBM 飞控单元B"},
-    {V_NODE_VCCM, "V_NODE_VCCM 飞控单元C"},
-    {V_NODE_IFRP, "V_NODE_IFRP 任务重规划单元"},
-    {V_NODE_TMMM, "V_NODE_TMMM 战术管理处理单元"},
-    {V_NODE_NACL, "V_NODE_NACL 左导航管理单元"},
-    {V_NODE_NACR, "V_NODE_NACR 右导航管理单元"},
-    {V_NODE_TRPM, "V_NODE_TRPM 威胁响应单元"},
-    {V_NODE_IN1M, "V_NODE_IN1M 惯导1单元"},
-    {V_NODE_IN2M, "V_NODE_IN2M 惯导2单元"},
-    {V_NODE_IN3M, "V_NODE_IN3M 惯导3单元"},
-    {V_NODE_DCRM, "V_NODE_DCRM 右混合接口单元"},
-    {V_NODE_DCLM, "V_NODE_DCLM 左混合接口单元"},
-    {V_NODE_DCRD, "V_NODE_DCRD 右数管单元"},
-    {V_NODE_DCLD, "V_NODE_DCLD 左数管单元"},
-    {V_NODE_EIPM, "V_NODE_EIPM 电磁情报处理单元"},
-    {V_NODE_IIPM, "V_NODE_IIPM 图像情报处理单元"},
-    {V_NODE_LASM, "V_NODE_LASM 杀伤评估单元"},
-    {V_NODE_SMET, "V_NODE_SMET 嵌训弹道解算"},
-    {V_NODE_SMSM, "V_NODE_SMSM 悬挂物系统管理"},
-    {V_NODE_FCAS, "V_NODE_FCAS 空面火控单元"},
-    {V_NODE_FCCM, "V_NODE_FCCM 火控解算单元"},
-    {V_NODE_SMU1, "V_NODE_SMU1 FRIU1接口单元"},
-    {V_NODE_SMU2, "V_NODE_SMU2 FRIU2接口单元"},
-    {V_NODE_DCLP, "V_NODE_DCLP 左地图单元"},
-    {V_NODE_CDLM, "V_NODE_CDLM C链路端机"},
-    {V_NODE_KDLM, "V_NODE_KDLM K链路端机"},
-    {V_NODE_CPDM, "V_NODE_CPDM 核心管理单元"},
-    {V_NODE_CPUM, "V_NODE_CPUM CPU管理单元"},
-    {V_NODE_AOXE_D, "V_NODE_AOXE_D 执行环境_目的"},
-    {V_NODE_AOXE_S, "V_NODE_AOXE_S 执行环境_源"},
-    {V_NODE_CPUMGP11, "V_NODE_CPUMGP11 AIMP1_IPM1_1"},
-    {V_NODE_CPUMGP12, "V_NODE_CPUMGP12 AIMP2_IPM1_1"},
-    {V_NODE_CPUMGP13, "V_NODE_CPUMGP13 AIMP1_IPM1_2"},
-    {V_NODE_CPUMGP14, "V_NODE_CPUMGP14 AIMP2_IPM1_2"},
-    {V_NODE_CPUMGP21, "V_NODE_CPUMGP21 AIMP1_IPM2_1"},
-    {V_NODE_CPUMGP22, "V_NODE_CPUMGP22 AIMP2_IPM2_1"},
-    {V_NODE_CPUMGP23, "V_NODE_CPUMGP23 AIMP1_IPM2_2"},
-    {V_NODE_CPUMGP24, "V_NODE_CPUMGP24 AIMP2_IPM2_2"},
-    {V_NODE_CPUMGP31, "V_NODE_CPUMGP31 AIMP1_IPM3_1"},
-    {V_NODE_CPUMGP32, "V_NODE_CPUMGP32 AIMP2_IPM3_1"},
-    {V_NODE_CPUMGP33, "V_NODE_CPUMGP33 AIMP1_IPM3_2"},
-    {V_NODE_CPUMGP34, "V_NODE_CPUMGP34 AIMP2_IPM3_2"},
-    {V_NODE_CPUMGP41, "V_NODE_CPUMGP41 AIMP1_IPM4_1"},
-    {V_NODE_CPUMGP42, "V_NODE_CPUMGP42 AIMP2_IPM4_1"},
-    {V_NODE_CPUMGP43, "V_NODE_CPUMGP43 AIMP1_IPM4_2"},
-    {V_NODE_CPUMGP44, "V_NODE_CPUMGP44 AIMP2_IPM4_2"},
-    {V_NODE_CPUMGI11, "V_NODE_CPUMGI11 AIMP1_IOM11"},
-    {V_NODE_CPUMGI12, "V_NODE_CPUMGI12 AIMP1_IOM12"},
-    {V_NODE_CPUMGI21, "V_NODE_CPUMGI21 AIMP2_IOM11"},
-    {V_NODE_CPUMGI22, "V_NODE_CPUMGI22 AIMP2_IOM12"},
-    {V_NODE_CPUMSP11, "V_NODE_CPUMSP11 CPUM_SP11"},
-    {V_NODE_CPUMSP21, "V_NODE_CPUMSP21 CPUM_SP21"},
-    {V_NODE_CPUMSP31, "V_NODE_CPUMSP31 CPUM_SP31"},
-    {V_NODE_CPUMSP41, "V_NODE_CPUMSP41 CPUM_SP41"},
-    {V_NODE_CPUMPS11, "V_NODE_CPUMPS11 CPUM_PS11"},
-    {V_NODE_CPUMPS21, "V_NODE_CPUMPS21 CPUM_PS21"},
-    {V_NODE_CPUMNS11, "V_NODE_CPUMNS11 CPUM_NS11"},
-    {V_NODE_CPUMNS21, "V_NODE_CPUMNS21 CPUM_NS21"},
+    {V_NODE_JASM, "V_NODE_JASM-危险评估单元"},
+    {V_NODE_TGFI, "V_NODE_TGFI-综合识别"},
+    {V_NODE_TGFS, "V_NODE_TGFS-空面目标融合"},
+    {V_NODE_TGFA, "V_NODE_TGFA-空空目标融合"},
+    {V_NODE_CPEG, "V_NODE_CPEG-协同作战"},
+    {V_NODE_NAFM, "V_NODE_NAFM-导航融合处理单元"},
+    {V_NODE_SYMM, "V_NODE_SYMM-系统管理单元"},
+    {V_NODE_SYMD, "V_NODE_SYMD-系统数据库单元"},
+    {V_NODE_APHM, "V_NODE_APHM-飞机系统健康管理单元"},
+    {V_NODE_MPHL, "V_NODE_MPHL-任务系统左健康管理单元"},
+    {V_NODE_MPHR, "V_NODE_MPHR-任务系统右健康管理单元"},
+    {V_NODE_IRRM, "V_NODE_IRRM-光雷管理单元"},
+    {V_NODE_CRSM, "V_NODE_CRSM-通信侦察管理"},
+    {V_NODE_CNLA, "V_NODE_CNLA-数据链代理"},
+    {V_NODE_CNIM, "V_NODE_CNIM-CNI系统控制管理"},
+    {V_NODE_EWJM, "V_NODE_EWJM-电子战干扰管理"},
+    {V_NODE_EDRM, "V_NODE_EDRM-预警雷达管理"},
+    {V_NODE_EWSM, "V_NODE_EWSM-电子战管理控制"},
+    {V_NODE_SRMM, "V_NODE_SRMM-传感器任务管理单元"},
+    {V_NODE_RDRM, "V_NODE_RDRM-雷达管理单元"},
+    {V_NODE_PMAM, "V_NODE_PMAM-便携维护接口单元"},
+    {V_NODE_GMPM, "V_NODE_GMPM-地面维护接口单元"},
+    {V_NODE_VCAM, "V_NODE_VCAM-飞控单元A"},
+    {V_NODE_VCBM, "V_NODE_VCBM-飞控单元B"},
+    {V_NODE_VCCM, "V_NODE_VCCM-飞控单元C"},
+    {V_NODE_IFRP, "V_NODE_IFRP-任务重规划单元"},
+    {V_NODE_TMMM, "V_NODE_TMMM-战术管理处理单元"},
+    {V_NODE_NACL, "V_NODE_NACL-左导航管理单元"},
+    {V_NODE_NACR, "V_NODE_NACR-右导航管理单元"},
+    {V_NODE_TRPM, "V_NODE_TRPM-威胁响应单元"},
+    {V_NODE_IN1M, "V_NODE_IN1M-惯导1单元"},
+    {V_NODE_IN2M, "V_NODE_IN2M-惯导2单元"},
+    {V_NODE_IN3M, "V_NODE_IN3M-惯导3单元"},
+    {V_NODE_DCRM, "V_NODE_DCRM-右混合接口单元"},
+    {V_NODE_DCLM, "V_NODE_DCLM-左混合接口单元"},
+    {V_NODE_DCRD, "V_NODE_DCRD-右数管单元"},
+    {V_NODE_DCLD, "V_NODE_DCLD-左数管单元"},
+    {V_NODE_EIPM, "V_NODE_EIPM-电磁情报处理单元"},
+    {V_NODE_IIPM, "V_NODE_IIPM-图像情报处理单元"},
+    {V_NODE_LASM, "V_NODE_LASM-杀伤评估单元"},
+    {V_NODE_SMET, "V_NODE_SMET-嵌训弹道解算"},
+    {V_NODE_SMSM, "V_NODE_SMSM-悬挂物系统管理"},
+    {V_NODE_FCAS, "V_NODE_FCAS-空面火控单元"},
+    {V_NODE_FCCM, "V_NODE_FCCM-火控解算单元"},
+    {V_NODE_SMU1, "V_NODE_SMU1-FRIU1接口单元"},
+    {V_NODE_SMU2, "V_NODE_SMU2-FRIU2接口单元"},
+    {V_NODE_DCLP, "V_NODE_DCLP-左地图单元"},
+    {V_NODE_MNTR, "V_NODE_MNTR-系统数据库单元"},
+    {V_NODE_ADAS, "V_NODE_ADAS-系统数据库单元"},
+    {V_NODE_ICPM, "V_NODE_ICPM-系统数据库单元"},
+    {V_NODE_CDLM, "V_NODE_CDLM-C链路端机"},
+    {V_NODE_KDLM, "V_NODE_KDLM-K链路端机"},
+    {V_NODE_CPDM, "V_NODE_CPDM-核心管理单元"},
+    {V_NODE_CPUM, "V_NODE_CPUM-CPU管理单元"},
+    {V_NODE_AOXE_D, "V_NODE_AOXE_D-执行环境_目的"},
+    {V_NODE_AOXE_S, "V_NODE_AOXE_S-执行环境_源"},
+    {V_NODE_CPUMGP11, "V_NODE_CPUMGP11-AIMP1_IPM1_1"},
+    {V_NODE_CPUMGP12, "V_NODE_CPUMGP12-AIMP2_IPM1_1"},
+    {V_NODE_CPUMGP13, "V_NODE_CPUMGP13-AIMP1_IPM1_2"},
+    {V_NODE_CPUMGP14, "V_NODE_CPUMGP14-AIMP2_IPM1_2"},
+    {V_NODE_CPUMGP21, "V_NODE_CPUMGP21-AIMP1_IPM2_1"},
+    {V_NODE_CPUMGP22, "V_NODE_CPUMGP22-AIMP2_IPM2_1"},
+    {V_NODE_CPUMGP23, "V_NODE_CPUMGP23-AIMP1_IPM2_2"},
+    {V_NODE_CPUMGP24, "V_NODE_CPUMGP24-AIMP2_IPM2_2"},
+    {V_NODE_CPUMGP31, "V_NODE_CPUMGP31-AIMP1_IPM3_1"},
+    {V_NODE_CPUMGP32, "V_NODE_CPUMGP32-AIMP2_IPM3_1"},
+    {V_NODE_CPUMGP33, "V_NODE_CPUMGP33-AIMP1_IPM3_2"},
+    {V_NODE_CPUMGP34, "V_NODE_CPUMGP34-AIMP2_IPM3_2"},
+    {V_NODE_CPUMGP41, "V_NODE_CPUMGP41-AIMP1_IPM4_1"},
+    {V_NODE_CPUMGP42, "V_NODE_CPUMGP42-AIMP2_IPM4_1"},
+    {V_NODE_CPUMGP43, "V_NODE_CPUMGP43-AIMP1_IPM4_2"},
+    {V_NODE_CPUMGP44, "V_NODE_CPUMGP44-AIMP2_IPM4_2"},
+    {V_NODE_CPUMGI11, "V_NODE_CPUMGI11-AIMP1_IOM11"},
+    {V_NODE_CPUMGI12, "V_NODE_CPUMGI12-AIMP1_IOM12"},
+    {V_NODE_CPUMGI21, "V_NODE_CPUMGI21-AIMP2_IOM11"},
+    {V_NODE_CPUMGI22, "V_NODE_CPUMGI22-AIMP2_IOM12"},
+    {V_NODE_CPUMSP11, "V_NODE_CPUMSP11-CPUM_SP11"},
+    {V_NODE_CPUMSP21, "V_NODE_CPUMSP21-CPUM_SP21"},
+    {V_NODE_CPUMSP31, "V_NODE_CPUMSP31-CPUM_SP31"},
+    {V_NODE_CPUMSP41, "V_NODE_CPUMSP41-CPUM_SP41"},
+    {V_NODE_CPUMPS11, "V_NODE_CPUMPS11-CPUM_PS11"},
+    {V_NODE_CPUMPS21, "V_NODE_CPUMPS21-CPUM_PS21"},
+    {V_NODE_CPUMNS11, "V_NODE_CPUMNS11-CPUM_NS11"},
+    {V_NODE_CPUMNS21, "V_NODE_CPUMNS21-CPUM_NS21"},
     {-99, NULL} // 结尾哨兵
 };
 
@@ -227,3 +232,29 @@ static const IdName log_topic_name_table[] = {
     {V_TOPIC_IRRM_NORMAL_IMAGE_818, "V_TOPIC_IRRM_NORMAL_IMAGE_818"},
     {-99, NULL} // 结尾哨兵
 };
+
+static const std::string no_match_node = "node not founded.";
+
+inline const char *lookupNode(int id) {
+    const IdName *table = log_node_name_table;
+    for (; table->name != NULL; ++table) {
+        if (table->id == id) {
+            return table->name;
+        }
+    }
+    return no_match_node.c_str();
+}
+
+static const std::string no_match_topic = "topic not founded.";
+
+inline const char *lookupTopic(int id) {
+    const IdName *table = log_topic_name_table;
+    for (; table->name != NULL; ++table) {
+        if (table->id == id) {
+            return table->name;
+        }
+    }
+    return no_match_topic.c_str();
+}
+
+#endif // ID_NAME_HPP

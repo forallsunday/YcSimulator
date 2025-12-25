@@ -3,7 +3,7 @@ set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
 # Linaro 工具链路径
-set(TOOLCHAIN_PATH "D:/cross_compile/compiler/gcc-linaro-7.3.1-2018.05-i686-mingw32_aarch64-linux-gnu")
+set(TOOLCHAIN_PATH "d:/cross_compile/compiler/gcc-linaro-7.3.1-2018.05-i686-mingw32_aarch64-linux-gnu")
 
 # 交叉编译器
 set(CMAKE_C_COMPILER ${TOOLCHAIN_PATH}/bin/aarch64-linux-gnu-gcc.exe)

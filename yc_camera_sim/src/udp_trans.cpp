@@ -1,9 +1,9 @@
 #include <AOXEAppDef.h>
 #include <cstring>
 #include <log.h>
+#include <log_def.h>
 #include <shm_interface.h>
 #include <udp_packet.h>
-#include <udp_packet_log.h>
 #include <udp_trans.h>
 #include <utils.h>
 
@@ -57,7 +57,7 @@ void fc_Send_Message(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
     packet.payloadLen = size_msg;
     std::memcpy(packet.pPayload, msg, size_msg);
 
-    INFO_UDP_PACKET_SEND("机载移植 Control", ip_dst.c_str(), port_dst, packet);
+    INFO_UDP_PACKET_SEND("机载移植", ip_dst.c_str(), port_dst, packet);
 
     udp0->SendData(
         reinterpret_cast<const char *>(&packet),
@@ -65,7 +65,25 @@ void fc_Send_Message(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
 }
 
 void udpTransSend(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
-    fc_Send_Message(topic_id, msg, size_msg);
+    // fc_Send_Message(topic_id, msg, size_msg);
+    if (!udp0 || !msg || size_msg == 0) {
+        return;
+    }
+
+    UdpPacket packet{};
+    packet.time_tag = getSysRTC();
+    packet.source   = FUNCTION_NODE_TYPE::V_NODE_IRRM;
+    packet.topicId  = topic_id;
+
+    size_msg          = std::min(size_msg, static_cast<uint32_t>(2048));
+    packet.payloadLen = size_msg;
+    std::memcpy(packet.pPayload, msg, size_msg);
+
+    // INFO_UDP_PACKET_SEND("机载移植", ip_dst.c_str(), port_dst, packet);
+
+    udp0->SendData(
+        reinterpret_cast<const char *>(&packet),
+        sizeofPacket(&packet), ip_dst.c_str(), port_dst);
 }
 
 void udpTransClose() {
