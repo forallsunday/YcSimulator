@@ -11,4 +11,9 @@ extern ThreadSafeQueue<PtrUdpPacket> sq_IRST_act_req; // 主控消息队列
 extern ThreadSafeQueue<PtrUdpPacket> sq_others;       // 其他消息队列
 } // namespace sq
 
+// periodic send
+namespace ps {
+extern int periodic_interval;
+}
+
 #endif // GLOBAL_VARS_H

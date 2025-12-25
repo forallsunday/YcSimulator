@@ -57,10 +57,10 @@ target_link_libraries(${EXE_NAME} PRIVATE pthread)
 # DEBUG_POSTFIX "d" RELEASE_POSTFIX "")
 
 # ==================================================
-# 复制配置文件 yc_udp_config.xml
+# 复制配置文件 
 # ==================================================
 # 要复制的文件路径
-set(XML_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/yc_udp_config.xml")
+set(XML_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ModuleConfig.xml")
 
 # 如果文件存在，则复制到输出目录
 if(EXISTS "${XML_CONFIG_FILE}")
@@ -68,8 +68,8 @@ if(EXISTS "${XML_CONFIG_FILE}")
     TARGET ${EXE_NAME}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XML_CONFIG_FILE}"
-    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/yc_udp_config.xml"
-    COMMENT "Copying yc_udp_config.xml to bin directory")
+    "${CMAKE_CURRENT_SOURCE_DIR}/bin/ModuleConfig.xml"
+    COMMENT "Copying ModuleConfig.xml to bin directory")
 endif()
 
 # ==================================================

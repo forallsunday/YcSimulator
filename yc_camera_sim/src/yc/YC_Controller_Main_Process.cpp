@@ -37,7 +37,10 @@
 // #include "semYc.h"
 
 #include <global_vars.h>
+#include <log_def.h>
 #include <utils.h>
+
+#include <chrono>
 
 bool running_main_ctrl;
 bool running_other_process;
@@ -233,8 +236,13 @@ void fc_Mess_Process_Others_task() {
 
 // 周期消息发送处理
 void fc_Mess_Send_Period_task() {
+    // 当前时间
+    using clock = std::chrono::steady_clock;
+    auto next   = clock::now();
+
     static int a               = 0;
     static int upload_pack_num = 1; // 当前上报的第几包
+
     while (running_periodic_send) {
         //		logMsg("period task second:%d\n",a,2,3,4,5,6);
         a++;
@@ -271,24 +279,29 @@ void fc_Mess_Send_Period_task() {
         // 健康管理------------------------------------------------------------------------------------------------------------------------
 
         // 工作参数有变化就上报
-        auto is_IRST_OPERATIONAL_PARAS_equal =
-            [](const IRST_OPERATIONAL_PARAS &a,
-               const IRST_OPERATIONAL_PARAS &b) -> bool {
+        auto cmp_IRST_OPERATIONAL_PARAS =
+            [](const IRST_OPERATIONAL_PARAS &a, const IRST_OPERATIONAL_PARAS &b) -> bool {
             constexpr size_t offset = sizeof(MSG_PUBLISH_TIME_TYPE_DEF);
             constexpr size_t size   = sizeof(IRST_OPERATIONAL_PARAS) - offset;
             return memcmp(
-                reinterpret_cast<const uint8_t *>(&a) + offset,
-                reinterpret_cast<const uint8_t *>(&b) + offset,
-                size);
+                       reinterpret_cast<const uint8_t *>(&a) + offset,
+                       reinterpret_cast<const uint8_t *>(&b) + offset,
+                       size) == 0;
         };
         // 比较后不一样的话
-        if (!is_IRST_OPERATIONAL_PARAS_equal(temp_mess_ToFC_IRST_OPERATIONAL_PARAS,
-                                             mess_ToFC_IRST_OPERATIONAL_PARAS)) {
+        bool is_equal = cmp_IRST_OPERATIONAL_PARAS(
+            temp_mess_ToFC_IRST_OPERATIONAL_PARAS, mess_ToFC_IRST_OPERATIONAL_PARAS);
+        // INFO_LOG_IN_FUNC("IRST_OPERATIONAL_PARAS is equal: %d", is_equal);
+        if (!is_equal) {
             send_Mess_IRST_OPERATIONAL_PARAS(); // IRST工作参数报告-发送
             memcpy(&temp_mess_ToFC_IRST_OPERATIONAL_PARAS, &mess_ToFC_IRST_OPERATIONAL_PARAS, sizeof(IRST_OPERATIONAL_PARAS));
         }
 
         // ACoreOs_periodtask_wait_period(); // 周期任务必要函数，不可删除！！！释放
+
+        // lcy: 推进下一周期
+        next += std::chrono::milliseconds(ps::periodic_interval);
+        std::this_thread::sleep_until(next);
     }
 }
 

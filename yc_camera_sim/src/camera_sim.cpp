@@ -3,7 +3,7 @@
 #include <Def/MyTopicIdDef.h>
 
 #include <camera_sim.h>
-#include <udp_packet_log.h>
+#include <log_def.h>
 #include <utils.h>
 
 #include <yc/YC_Controller_Main_Process.h>
@@ -21,6 +21,9 @@ CameraSimulator::CameraSimulator(int port, std::string ip_control, int port_dst)
       power_status_(POWER_UNKNOWN) {}
 
 void CameraSimulator::init() {
+
+    // 设置周期性发送间隔
+    ps::periodic_interval = PERIOD_TASK_TIME;
 
     // UDP线程
     startUdpConnect();
@@ -75,9 +78,9 @@ void CameraSimulator::pointShmInputParams() {
     this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
                                                .ArrU1_FacilitiesPowerSupplyStatus[5];
 
-    // // !!!!!调试时 供电暂时使用4
-    // this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
-    //                                            .ArrU1_FacilitiesPowerSupplyStatus[4];
+    // !!!!!调试时 供电暂时使用4
+    this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
+                                               .ArrU1_FacilitiesPowerSupplyStatus[4];
 
     // 0-NA；1-初始化；2-快速启动；3-常规启动；4-冻结；5-停止
     this->operation_mode_ = &shm_input_.m_SecSimulatorControlMsg.St_SimulatorStatusControl.U1_OperationMode;
@@ -252,8 +255,6 @@ void CameraSimulator::startSubsystemTiming() {
 }
 
 void CameraSimulator::powerOn(int delay) {
-    // 初始化参数
-    param_Init();
 
     // 避免重复上电
     if (power_status_ == POWER_ON || power_status_ == POWER_CHECKING) {
@@ -290,6 +291,11 @@ void CameraSimulator::powerOn(int delay) {
             // 上电成功
             this->remain_time   = 0;
             this->power_status_ = POWER_ON;
+            // 初始化参数
+            param_Init();
+            // 队列 初始化
+            sq::sq_IRST_act_req.clearAndNotify();
+            sq::sq_others.clearAndNotify();
 
             log_info("[CameraSimulator] Power ON complete");
 

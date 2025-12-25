@@ -4,3 +4,4 @@
 ./yc_udp_config.xml
 ./*.zip
 ./*.rar
+/log/*

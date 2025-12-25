@@ -133,7 +133,7 @@ char *get_first_attribute_value(xml_node_type node, const char *name);
 
 long int get_first_attribute_int_value(xml_node_type node, const char *name, int base);
 
-double get_first_attribute_double_value(xml_node_type node, const char**name);
+double get_first_attribute_double_value(xml_node_type node, const char **name);
 
 xml_node_type get_root_node(const char *cfg_file, xml_doc_type *p_doc);
 
@@ -152,6 +152,8 @@ void snapshot_parse(char *file_path, SNAPSHOT_PARSE *snapshot);
 void udp_node_insert_d(const char *topic, const int idx);
 
 int find_node_d(const char *topic);
+
+void printf_all_node();
 
 #ifdef __cplusplus
 }

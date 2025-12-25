@@ -1,30 +1,44 @@
 #include "udp_packet.h"
 #include "udpconnect.h"
-#include <atomic>
 #include <camera_sim.h>
+#include <read_udp_addr.hpp>
+
+#include <atomic>
 #include <chrono>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <thread>
-#include <udp_packet_log.h>
-#include <yc_udp_xml_api.hpp>
 
-#include <log_init.hpp>
+#include <log_def.h>
+#include <log_init.h>
 
 int main() {
     log_init("test_.log");
-    // 从自己写的xml配置文件获取ip和端口
-    std::string ip_icp_server, ip_control, ip_camera;
-    int         ctrl_port_recv_icp, ctrl_port_recv_camera, cam_port;
-    if (parseXmlYcUdpConfig(
-            "./yc_udp_config.xml", &ip_icp_server, &ip_control,
-            &ctrl_port_recv_icp, &ctrl_port_recv_camera, &ip_camera, &cam_port)) {
+
+    // 解析xml文件 获取icp节点(V_NODE_XXX)对应的所有地址
+    SOCKET_PARSE socket_data; // xml解析的数据
+    // 要检查的文件路径
+    const std::string config_file = "./ModuleConfig.xml";
+    // 尝试以输入模式打开文件
+    std::ifstream file(config_file);
+
+    if (file.is_open()) {
+        // 文件存在并且可以成功打开
+        file.close(); // 及时关闭，让 tcp_udp_parse_d 函数可以自行打开
+        // 现在可以安全地调用你的解析函数
+        tcp_udp_parse_d(config_file.c_str(), &socket_data); // 注意：传入 c_str()
     } else {
-        printf("[ERR] failed to parse yc_udp_config.xml\n");
+        // 打开文件失败
+        std::cerr << "Error: Configuration file not found or cannot be opened: " << config_file << std::endl;
     }
 
-    CameraSimulator cam_sim(cam_port, ip_control, ctrl_port_recv_camera);
+    ReadUdpAddr rua;
+    readUdpAddr(rua, socket_data);
 
+    CameraSimulator cam_sim(rua.cam_port, rua.ip_control, rua.ctrl_port_recv_camera);
+
+    // 设置周期性发送线程中发送间隔
     cam_sim.setPeriodicInterval(1000);
 
     cam_sim.powerOff();

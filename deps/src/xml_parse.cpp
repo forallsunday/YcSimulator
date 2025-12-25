@@ -31,6 +31,14 @@ int find_node_d(const char *topic) {
     return res;
 }
 
+void printf_all_node() {
+    printf("查看所有Node的idx!!!!!!!\n");
+    for (auto str_node : g_udp_ndd) {
+        printf("node: %s, idx: %d\n", str_node.first.c_str(), str_node.second);
+    }
+    printf("查看所有Node的idx!!!!!!!\n");
+}
+
 /*udp事件消息映射共享内存和位消息*/
 std::map<std::string, entry>                   g_udp_tp_d;
 typedef std::map<std::string, entry>::iterator UDP_ITR_D;
@@ -129,7 +137,7 @@ void tcp_udp_parse_d(const char *file_path, SOCKET_PARSE *socket_data) {
 
         xml_node_type sim_SIMROLE_node = get_first_child_node(sim_c_ip_node, "SIMROLE");
         for (int j = 0; j < sim_node_num; j++) {
-            udp_node_insert_d(get_first_attribute_value(sim_SIMROLE_node, "NodeID"), i);
+            udp_node_insert_d(get_first_attribute_value(sim_SIMROLE_node, "NodeID"), ip_idx);
             xml_node_type Tmp2_node = get_next_sibling_node(sim_SIMROLE_node, "SIMROLE");
             sim_SIMROLE_node        = Tmp2_node;
         }

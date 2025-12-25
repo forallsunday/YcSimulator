@@ -1,17 +1,19 @@
 #ifndef CONTROL_SIM_H
 #define CONTROL_SIM_H
 
-#include <AOXEAppDef.h>
-#include <MyTopicIdDef.h>
-#include <thread_safe_queue.hpp>
-#include <udp_packet.h>
-#include <udpconnect.h>
-
 #include <atomic>
 #include <chrono>
 #include <map>
 #include <string>
 #include <thread>
+
+#include <AOXEAppDef.h>
+#include <MyTopicIdDef.h>
+#include <id_name.hpp>
+#include <thread_safe_queue.hpp>
+#include <udp_packet.h>
+#include <udpconnect.h>
+
 
 // udp地址 包含ip和端口
 typedef struct UdpAddress {

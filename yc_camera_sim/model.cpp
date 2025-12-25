@@ -12,7 +12,6 @@
 
 #include <log_init.hpp>
 
-
 enum status_enum /*状态集*/
 {
     WAITTNG = 0,
@@ -74,6 +73,8 @@ int usrmode_wait() {
     return rtn;
 }
 
+// wait是等待任务平台连接 如果没连上 不会到init
+
 /**
  * 函数名
  * usrmode_init :模型初始化函数;
@@ -102,25 +103,19 @@ void usrmode_init() {
 
     log_init("camera_sim.log");
 
-    // 从自己写的xml配置文件获取ip和端口
-    std::string ip_icp_server, ip_control, ip_camera;
-    int         ctrl_port_recv_icp, ctrl_port_recv_camera, cam_port;
-    if (parseXmlYcUdpConfig(
-            "./yc_udp_config.xml", &ip_icp_server, &ip_control,
-            &ctrl_port_recv_icp, &ctrl_port_recv_camera, &ip_camera, &cam_port)) {
-    } else {
-        printf("[ERR] failed to parse yc_udp_config.xml\n");
-    }
+    ReadUdpAddr rua;
+    readUdpAddr(rua, socket_data);
 
     cam_sim = std::unique_ptr<CameraSimulator>(
-        new CameraSimulator(cam_port, ip_control, ctrl_port_recv_camera));
+        new CameraSimulator(
+            rua.cam_port, rua.ip_control, rua.ctrl_port_recv_camera));
 
-    cam_sim->setPeriodicInterval(500);
+    // cam_sim->setPeriodicInterval(500);
 
     cam_sim->init();
 
-    // // Note: 测试 时 直接上电
-    // cam_sim->powerOn(5);
+    // Note: 测试 时 直接上电
+    cam_sim->powerOn(5);
 
     return;
 }
