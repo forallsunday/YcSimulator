@@ -111,9 +111,10 @@ void ControlSimulator::dataHandlerICP(char *data, int size) {
 
     auto ptr_packet = PtrUdpPacket(new UdpPacket());
     std::memcpy(ptr_packet.get(), data, size);
+    INFO_UDP_PACKET_RECV(*ptr_packet);
+
     // 只接收 发送到 IRRM的包
     if (ptr_packet->dest == V_NODE_IRRM) {
-        INFO_UDP_PACKET_RECV(*ptr_packet);
         // INFO_UDP_PACKET_RECV_ICP_TO_IRRM(*ptr_packet);
         // 收到后放入队列icp中
         queue_from_icp_.push(std::move(ptr_packet));
@@ -133,6 +134,9 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
     auto ptr_packet = PtrUdpPacket(new UdpPacket());
     std::memcpy(ptr_packet.get(), data, size);
 
+    // //!!! 不发送到icp
+    // setSend2IcpNodes(false);
+
     // 只接收 camera 发送过来的包
     if (ptr_packet->source == V_NODE_IRRM) {
         if (ptr_packet->topicId == MY_TOPIC_OKMSG) {
@@ -142,7 +146,7 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
             // 不打印 ok msg
         } else {
             // 如果是其他消息
-            INFO_UDP_PACKET_RECV(*ptr_packet);
+            // INFO_UDP_PACKET_RECV(*ptr_packet);
             queue_from_camera_.push(std::move(ptr_packet));
         }
     }
@@ -219,6 +223,11 @@ void ControlSimulator::startSend2Camera() {
     running_send2camera_ = true;
     thread_send2camera_  = std::thread([this]() {
         while (running_send2camera_) {
+            if (!is_send2camera_) {
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                return;
+            }
+
             PtrUdpPacket ptr_packet;
 
             if (queue_from_icp_.waitForAndPop(ptr_packet, this->timeout)) {
@@ -238,6 +247,11 @@ void ControlSimulator::startSend2IcpNodes() {
     thread_send2nodes_  = std::thread([this]() {
         while (running_send2nodes_) {
             // log_info("queue_from_camera中的消息数量 %d", queue_from_camera_.size());
+            if (!is_send2icpnodes_) {
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                return;
+            }
+
             PtrUdpPacket ptr_packet;
             if (queue_from_camera_.waitForAndPop(ptr_packet, this->timeout)) {
 

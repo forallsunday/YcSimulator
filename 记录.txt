@@ -1,0 +1,5 @@
+1. 能否正确接收icp
+2. fpga 5ms 为啥没起
+3. freeze 逻辑有问题 freeze 之后再step就会出问题, 应该是freeze了之后直接还能step
+4. 持久化存储？
+5. work_control init后进入收藏后就不在发送work_state_report

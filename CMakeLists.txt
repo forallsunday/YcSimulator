@@ -27,8 +27,8 @@ aux_source_directory("yc_camera_sim/src/yc" SRCS_YC)
 if(NOT ${TARGET_PLATFORM} STREQUAL "linux-x64")
   set(LIB_NAME "ycSim")
 
-  add_library(${LIB_NAME} SHARED "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/model.cpp" 
-                                  ${SRCS_YCSIM} ${SRCS_YC} ${SRCS_DEPS})
+  add_library(${LIB_NAME} SHARED "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/model.cpp"
+    ${SRCS_YCSIM} ${SRCS_YC} ${SRCS_DEPS})
   target_include_directories(${LIB_NAME} PUBLIC ${INCLUDE_DEPS} ${INCLUDE_YCSIM})
   target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/include)
   target_link_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/lib)
@@ -57,12 +57,10 @@ target_link_libraries(${EXE_NAME} PRIVATE pthread)
 # DEBUG_POSTFIX "d" RELEASE_POSTFIX "")
 
 # ==================================================
-# 复制配置文件 
+# 复制配置文件
 # ==================================================
 # 要复制的文件路径
 set(XML_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ModuleConfig.xml")
-
-# 如果文件存在，则复制到输出目录
 if(EXISTS "${XML_CONFIG_FILE}")
   add_custom_command(
     TARGET ${EXE_NAME}
@@ -70,6 +68,16 @@ if(EXISTS "${XML_CONFIG_FILE}")
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XML_CONFIG_FILE}"
     "${CMAKE_CURRENT_SOURCE_DIR}/bin/ModuleConfig.xml"
     COMMENT "Copying ModuleConfig.xml to bin directory")
+endif()
+
+set(XML_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/UDPNodeConfig_A.xml")
+if(EXISTS "${XML_CONFIG_FILE}")
+  add_custom_command(
+    TARGET ${EXE_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XML_CONFIG_FILE}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bin/UDPNodeConfig_A.xml"
+    COMMENT "Copying UDPNodeConfig_A.xml to bin directory")
 endif()
 
 # ==================================================

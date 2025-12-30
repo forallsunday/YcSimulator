@@ -32,8 +32,8 @@ void CameraSimulator::init() {
     // 共享内存输入参数 指针映射
     pointShmInputParams();
 
-    // FPGA 模拟器 启动
-    fpga_sim.start();
+    // FPGA 模拟器 初始化
+    fpga_sim_.init();
 }
 
 void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output) {
@@ -43,6 +43,8 @@ void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutpu
     // TODO: 实现相机模拟器的步进逻辑
     // 复制共享内存输入
     memcpy(&(this->shm_input_), shm_input, sizeof(SharedMemoryInput));
+
+    // log_info("上电指令为: %d", *facility_power_supply_status_);
 
     // [5]综合光电系统 0-NA 1-上电 2-快速上电 3-降级 4-下电
     switch (*facility_power_supply_status_) {
@@ -78,9 +80,9 @@ void CameraSimulator::pointShmInputParams() {
     this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
                                                .ArrU1_FacilitiesPowerSupplyStatus[5];
 
-    // !!!!!调试时 供电暂时使用4
-    this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
-                                               .ArrU1_FacilitiesPowerSupplyStatus[4];
+    // // !!!!!调试时 供电暂时使用4
+    // this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
+    //                                            .ArrU1_FacilitiesPowerSupplyStatus[4];
 
     // 0-NA；1-初始化；2-快速启动；3-常规启动；4-冻结；5-停止
     this->operation_mode_ = &shm_input_.m_SecSimulatorControlMsg.St_SimulatorStatusControl.U1_OperationMode;
@@ -197,12 +199,11 @@ void CameraSimulator::startHeartbitting() {
         // auto time_step = seconds(1);
         auto time_step = milliseconds(180);
 
-        uint8_t data = 1;
         while (running_hearbit) {
             ++heartbit_;
 
             // 向Control发送OKMSG
-            udpTransSend(MY_TOPIC_OKMSG, &data);
+            sendOkMsg();
 
             std::this_thread::sleep_for(time_step);
         }
@@ -218,6 +219,9 @@ void CameraSimulator::startUdpConnect() {
 void CameraSimulator::startMainControl() {
     if (running_main_ctrl)
         return;
+
+    // fpga 启动
+    fpga_sim_.start();
 
     running_main_ctrl = true;
     thread_main_ctrl_ = std::thread([this]() {
@@ -315,25 +319,16 @@ void CameraSimulator::freeze() {
     running_main_ctrl     = false;
     running_other_process = false;
     running_periodic_send = false;
-    // ?
-    this->running_subsystem_timer_ = false;
 
     // 再清空并通知，确保等待的线程能醒来并检查到退出标志
     sq::sq_IRST_act_req.clearAndNotify();
     sq::sq_others.clearAndNotify();
 
-    // 等待线程退出
-    if (thread_main_ctrl_.joinable())
-        thread_main_ctrl_.join();
-    if (thread_other_process_.joinable())
-        thread_other_process_.join();
-    if (thread_periodic_send_.joinable())
-        thread_periodic_send_.join();
-    if (thread_subsystem_timer_.joinable())
-        thread_subsystem_timer_.join();
-
     // 停止定时器
     timer_5ms_.stop();
+
+    // 停止fpga
+    fpga_sim_.stop();
 
     this->power_status_ = POWER_FREEZE;
 
@@ -349,28 +344,27 @@ void CameraSimulator::powerOff() {
 
     this->freeze();
 
+    // 等待线程退出
+    if (thread_main_ctrl_.joinable())
+        thread_main_ctrl_.join();
+    if (thread_other_process_.joinable())
+        thread_other_process_.join();
+    if (thread_periodic_send_.joinable())
+        thread_periodic_send_.join();
+    if (thread_subsystem_timer_.joinable())
+        thread_subsystem_timer_.join();
+
     // 更新共享内存状态
     this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U1_MemberStatus  = 4; // 4=下电?
     this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U4_UnitHeartbeat = this->heartbit_;
     // this->shm_output_.m_FunctionalUnitStatusMsg.St_MessageHeader.St_PubTime        = getCurrentTimestamp();
 
-    // todo: 下电自检测流程
-
-    // this->udpSend(V_TOPIC_IRRM_WORK_STATE_REPORT, (UINT8 *)&msg_send.m_WORK_STATE_REPORT, sizeof(WORK_STATE_REPORT));
-    // this->udpSend(V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS, (UINT8 *)&msg_send.m_IRST_OPERATIONAL_PARAS, sizeof(IRST_OPERATIONAL_PARAS));
-
     this->power_status_ = POWER_OFF;
 
     log_info("[CameraSimulator] Power OFF complete");
-    // // msg
-    // msg_send.m_WORK_STATE_REPORT.bit_process_percent = 0;
-    // msg_send.m_WORK_STATE_REPORT.start_remain_time   = 0;
-    // msg_send.m_WORK_STATE_REPORT.subsys_work_state   = SUBSYS_WORK_STATE::V_SUBSYS_WORK_STATE_STOP;
-    // msg_send.m_WORK_STATE_REPORT.subsys_main_mode    = SUBSYS_MAIN_MODE::V_SUBSYS_MAIN_MODE_STOP;
 }
 
-CameraSimulator::~CameraSimulator() {
-
+void CameraSimulator::close() {
     this->powerOff();
 
     // 停止心跳
@@ -381,4 +375,8 @@ CameraSimulator::~CameraSimulator() {
     udpTransClose();
 
     log_info("[CameraSimulator] All threads stopped");
+}
+
+CameraSimulator::~CameraSimulator() {
+    this->close();
 }

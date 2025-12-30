@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="GBK" ?>
+<!-- 12 -->
+<UdpCommFile>
+  <UDPNodeList>
+    <!-- VMCS -->
+    <UDPSIMInfo SIMROLE="VMCS" Addr="172.19.5.3" Recv_port="1332" Send_port="10001">
+      <SIMROLE NodeName="V_NODE_VCAM" NodeID="8101"/>
+      <SIMROLE NodeName="V_NODE_VCCM" NodeID="8103"/>
+      <SIMROLE NodeName="V_NODE_BFCC" NodeID="8104"/>
+    </UDPSIMInfo>
+
+    <!-- VCBM -->
+    <UDPSIMInfo SIMROLE="VCBM" Addr="172.19.5.3" Recv_port="1342" Send_port="10004">
+      <SIMROLE NodeName="V_NODE_VCBM" NodeID="8102"/>
+    </UDPSIMInfo>
+
+    <!-- AGCAS -->
+    <UDPSIMInfo SIMROLE="AGCAS" Addr="10.200.212.41" Recv_port="9002" Send_port="10002">
+      <SIMROLE NodeName="V_NODE_DLPV" NodeID="5105"/>
+      <SIMROLE NodeName="V_NODE_DRPV" NodeID="5205"/>
+    </UDPSIMInfo>
+
+    <!-- MidWare -->
+    <UDPSIMInfo SIMROLE="MidWare" Addr="172.19.5.3" Recv_port="17200" Send_port="3456">
+      <SIMROLE NodeName="V_NODE_RDDP" NodeID="1702"/>
+      <SIMROLE NodeName="V_NODE_RDMP" NodeID="1705"/>
+      <SIMROLE NodeName="V_NODE_RDCD" NodeID="1706"/>
+      <SIMROLE NodeName="V_NODE_RDRM" NodeID="1701"/>
+      <SIMROLE NodeName="V_NODE_EWEP" NodeID="1804"/>
+      <SIMROLE NodeName="V_NODE_EWFT" NodeID="1802"/>
+      <SIMROLE NodeName="V_NODE_EWRM" NodeID="1805"/>
+      <SIMROLE NodeName="V_NODE_EWRP" NodeID="1803"/>
+      <SIMROLE NodeName="V_NODE_EWSM" NodeID="1801"/>
+      <SIMROLE NodeName="V_NODE_CNAM" NodeID="1602"/>
+      <SIMROLE NodeName="V_NODE_CNRM" NodeID="1603"/>
+      <SIMROLE NodeName="V_NODE_IRRM" NodeID="1901"/>
+      <SIMROLE NodeName="V_NODE_IRVP" NodeID="1902"/>
+      <SIMROLE NodeName="V_NODE_DASM" NodeID="2001"/>
+      <SIMROLE NodeName="V_NODE_DAIP" NodeID="2002"/>
+      <SIMROLE NodeName="V_NODE_TRCM" NodeID="3302"/>
+    </UDPSIMInfo>
+
+    <!-- CNI -->
+    <UDPSIMInfo SIMROLE="CNIM" Addr="172.19.5.3" Recv_port="17200" Send_port="3456">
+      <SIMROLE NodeName="V_NODE_CNIM" NodeID="1601"/>
+    </UDPSIMInfo>
+    <UDPSIMInfo SIMROLE="CNAM" Addr="172.19.5.3" Recv_port="17200" Send_port="3456">
+      <SIMROLE NodeName="V_NODE_CNAM" NodeID="1602"/>
+    </UDPSIMInfo>
+    <UDPSIMInfo SIMROLE="CNRM" Addr="172.19.5.3" Recv_port="17200" Send_port="3456">
+      <SIMROLE NodeName="V_NODE_CNRM" NodeID="1603"/>
+    </UDPSIMInfo>
+
+    <!-- IN1 -->
+    <UDPSIMInfo SIMROLE="IN1M" Addr="172.19.5.3" Recv_port="17203" Send_port="19264">
+      <SIMROLE NodeName="V_NODE_IN1M" NodeID="1301"/>
+    </UDPSIMInfo>
+
+    <!-- IN2 -->
+    <UDPSIMInfo SIMROLE="IN2M" Addr="172.19.5.3" Recv_port="17202" Send_port="19265">
+      <SIMROLE NodeName="V_NODE_IN2M" NodeID="1401"/>
+    </UDPSIMInfo>
+
+    <!-- IN3 -->
+    <UDPSIMInfo SIMROLE="IN3M" Addr="172.19.5.3" Recv_port="17201" Send_port="19266">
+      <SIMROLE NodeName="V_NODE_IN3M" NodeID="1501"/>
+    </UDPSIMInfo>
+
+    <!-- EWSM -->
+    <UDPSIMInfo SIMROLE="EWSM" Addr="172.19.5.3" Recv_port="10091" Send_port="10087">
+      <SIMROLE NodeName="V_NODE_EWSM" NodeID="1801"/>
+    </UDPSIMInfo>
+
+    <!-- 平显 -->
+    <UDPSIMInfo SIMROLE="HUD" Addr="10.200.212.41" Recv_port="9004" Send_port="10004">
+      <SIMROLE NodeName="V_NODE_HUDM" NodeID="5501"/>
+    </UDPSIMInfo>
+
+    <!-- 辅显 -->
+    <UDPSIMInfo SIMROLE="AMFD" Addr="172.19.5.3" Recv_port="9005" Send_port="10005">
+      <SIMROLE NodeName="V_NODE_DCAM" NodeID="5401"/>
+    </UDPSIMInfo>
+
+    <!-- UFCP -->
+    <UDPSIMInfo SIMROLE="UFCP" Addr="10.200.212.41" Recv_port="9006" Send_port="10006">
+      <SIMROLE NodeName="V_NODE_UFCP" NodeID="5701"/>
+    </UDPSIMInfo>
+
+    <!-- 数据链 -->
+    <UDPSIMInfo SIMROLE="CNLA" Addr="10.200.212.41" Recv_port="9007" Send_port="10007">
+      <SIMROLE NodeName="V_NODE_CNLA" NodeID="1604"/>
+    </UDPSIMInfo>
+
+    <!-- 语音识别 -->
+    <UDPSIMInfo SIMROLE="VRSM" Addr="10.200.212.41" Recv_port="9008" Send_port="10008">
+      <SIMROLE NodeName="V_NODE_VRSM" NodeID="1609"/>
+    </UDPSIMInfo>
+
+    <!-- ******* DMAP ****** -->
+
+    <!-- LDMAP -->
+    <UDPSIMInfo SIMROLE="LDMAP" Addr="10.200.212.41" Recv_port="9009" Send_port="10009">
+      <SIMROLE NodeName="V_NODE_DCLP" NodeID="5103"/>
+    </UDPSIMInfo>
+
+    <!-- RDMAP -->
+    <UDPSIMInfo SIMROLE="RDMAP" Addr="10.200.212.41" Recv_port="9010" Send_port="10010">
+      <SIMROLE NodeName="V_NODE_DCRP" NodeID="5203"/>
+    </UDPSIMInfo>
+
+    <!-- LDEM 地形数据服务 -->
+    <UDPSIMInfo SIMROLE="LDEM" Addr="10.200.212.41" Recv_port="9301" Send_port="10301">
+      <SIMROLE NodeName="V_NODE_DLEM" NodeID="5107"/>
+    </UDPSIMInfo>
+
+    <!-- RDEM 地形数据服务 -->
+    <UDPSIMInfo SIMROLE="RDEM" Addr="10.200.212.41" Recv_port="9302" Send_port="10302">
+      <SIMROLE NodeName="V_NODE_DREM" NodeID="5207"/>
+    </UDPSIMInfo>
+
+    <!-- 悬挂物 -->
+    <UDPSIMInfo SIMROLE="SMSM" Addr="172.19.5.3" Recv_port="9011" Send_port="10011">
+      <SIMROLE NodeName="V_NODE_SMSM" NodeID="4101"/>
+    </UDPSIMInfo>
+    <!-- ******* DCHM ****** -->
+
+    <!-- DCLM -->
+    <UDPSIMInfo SIMROLE="DCLM" Addr="172.19.5.3" Recv_port="9100" Send_port="10100">
+      <SIMROLE NodeName="V_NODE_DCLM" NodeID="5101"/>
+    </UDPSIMInfo>
+
+    <!-- DCRM -->
+    <UDPSIMInfo SIMROLE="DCRM" Addr="172.19.5.3" Recv_port="9101" Send_port="10101">
+      <SIMROLE NodeName="V_NODE_DCRM" NodeID="5201"/>
+    </UDPSIMInfo>
+
+    <!-- DCRD -->
+    <UDPSIMInfo SIMROLE="DCRD" Addr="172.19.5.3" Recv_port="5101" Send_port="5102">
+      <SIMROLE NodeName="V_NODE_DCRD" NodeID="5202"/>
+    </UDPSIMInfo>
+
+    <!-- DCLX -->
+    <UDPSIMInfo SIMROLE="DCLX" Addr="10.200.212.41" Recv_port="8185" Send_port="8186">
+      <SIMROLE NodeName="V_NODE_DCLX" NodeID="5104"/>
+    </UDPSIMInfo>
+
+    <!-- DCRX -->
+    <UDPSIMInfo SIMROLE="DCRX" Addr="10.200.212.41" Recv_port="8198" Send_port="8199">
+      <SIMROLE NodeName="V_NODE_DCRX" NodeID="5204"/>
+    </UDPSIMInfo>
+
+    <!-- ******* ICP ****** -->
+
+    <!-- 战术管理 -->
+    <UDPSIMInfo SIMROLE="TMMM" Addr="172.19.5.3" Recv_port="19200" Send_port="15200">
+      <SIMROLE NodeName="V_NODE_TMMM" NodeID="3101"/>
+    </UDPSIMInfo>
+
+    <!-- 导航管理 -->
+    <UDPSIMInfo SIMROLE="NACM" Addr="172.19.5.3" Recv_port="9201" Send_port="10201">
+      <SIMROLE NodeName="V_NODE_NACL" NodeID="3201"/>
+    </UDPSIMInfo>
+
+    <!-- 传感器管理 -->
+    <UDPSIMInfo SIMROLE="SRMM" Addr="172.19.5.3" Recv_port="9202" Send_port="10202">
+      <SIMROLE NodeName="V_NODE_SRMM" NodeID="1001"/>
+    </UDPSIMInfo>
+
+    <!-- 系统管理 -->
+    <UDPSIMInfo SIMROLE="SYMM" Addr="172.19.5.3" Recv_port="19283" Send_port="10203">
+      <SIMROLE NodeName="V_NODE_SYMM" NodeID="6101"/>
+    </UDPSIMInfo>
+
+    <!-- 空空目标融合 -->
+    <UDPSIMInfo SIMROLE="TGFA" Addr="172.19.5.3" Recv_port="9204" Send_port="10204">
+      <SIMROLE NodeName="V_NODE_TGFA" NodeID="2302"/>
+    </UDPSIMInfo>
+
+    <!-- 空面目标融合 -->
+    <UDPSIMInfo SIMROLE="TGFS" Addr="172.19.5.3" Recv_port="9205" Send_port="10205">
+      <SIMROLE NodeName="V_NODE_TGFS" NodeID="2303"/>
+    </UDPSIMInfo>
+
+    <!-- 导航融合 -->
+    <UDPSIMInfo SIMROLE="NAFM" Addr="172.19.5.3" Recv_port="9206" Send_port="10206">
+      <SIMROLE NodeName="V_NODE_NAFM" NodeID="2101"/>
+    </UDPSIMInfo>
+
+    <!-- 综合识别 -->
+    <UDPSIMInfo SIMROLE="TGFI" Addr="172.19.5.3" Recv_port="9207" Send_port="10207">
+      <SIMROLE NodeName="V_NODE_TGFI" NodeID="2305"/>
+    </UDPSIMInfo>
+
+    <!-- 协同作战 -->
+    <UDPSIMInfo SIMROLE="CPEG" Addr="172.19.5.3" Recv_port="9208" Send_port="10208">
+      <SIMROLE NodeName="V_NODE_CPEG" NodeID="2304"/>
+    </UDPSIMInfo>
+
+    <!-- 空面火控 -->
+    <UDPSIMInfo SIMROLE="FCAS" Addr="172.19.5.3" Recv_port="9209" Send_port="10209">
+      <SIMROLE NodeName="V_NODE_FCAS" NodeID="4202"/>
+    </UDPSIMInfo>
+
+    <!-- 火控解算 -->
+    <UDPSIMInfo SIMROLE="FCCM" Addr="172.19.5.3" Recv_port="9210" Send_port="10210">
+      <SIMROLE NodeName="V_NODE_FCCM" NodeID="4201"/>
+    </UDPSIMInfo>
+
+    <!-- 杀伤力评估 -->
+    <UDPSIMInfo SIMROLE="LASM" Addr="172.19.5.3" Recv_port="9211" Send_port="10211">
+      <SIMROLE NodeName="V_NODE_LASM" NodeID="2501"/>
+    </UDPSIMInfo>
+
+    <!-- 健康管理 -->
+    <UDPSIMInfo SIMROLE="MPHM" Addr="172.19.5.3" Recv_port="9212" Send_port="10212">
+      <SIMROLE NodeName="V_NODE_MPHL" NodeID="7101"/>
+    </UDPSIMInfo>
+
+    <!-- 威胁响应 -->
+    <UDPSIMInfo SIMROLE="TRPM" Addr="172.19.5.3" Recv_port="9213" Send_port="10213">
+      <SIMROLE NodeName="V_NODE_TRPM" NodeID="3301"/>
+    </UDPSIMInfo>
+
+    <!-- 危险评估 -->
+    <UDPSIMInfo SIMROLE="JASM" Addr="172.19.5.3" Recv_port="9214" Send_port="10214">
+      <SIMROLE NodeName="V_NODE_JASM" NodeID="2401"/>
+    </UDPSIMInfo>
+
+    <!-- 大容量系统 -->
+    <UDPSIMInfo SIMROLE="SYMD" Addr="172.19.5.3" Recv_port="9215" Send_port="10215">
+      <SIMROLE NodeName="V_NODE_SYMD" NodeID="6102"/>
+    </UDPSIMInfo>
+
+    <!-- CRSM -->
+    <UDPSIMInfo SIMROLE="CRSM" Addr="172.19.5.3" Recv_port="9218" Send_port="10216">
+      <SIMROLE NodeName="V_NODE_CRSM" NodeID="2701"/>
+    </UDPSIMInfo>
+
+    <!-- YCM -->
+    <UDPSIMInfo SIMROLE="IRRM" Addr="172.19.5.3" Recv_port="9318" Send_port="10316">
+      <SIMROLE NodeName="V_NODE_IRRM" NodeID="1901"/>
+    </UDPSIMInfo>
+
+    <!-- 监控系统 -->
+    <UDPSIMInfo SIMROLE="MONITOR" Addr="172.19.13.252" Recv_port="5678" Send_port="8204">
+      <SIMROLE NodeName="V_NODE_ADAS" NodeID="8510"/>
+    </UDPSIMInfo>
+
+    <!-- 左数管 -->
+    <UDPSIMInfo SIMROLE="DCLD" Addr="172.19.5.3" Recv_port="8004" Send_port="8104">
+      <SIMROLE NodeName="V_NODE_DCLD" NodeID="5102"/>
+    </UDPSIMInfo>
+
+  </UDPNodeList>
+
+
+  <MonitorTotpic SubscribeID="0x70f4ff16" RequestTopicID="0x70f4ff15"/>
+  <BackUPSend BK_IP="10.200.212.41" BK_Rev_PORT="7425" BK_Send_PORT="1234"/>
+  <TraceLevel TLev = "a" />
+  <!-- Log level, 0 no log -->
+</UdpCommFile>

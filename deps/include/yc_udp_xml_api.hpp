@@ -7,12 +7,14 @@
 #include <string>
 #include <vector>
 
-#include <fstream>
-#include <iostream>
-#include <rapidxml.hpp>
-#include <sstream>
-#include <string>
-#include <vector>
+struct UDPSimInfo {
+    std::string SIMROLE; // SRMM
+    std::string Addr;    // IP
+    int         Recv_port;
+    int         Send_port;
+    std::string NodeName; // V_NODE_SRMM
+    int         NodeID;   // 1001
+};
 
 inline bool loadXmlDoc(const std::string &path, rapidxml::xml_document<> &doc, std::vector<char> &xml_copy) {
     std::ifstream file(path);
@@ -37,50 +39,37 @@ inline bool loadXmlDoc(const std::string &path, rapidxml::xml_document<> &doc, s
     return true;
 }
 
-// 合成函数：一次解析全部
-inline bool parseXmlYcUdpConfig(
-    const std::string &path,
-    std::string       *ip_icp_server,
-    std::string *ip_control, int *ctrl_port_recv_icp, int *ctrl_port_recv_camera,
-    std::string *ip_camera, int *cam_port) {
-
-    if (!ip_icp_server || !ip_control || !ctrl_port_recv_icp || !ctrl_port_recv_camera || !ip_camera || !cam_port)
-        return false;
-
+inline bool parseUdpCommFile(const std::string &path, std::vector<UDPSimInfo> &out_list) {
     rapidxml::xml_document<> doc;
     std::vector<char>        xml_copy;
     if (!loadXmlDoc(path, doc, xml_copy))
         return false;
 
-    auto root = doc.first_node("udp");
+    auto root = doc.first_node("UdpCommFile");
     if (!root)
         return false;
 
-    // === udp_icp_server ===
-    if (auto node_icp = root->first_node("udp_icp_server")) {
-        *ip_icp_server = node_icp->first_attribute("ip") ? node_icp->first_attribute("ip")->value() : "0.0.0.0";
-    } else {
-        *ip_icp_server = "0.0.0.0";
-    }
+    auto nodeList = root->first_node("UDPNodeList");
+    if (!nodeList)
+        return false;
 
-    // === udp_control ===
-    if (auto node_ctrl = root->first_node("udp_control")) {
-        *ip_control            = node_ctrl->first_attribute("ip") ? node_ctrl->first_attribute("ip")->value() : "0.0.0.0";
-        *ctrl_port_recv_icp    = node_ctrl->first_attribute("ctrl_port_recv_icp") ? std::stoi(node_ctrl->first_attribute("ctrl_port_recv_icp")->value()) : 0;
-        *ctrl_port_recv_camera = node_ctrl->first_attribute("ctrl_port_recv_camera") ? std::stoi(node_ctrl->first_attribute("ctrl_port_recv_camera")->value()) : 0;
-    } else {
-        *ip_control            = "0.0.0.0";
-        *ctrl_port_recv_icp    = 0;
-        *ctrl_port_recv_camera = 0;
-    }
+    for (auto nodeSim = nodeList->first_node("UDPSIMInfo"); nodeSim; nodeSim = nodeSim->next_sibling("UDPSIMInfo")) {
+        UDPSimInfo info;
 
-    // === udp_camera ===
-    if (auto node_cam = root->first_node("udp_camera")) {
-        *ip_camera = node_cam->first_attribute("ip") ? node_cam->first_attribute("ip")->value() : "0.0.0.0";
-        *cam_port  = node_cam->first_attribute("cam_port") ? std::stoi(node_cam->first_attribute("cam_port")->value()) : 0;
-    } else {
-        *ip_camera = "0.0.0.0";
-        *cam_port  = 0;
+        // 读取 UDPSIMInfo 属性
+        info.SIMROLE   = nodeSim->first_attribute("SIMROLE") ? nodeSim->first_attribute("SIMROLE")->value() : "";
+        info.Addr      = nodeSim->first_attribute("Addr") ? nodeSim->first_attribute("Addr")->value() : "";
+        info.Recv_port = nodeSim->first_attribute("Recv_port") ? std::stoi(nodeSim->first_attribute("Recv_port")->value()) : 0;
+        info.Send_port = nodeSim->first_attribute("Send_port") ? std::stoi(nodeSim->first_attribute("Send_port")->value()) : 0;
+
+        // 读取 SIMROLE 子节点
+        auto nodeRole = nodeSim->first_node("SIMROLE");
+        if (nodeRole) {
+            info.NodeName = nodeRole->first_attribute("NodeName") ? nodeRole->first_attribute("NodeName")->value() : "";
+            info.NodeID   = nodeRole->first_attribute("NodeID") ? std::stoi(nodeRole->first_attribute("NodeID")->value()) : 0;
+        }
+
+        out_list.push_back(info);
     }
 
     return true;

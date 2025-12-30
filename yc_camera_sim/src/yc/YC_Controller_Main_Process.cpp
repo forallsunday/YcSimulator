@@ -42,6 +42,9 @@
 
 #include <chrono>
 
+// for test
+#include <udp_trans.h>
+
 bool running_main_ctrl;
 bool running_other_process;
 bool running_periodic_send;
@@ -60,8 +63,13 @@ void main_Control_And_Mess_Process_Act_req_task() {
             act_req_mess_Process(); // 活动请求指令判断
         }
 
+        // // 测试发送工作参数
+        // testSendToYcControl();
+        // sleep_ms(2000);
+
         // 如果收到FPGA中断，或者5ms时间到，正常流程，每5ms处理主控工作流程、计算
         if (flag_Fpga_Interrupt == 1) {
+            // log_info("flag_Fpga_Interrupt == 1");
             make_Mess_To_PCS_DATA(0); // 给pos发送数据
 
             // ACoreOs_clock_get_timestamp(&time_start);
@@ -91,6 +99,7 @@ void main_Control_And_Mess_Process_Act_req_task() {
 
             // 标志位清零
             flag_Fpga_Interrupt = 0;
+            // log_info("flag_Fpga_Interrupt == 0");
         }
 
         // 如果fpga掉线,错误处理，异常流程，
@@ -236,14 +245,21 @@ void fc_Mess_Process_Others_task() {
 
 // 周期消息发送处理
 void fc_Mess_Send_Period_task() {
-    // 当前时间
     using clock = std::chrono::steady_clock;
-    auto next   = clock::now();
 
     static int a               = 0;
     static int upload_pack_num = 1; // 当前上报的第几包
 
     while (running_periodic_send) {
+        // 当前时间
+        auto next = clock::now();
+
+        // {
+        //     // !!! 20251230 测试时直接上报
+        //     send_Mess_WORK_STATE_REPORT(0, 10000);
+        //     send_Mess_IRST_OPERATIONAL_PARAS();
+        // }
+
         //		logMsg("period task second:%d\n",a,2,3,4,5,6);
         a++;
 
@@ -1530,6 +1546,7 @@ void init_Model_WorkControl() {
     update_Irst_State(V_IRST_WORK_STATE_INIT);    // 更新IRST工作状态
     update_Irst_Mode(V_IRST_FORM_MODE_WIDE_IMAG); // 更新IRST成像模式：默认广域
 
+    // todo: 模拟器不能50s, 而且这个只跟时间有关系吗？
     // 上报工作进度，每1s上报一次，总共50s
     if (cnt_wait % 200 == 0) {
         percent = (cnt_wait * 10000.0) / ((1000 / MAIN_PERIOD_TIME) * INIT_TIME);
@@ -1593,11 +1610,13 @@ void init_Model_WorkControl() {
 
     case 3: // 等待分系统自检完成，收到所有分系统（框架、调焦、惯导）
         // 如果自检完成，进入下一步
+        // todo: 实现这些分系统的及时响应
         if (mess_From_KJ.status_sub == 2 && mess_From_TJ.status1_zjzt == 0 && mess_From_PCS_DATA.status_gdgzms != 4) {
             step = 4;
         }
         // 如果超时，进入下一步
-        if (cnt_wait > (1000 / MAIN_PERIOD_TIME) * INIT_TIME) // 超时判定：12min出状态，进入待机——最终版本12分钟，调试过程中为50s
+        // if (cnt_wait > (1000 / MAIN_PERIOD_TIME) * INIT_TIME) // 超时判定：12min出状态，进入待机——最终版本12分钟，调试过程中为50s
+        if (cnt_wait > 1000 / MAIN_PERIOD_TIME * 5) // !!! 模拟器超时为5s
         {
             step = 4;
         }

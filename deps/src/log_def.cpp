@@ -28,6 +28,7 @@ void log_udp_packet_recv(const UdpPacket &packet) {
 }
 
 void log_udp_packet_send(const char *where, const char *ip, int port, const UdpPacket &packet) {
+
     char src_buf[16];
     char dst_buf[16];
     char topic_buf[16];

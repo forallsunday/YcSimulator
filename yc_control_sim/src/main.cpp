@@ -1,8 +1,9 @@
-#include <AOXEAppDef.h>
+// #include <AOXEAppDef.h>
 #include <control_sim.h>
 #include <id_name.hpp>
 #include <read_udp_addr.hpp>
 #include <xml_api.h>
+#include <yc_udp_xml_api.hpp>
 
 #include <fstream>
 #include <iomanip>
@@ -31,11 +32,34 @@ int main() {
 
     log_init("control_sim.log");
 
-    // 解析xml文件 获取icp节点(V_NODE_XXX)对应的所有地址
+    // Note: 读取所有icp节点的ip和端口
+    MapNodeAddr icp_node_map; // icp节点对应的端口
+
+    const std::string path_UDPNodeConfig = "./UDPNodeConfig_A.xml";
+
+    std::vector<UDPSimInfo> sim_list;
+    if (!parseUdpCommFile(path_UDPNodeConfig, sim_list)) {
+        log_warn("Failed to parse UDP XML: %s", path_UDPNodeConfig.c_str());
+        return -1;
+    }
+
+    for (const auto &s : sim_list) {
+        // NodeID 作为 key，Addr + Recv_port 作为 value
+        icp_node_map[(FUNCTION_NODE_TYPE)s.NodeID] = {s.Addr, s.Recv_port};
+
+        // 输出日志，模拟你原来的格式
+        log_info("查找ICP Node=<%s>, hex=%s, ip = %s, port = %d",
+                 s.NodeName.c_str(),
+                 hexString(s.NodeID).c_str(),
+                 s.Addr.c_str(),
+                 s.Recv_port);
+    }
+
+    // 解析xml文件 获取相机仿真、机载一直的ip port
     SOCKET_PARSE socket_data; // xml解析的数据
     // 要检查的文件路径
-    // const std::string config_file = "./ModuleConfig.xml";
-    const std::string config_file = "/mnt/d/Documents/C-Project/YcSimulator/ModuleConfig.xml";
+    const std::string config_file = "./ModuleConfig.xml";
+    // const std::string config_file = "/mnt/d/Documents/C-Project/YcSimulator/ModuleConfig.xml";
     // 尝试以输入模式打开文件
     std::ifstream file(config_file);
     if (file.is_open()) {
@@ -47,42 +71,16 @@ int main() {
         // 打开文件失败
         std::cerr << "Error: Configuration file not found or cannot be opened: " << config_file << std::endl;
     }
-
-    MapNodeAddr icp_node_map; // icp节点对应的端口
-
-    // todo: 让node_vec变为set
-    // 需要发送的icp节点
-    std::set<FUNCTION_NODE_TYPE> node_set = {
-        // 监控
-        V_NODE_ADAS,
-        // ok_msg
-        V_NODE_SYMM, V_NODE_MPHL, V_NODE_MPHR, V_NODE_SRMM,
-        // V_TOPIC_IRRM_WORK_STATE_REPORT 对应:
-        V_NODE_MPHL, V_NODE_SYMM, V_NODE_MPHR,
-        // V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS 对应:
-        V_NODE_IIPM, V_NODE_DCLD, V_NODE_TMMM, V_NODE_DCRM, V_NODE_DCLM, V_NODE_DCRD, V_NODE_SRMM};
-
-    for (const auto &node : node_set) {
-        // 将node转换为16进制字符串(xml中的形式)
-        std::string code_str  = hexString(node);
-        const char* node_name = lookupNode(node);
-        // 查询node对应的idx
-        int idx = find_node_d((char *)code_str.c_str());
-        if (idx < 0) {
-            // printf("[WARN] ICP Node = %s, idx = %d, no dest\n", node_str.c_str(), idx);
-            log_warn("查找ICP Node=<%s>, hex=%s, 未找到, idx = %d", node_name, code_str.c_str(), idx);
-        } else {
-            log_info("查找ICP Node=<%s>, hex=%s, ip = %s, port = %d", node_name, code_str.c_str(), socket_data.all_ip[idx], socket_data.all_port[idx]);
-            // 放入map中
-            icp_node_map[node] = {socket_data.all_ip[idx], socket_data.all_port[idx]};
-        }
-    }
-
     // // 查看所有node
     // printf_all_node();
 
     ReadUdpAddr rua;
     readUdpAddr(rua, socket_data);
+
+    // 节点以UDPNodeConfig.xml为准
+    // 监听icp发来消息的端口
+    rua.ctrl_port_recv_icp = icp_node_map[V_NODE_IRRM].port;
+    log_info("监听icp发来消息的端口为 %d", rua.ctrl_port_recv_icp);
 
     // 机载移植
     ControlSimulator ctrl_sim(

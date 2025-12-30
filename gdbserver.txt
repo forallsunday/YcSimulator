@@ -1,0 +1,4 @@
+
+./bin/gdbserver :50001 ./bin/YcControl
+./bin/gdbserver :50002 ./midware -mod ./bin/libycSim.so -rate 50
+

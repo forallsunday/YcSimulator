@@ -23,10 +23,10 @@ static void log_lock_fn(bool lock, void *udata) {
 
 static int ensure_log_dir(void) {
     struct stat st;
-    if (stat("./bin", &st) == 0)
+    if (stat("./log", &st) == 0)
         return S_ISDIR(st.st_mode) ? 0 : -1;
 
-    if (mkdir("./bin", 0755) == 0)
+    if (mkdir("./log", 0755) == 0)
         return 0;
 
     if (errno == EEXIST)
@@ -42,7 +42,7 @@ inline int log_init(const char *log_name) {
     ensure_log_dir();
 
     char path[256];
-    snprintf(path, sizeof(path), "./bin/%s", log_name);
+    snprintf(path, sizeof(path), "./log/%s", log_name);
 
     FILE *fp = fopen(path, "w");
     if (!fp) {

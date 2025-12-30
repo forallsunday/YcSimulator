@@ -1,16 +1,16 @@
 // #include "CommInterface.h"
 #include "model.h"
 
-#include <camera_sim.h>
-#include <sys/time.h>
-
 #include "cadi_shm.h"
 #include "shm_interface.h"
 #include "udpconnect.h"
 #include "xml_api.h"
-#include "yc_udp_xml_api.hpp"
+#include <camera_sim.h>
+#include <read_udp_addr.hpp>
 
-#include <log_init.hpp>
+#include <sys/time.h>
+
+#include <log_init.h>
 
 enum status_enum /*状态集*/
 {
@@ -114,8 +114,11 @@ void usrmode_init() {
 
     cam_sim->init();
 
-    // Note: 测试 时 直接上电
-    cam_sim->powerOn(5);
+    // 调试时设置周期发送间隔
+    cam_sim->setPeriodicInterval(3000);
+
+    // // Note: 测试 时 直接上电
+    // cam_sim->powerOn(5);
 
     return;
 }
@@ -165,6 +168,7 @@ void step_calculate() {
 void step_freeze() {
     /* ************************************* */
     /* 1. 添加模型暂停逻辑 */
+    cam_sim->freeze();
 
     /* ************************************* */
     return;
@@ -199,6 +203,8 @@ void usrmode_close() {
 
     /* ************************************* */
     /* 1. 添加模型停止逻辑, 关闭打开的资源 */
+    if (cam_sim)
+        cam_sim->close();
 
     /* ************************************* */
 

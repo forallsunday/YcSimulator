@@ -1,7 +1,7 @@
 /*
  * YC_Controller_ToolsFunc.h
  *
- *  Created on: 2025Äê5ÔÂ16ÈÕ
+ *  Created on: 2025å¹´5æœˆ16æ—¥
  *      Author: wangx
  */
 
@@ -13,86 +13,86 @@
 #include <ICDB_ENUM_STRUCT_IRRM.H>
 #include <sysTypes.h>
 
-//******************************·¢ËÍÏûÏ¢°ü***************************
-// !!! update_ Ô­Îªsend_ ¸ÄÎªÖ»¸üÐÂÈ«¾Ö±äÁ¿
-// ·¢ËÍIRST_»î¶¯ÇëÇóÍ¨¸æ
+//******************************å‘é€æ¶ˆæ¯åŒ…***************************
+// !!! update_ åŽŸä¸ºsend_ æ”¹ä¸ºåªæ›´æ–°å…¨å±€å˜é‡
+// å‘é€IRST_æ´»åŠ¨è¯·æ±‚é€šå‘Š
 void send_Mess_IRST_ACT_REQ_REPORT(UINT8 activity_state, UINT8 act_refused_reason);
-// ¹¤×÷×´Ì¬±¨¸æ,²ÎÊýÎªbit°Ù·Ö±È
+// å·¥ä½œçŠ¶æ€æŠ¥å‘Š,å‚æ•°ä¸ºbitç™¾åˆ†æ¯”
 void send_Mess_WORK_STATE_REPORT(UINT32 start_remain_time, UINT32 bitpercent);
-// IRST¹¤×÷²ÎÊý±¨¸æ-¹¹Ôì
+// IRSTå·¥ä½œå‚æ•°æŠ¥å‘Š-æž„é€ 
 void make_Mess_IRST_OPERATIONAL_PARAS();
-// IRST¹¤×÷²ÎÊý±¨¸æ-·¢ËÍ
+// IRSTå·¥ä½œå‚æ•°æŠ¥å‘Š-å‘é€
 void send_Mess_IRST_OPERATIONAL_PARAS();
-// Ó²¼þÅäÖÃÐÅÏ¢±¨¸æ
+// ç¡¬ä»¶é…ç½®ä¿¡æ¯æŠ¥å‘Š
 void send_Mess_HW_CONFIG_INFO_REPORT();
-// Èí¼þÅäÖÃÐÅÏ¢±¨¸æ
+// è½¯ä»¶é…ç½®ä¿¡æ¯æŠ¥å‘Š
 void send_Mess_SW_CONFIG_INFO_REPORT();
-// ½¡¿µ¹ÜÀí_RawÊý¾Ý_IRST
+// å¥åº·ç®¡ç†_Rawæ•°æ®_IRST
 void send_Mess_PHM_DATA_RAW_IRST();
-// ½¡¿µ¹ÜÀí_EventÊý¾Ý_MS_SUB
+// å¥åº·ç®¡ç†_Eventæ•°æ®_MS_SUB
 void send_Mess_PHM_DATA_EVENT_MS_SUB();
-// ½¡¿µ¹ÜÀí_HMCÊý¾Ý_MS_SUB,i´ú±íÐèÒª·¢µÄÊÇµÚ¼¸°üÊý¾Ý,´Ó1¿ªÊ¼
+// å¥åº·ç®¡ç†_HMCæ•°æ®_MS_SUB,iä»£è¡¨éœ€è¦å‘çš„æ˜¯ç¬¬å‡ åŒ…æ•°æ®,ä»Ž1å¼€å§‹
 void send_Mess_PHM_DATA_HMC_MS_SUB(int pack_num);
-// Êý¾Ý¿âÐÅÏ¢
+// æ•°æ®åº“ä¿¡æ¯
 void send_Mess_DATABASEINFO();
-// IRSTÏñÔª²ÎÊý
+// IRSTåƒå…ƒå‚æ•°
 void send_Mess_IRST_PIXEL_PARAS();
-// ÉÏ±¨losÊý¾Ý
+// ä¸ŠæŠ¥losæ•°æ®
 void send_Mess_IRST_LOS(UINT8 data_valid);
-// ÉÏ±¨¹âµçIMUµ¼º½Êý¾Ý
+// ä¸ŠæŠ¥å…‰ç”µIMUå¯¼èˆªæ•°æ®
 void send_Mess_IR_NAV_DATA();
-// ÉÏ±¨ºìÍâ×¢ÊÍÐÅÏ¢¡ª¡ªÍ¨ÓÃ
+// ä¸ŠæŠ¥çº¢å¤–æ³¨é‡Šä¿¡æ¯â€”â€”é€šç”¨
 void send_Mess_RECONNAISED_AREA_IR_2GCS_EVENT();
-// ÉÏ±¨¿É¼û×¢ÊÍÐÅÏ¢¡ª¡ªÍ¨ÓÃ
+// ä¸ŠæŠ¥å¯è§æ³¨é‡Šä¿¡æ¯â€”â€”é€šç”¨
 void send_Mess_RECONNAISED_AREA_TV_2GCS_EVENT();
-// ÉÏ±¨ºìÍâ×¢ÊÍÐÅÏ¢¡ª¡ª¼àÊÓµ¥Ö¡
+// ä¸ŠæŠ¥çº¢å¤–æ³¨é‡Šä¿¡æ¯â€”â€”ç›‘è§†å•å¸§
 void send_Mess_RECONNAISED_AREA_IR_2GCS_EVENT_VIEW();
-// ÉÏ±¨¿É¼û×¢ÊÍÐÅÏ¢¡ª¡ª¼àÊÓµ¥Ö¡
+// ä¸ŠæŠ¥å¯è§æ³¨é‡Šä¿¡æ¯â€”â€”ç›‘è§†å•å¸§
 void send_Mess_RECONNAISED_AREA_TV_2GCS_EVENT_VIEW();
-// Çé±¨Êý¾Ý´«Êä×´Ì¬
+// æƒ…æŠ¥æ•°æ®ä¼ è¾“çŠ¶æ€
 void send_Mess_ToFC_ID_DATA_TRANSMIT_STATE(ID_DATA_TRANS_FLAG trans_State);
-//******************************¹¹½¨ÄÚ²¿ÏûÏ¢°ü***************************
-// µ÷½¹ÏûÏ¢¹¹½¨1
+//******************************æž„å»ºå†…éƒ¨æ¶ˆæ¯åŒ…***************************
+// è°ƒç„¦æ¶ˆæ¯æž„å»º1
 void make_Mess_To_TJ(UINT8 cmd, INT8 view_cmd);
-// ¿ò¼ÜÏûÏ¢¹¹½¨1
+// æ¡†æž¶æ¶ˆæ¯æž„å»º1
 void make_Mess_To_KJ(UINT8 cmd, UINT8 kf_mode);
-// Í¼Ïñ´¦ÀíÖ¸ÁîÏûÏ¢1
+// å›¾åƒå¤„ç†æŒ‡ä»¤æ¶ˆæ¯1
 void make_Mess_To_TXCL_CMD(UINT8 cmd);
-// ¹â´°ÎÂ¿Ø1
+// å…‰çª—æ¸©æŽ§1
 void make_Mess_To_GCWK();
-// µçÔ´·ÖÏµÍ³ÏûÏ¢¹¹½¨1
+// ç”µæºåˆ†ç³»ç»Ÿæ¶ˆæ¯æž„å»º1
 void make_Mess_To_DY(UINT8 work_mode, UINT8 cmd_szgd, UINT8 cmd_glgd, UINT8 cmd_rkbjgd, UINT8 cmd_rkgcgd);
-// ¹ßµ¼µ¼º½Êý¾Ý°ü1
+// æƒ¯å¯¼å¯¼èˆªæ•°æ®åŒ…1
 void make_Mess_To_PCS_DATA(UINT8 cmd);
-// Ïò¼ÇÂ¼ÒÇ·¢1
+// å‘è®°å½•ä»ªå‘1
 void make_Mess_To_JLY(UINT8 cmd);
-// ÏòÇòÄÚÊý¾Ý·¢--¿É¼ûÌ½²âÆ÷1
+// å‘çƒå†…æ•°æ®å‘--å¯è§æŽ¢æµ‹å™¨1
 void make_Mess_To_QNSJ_KJTCQ(UINT8 cmd, UINT8 data1, UINT8 data2);
-// ÏòÇòÄÚÊý¾Ý·¢--ºìÍâÌ½²âÆ÷1
+// å‘çƒå†…æ•°æ®å‘--çº¢å¤–æŽ¢æµ‹å™¨1
 void make_Mess_To_QNSJ_HWTCQ(UINT8 cmd, UINT8 data1, UINT8 data2);
-// ÏòÇòÄÚÊý¾Ý·¢--ÎÂ¿ØÌ½²âÆ÷1
+// å‘çƒå†…æ•°æ®å‘--æ¸©æŽ§æŽ¢æµ‹å™¨1
 void make_Mess_To_QNSJ_WK(UINT8 cmd);
-// ÏòFPGA·¢1
+// å‘FPGAå‘1
 void make_Mess_To_FPGA(UINT8 cmd, UINT8 irst_form_mode, UINT8 zsxx_valid);
-// Ïòµ÷¹â·¢£¨Ð´½á¹¹Ìå£©
+// å‘è°ƒå…‰å‘ï¼ˆå†™ç»“æž„ä½“ï¼‰
 void make_Mess_To_TG(UINT8 cmd, UINT8 jg_mode);
 
-// Í¼Ïñ´¦Àí×¢ÊÍÐÅÏ¢ÏûÏ¢1
+// å›¾åƒå¤„ç†æ³¨é‡Šä¿¡æ¯æ¶ˆæ¯1
 void make_Mess_To_TXCL_ZSXX();
-// Í¼Ïñ´¦Àí×¢ÊÍÐÅÏ¢ÏûÏ¢-Ê±¼äÐÅÏ¢¡¢posÐÅÏ¢»ñÈ¡
+// å›¾åƒå¤„ç†æ³¨é‡Šä¿¡æ¯æ¶ˆæ¯-æ—¶é—´ä¿¡æ¯ã€posä¿¡æ¯èŽ·å–
 void make_Mess_To_TXCL_ZSXX_Time_Pos();
 
-// ÔÚÏßÉý¼¶
-void make_Mess_To_PCS_Update(); // ¹ßµ¼Éý¼¶Êý¾Ý°ü
+// åœ¨çº¿å‡çº§
+void make_Mess_To_PCS_Update(); // æƒ¯å¯¼å‡çº§æ•°æ®åŒ…
 
-// ´¦Àí´Ófpga½ÓÊÕµ½µÄËùÓÐÏûÏ¢
+// å¤„ç†ä»ŽfpgaæŽ¥æ”¶åˆ°çš„æ‰€æœ‰æ¶ˆæ¯
 void fpga_Mess_Process();
 
-// FCÏµÍ³RTCÊ±¼ä»ñÈ¡
+// FCç³»ç»ŸRTCæ—¶é—´èŽ·å–
 UINT64 fcSysRtcGet();
 
-void test_forFpga();      // fpga²âÊÔº¯Êý
-void test_forTXCL_ZZXX(); // ×¢ÊÍÐÅÏ¢²âÊÔ
+void test_forFpga();      // fpgaæµ‹è¯•å‡½æ•°
+void test_forTXCL_ZZXX(); // æ³¨é‡Šä¿¡æ¯æµ‹è¯•
 
 // #ifdef __cplusplus
 // }

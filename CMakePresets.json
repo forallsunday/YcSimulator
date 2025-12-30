@@ -27,6 +27,15 @@
             }
         },
         {
+            "name": "linux-aarch64-multiconfig",
+            "description": "Native build for Linux ARM64 using Ninja Multi-Config",
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "${sourceDir}/build/linux-aarch64-native-multiconfig",
+            "cacheVariables": {
+                "TARGET_PLATFORM": "linux-aarch64"
+            }
+        },
+        {
             "name": "linux-aarch64-win-cross-multiconfig",
             "description": "Cross compile from Windows to Linux ARM64 using Ninja Multi-Config",
             "generator": "Ninja Multi-Config",
@@ -108,18 +117,6 @@
             "configuration": "Release"
         },
         {
-            "name": "Debug-linux-aarch64-win-cross",
-            "configurePreset": "linux-aarch64-win-cross-debug",
-            "description": "Build Debug for Linux ARM64 (Windows cross compile)",
-            "configuration": "Debug"
-        },
-        {
-            "name": "Release-linux-aarch64-win-cross",
-            "configurePreset": "linux-aarch64-win-cross-release",
-            "description": "Build Release for Linux ARM64 (Windows cross compile)",
-            "configuration": "Release"
-        },
-        {
             "name": "Debug-linux-x64-multiconfig",
             "configurePreset": "linux-x64-multiconfig",
             "description": "Build Debug for Linux x64 (Multi-Config)",
@@ -129,6 +126,30 @@
             "name": "Release-linux-x64-multiconfig",
             "configurePreset": "linux-x64-multiconfig",
             "description": "Build Release for Linux x64 (Multi-Config)",
+            "configuration": "Release"
+        },
+        {
+            "name": "Debug-linux-aarch64-multiconfig",
+            "configurePreset": "linux-aarch64-multiconfig",
+            "description": "Build Debug for Linux ARM64 (native)",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Release-linux-aarch64-multiconfig",
+            "configurePreset": "linux-aarch64-multiconfig",
+            "description": "Build Release for Linux ARM64 (native)",
+            "configuration": "Release"
+        },
+        {
+            "name": "Debug-linux-aarch64-win-cross",
+            "configurePreset": "linux-aarch64-win-cross-debug",
+            "description": "Build Debug for Linux ARM64 (Windows cross compile)",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Release-linux-aarch64-win-cross",
+            "configurePreset": "linux-aarch64-win-cross-release",
+            "description": "Build Release for Linux ARM64 (Windows cross compile)",
             "configuration": "Release"
         },
         {

@@ -7,13 +7,12 @@
 #include <string>
 #include <thread>
 
-#include <AOXEAppDef.h>
+#include <Def/AOXEAppDef.h>
 #include <MyTopicIdDef.h>
 #include <id_name.hpp>
 #include <thread_safe_queue.hpp>
 #include <udp_packet.h>
 #include <udpconnect.h>
-
 
 // udp地址 包含ip和端口
 typedef struct UdpAddress {
@@ -36,6 +35,9 @@ class ControlSimulator {
 
     void init();
 
+    bool setSend2Camera(bool send2) { is_send2camera_ = send2; };
+    bool setSend2IcpNodes(bool send2) { is_send2icpnodes_ = send2; };
+
   private:
     // 处理ICP来的数据
     void dataHandlerICP(char *data, int size);
@@ -47,6 +49,10 @@ class ControlSimulator {
     void startSend2IcpNodes();
     // 发送数据到相机仿真模型
     void startSend2Camera();
+
+    // 是否要发送
+    bool is_send2camera_   = true;
+    bool is_send2icpnodes_ = true;
 
     // ip
     std::string ip_icp_server_, ip_camera_;

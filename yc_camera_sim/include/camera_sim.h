@@ -29,12 +29,17 @@ class CameraSimulator {
     // 单步计算
     void step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output);
 
-    // 上电 delay: 上电延迟时间 单位: s
-    void powerOn(int delay);
     // 冻结
     void freeze();
+
+    // 
+    void close();
+
+    // 上电 delay: 上电延迟时间 单位: s
+    void powerOn(int delay);
     // 下电
     void powerOff();
+
 
     // 设置周期性间隔
     void setPeriodicInterval(int ms) { ps::periodic_interval = ms; };
@@ -120,7 +125,7 @@ class CameraSimulator {
     TimerPeriod timer_5ms_;
 
     // fpga
-    FpgaSimulator fpga_sim;
+    FpgaSimulator fpga_sim_;
 
     // 超时时间 (子线程阻塞时间)
     std::chrono::milliseconds timeout = std::chrono::milliseconds(10);
