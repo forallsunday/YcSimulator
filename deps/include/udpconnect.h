@@ -1,5 +1,8 @@
 #ifndef UDPCONNECT_H
 #define UDPCONNECT_H
+
+//todo: 修改以适应windows能收发
+
 #include "SocketWrapper.h"
 
 #include <atomic>

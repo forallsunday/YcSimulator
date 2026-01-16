@@ -1160,110 +1160,201 @@ void HW_JiaoZheng() {
 }
 
 // 准备检光调光处理,25-9-21
+/**
+ * @brief 检光功能函数
+ *
+ * @details 该函数负责管理检光(JianGuang)模式的初始化和执行流程。
+ *          - 初始化阶段：当允许检光时，配置所有检光参数，包括定时器、完成状态、曝光时间、
+ *            增益等参数，然后初始化参数和检查条件。
+ *          - 配置阶段：循环配置可见光探测器(KJ)和红外探测器(HW)的曝光时间和增益参数，
+ *            通过与QNSJ模块的通信来发送和接收配置命令。
+ *          - 执行阶段：当配置完成后，根据检光模式(广域成像、区域成像或监视模式)
+ *            执行相应的扫描或凝视操作。
+ *
+ * @note 该函数采用状态机设计，通过TG_Light_Allow和相关标志位来控制执行流程的推进。
+ *       KJSendCmd_cnt和HWSendCmd_cnt用于标识命令发送的序列号。
+ *
+ * @return void
+ *
+ * @see TGParam_Init()
+ * @see TGCondition()
+ * @see TG_State_Flag()
+ * @see SendKJTCQ_Param()
+ * @see SendHWTCQ_Param()
+ * @see ScanJG()
+ * @see GazeJG()
+ */
 void JianGuang() {
+    // 检查是否允许进行检光
     if (1 == tg_Param.TG_Light_Allow) {
-        tg_Param.KJTG_ENTIMER        = 1;
-        tg_Param.HWTG_ENTIMER        = 1;
-        tg_Param.KJJG_Completed      = 4;
-        tg_Param.HWJG_Completed      = 4;
-        tg_Param.KJ_ExpTime          = 20;
-        tg_Param.KJ_AGain            = 3;
-        tg_Param.KJ_AGain_mtpl       = 4.2;
-        tg_Param.HW_ExpTime          = 6000;
-        tg_Param.HW_Gain             = 1;
+        // 设置可见调光准入次数为1
+        tg_Param.KJTG_ENTIMER = 1;
+        // 设置红外调光准入次数为1
+        tg_Param.HWTG_ENTIMER = 1;
+        // 设置可见检光完成标志位为4
+        tg_Param.KJJG_Completed = 4;
+        // 设置红外检光完成标志位为4
+        tg_Param.HWJG_Completed = 4;
+        // 设置可见曝光时间为20
+        tg_Param.KJ_ExpTime = 20;
+        // 设置可见模拟增益为3
+        tg_Param.KJ_AGain = 3;
+        // 设置可见模拟增益倍数为4.2
+        tg_Param.KJ_AGain_mtpl = 4.2;
+        // 设置红外积分时间为6000
+        tg_Param.HW_ExpTime = 6000;
+        // 设置红外增益为1
+        tg_Param.HW_Gain = 1;
+        // 清除可见探测器检光配置完成标志位
         tg_Param.KJTCQ_JGConfig_Flag = 0;
+        // 清除红外探测器检光配置完成标志位
         tg_Param.HWTCQ_JGConfig_Flag = 0;
+        // 调光参数初始化
         TGParam_Init();
+        // 检查调光条件
         TGCondition();
+        // 设置调光状态为0
         TG_State_Flag(0, 0, 0, 0, 0);
+        // 清除检光允许标志位
         tg_Param.TG_Light_Allow = 0;
     } else {
+        // 检查检光状态是否为未开始
         if (0 == mess_From_TG.JianGuang) {
+            // 检查可见和红外探测器配置是否完成
             if ((tg_Param.KJTCQ_JGConfig_Flag == 1) && (tg_Param.HWTCQ_JGConfig_Flag == 1)) {
+                // 调光参数初始化
                 TGParam_Init();
+                // 设置检光状态为正在检光
                 TG_State_Flag(1, 0, 0, 0, 0);
             }
-            if (0 == tg_Param.KJSendCmd_cnt) // 配置可见探测器曝光时间2ms
+            // 检查可见发送命令计数器是否为0
+            if (0 == tg_Param.KJSendCmd_cnt) // 配置可见探测器曝光时间
             {
+                // 检查是否未发送消息
                 if (0 == tg_Param.KJRecMsg_TimerON) {
+                    // 将曝光时间高字节赋值
                     tg_Param.KJ_ExpTimeH8 = ((UINT16)tg_Param.KJ_ExpTime >> 8) & 0x00FF;
+                    // 将曝光时间低字节赋值
                     tg_Param.KJ_ExpTimeL8 = (UINT16)tg_Param.KJ_ExpTime & 0x00FF;
+                    // 制作发送给QNSJ的消息：设置可见曝光时间
                     make_Mess_To_QNSJ_KJTCQ(KJTCQ_CMD_ExpTimeSet, tg_Param.KJ_ExpTimeL8, tg_Param.KJ_ExpTimeH8);
+                    // 发送可见探测器参数
                     SendKJTCQ_Param(KJTCQ_CMD_ExpTimeSet);
                 } else {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.KJRecMsg_TimerON) && (tg_Param.KJRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.KJCOMCNT_Flag == 1) {
+                            // 将可见发送命令计数器更新为1，清除错误标志
                             RecKJTCQ_Param(0, 1, 0, 0);
                         }
                     } else {
+                        // 等待超时，置错误标志并更新计数器为1
                         RecKJTCQ_Param(1, 1, 0, 0);
                     }
                 }
             } else if (1 == tg_Param.KJSendCmd_cnt) // 配置可见模拟增益
             {
+                // 检查是否未发送消息
                 if (0 == tg_Param.KJRecMsg_TimerON) {
+                    // 制作发送给QNSJ的消息：设置可见模拟增益
                     make_Mess_To_QNSJ_KJTCQ(KJTCQ_CMD_AGainSet, tg_Param.KJ_AGain, TCQ_Send_NULL);
+                    // 发送可见探测器参数
                     SendKJTCQ_Param(KJTCQ_CMD_AGainSet);
                 } else {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.KJRecMsg_TimerON) && (tg_Param.KJRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.KJCOMCNT_Flag == 1) {
+                            // 将可见发送命令计数器更新为2，清除错误标志
                             RecKJTCQ_Param(0, 2, 0, 0);
                         }
                     } else {
+                        // 等待超时，置错误标志并更新计数器为2
                         RecKJTCQ_Param(1, 2, 0, 0);
                     }
                 }
             } else {
+                // 配置完成，发送空指令
                 make_Mess_To_QNSJ_KJTCQ(TCQ_Send_NULL, TCQ_Send_NULL, TCQ_Send_NULL);
+                // 发送空指令
                 SendKJTCQ_Param(TCQ_Send_NULL);
+                // 设置可见探测器检光配置完成标志位
                 tg_Param.KJTCQ_JGConfig_Flag = 1;
             }
+            // 检查红外发送命令计数器是否为0
             if (0 == tg_Param.HWSendCmd_cnt) // 设置红外积分时间
             {
+                // 检查是否未发送消息
                 if (0 == tg_Param.HWRecMsg_TimerON) {
+                    // 将积分时间低字节赋值
                     tg_Param.HW_ExpTimeL8 = tg_Param.HW_ExpTime & 0x00FF;
+                    // 将积分时间高字节赋值
                     tg_Param.HW_ExpTimeH8 = (tg_Param.HW_ExpTime >> 8) & 0x00FF;
+                    // 制作发送给QNSJ的消息：设置红外积分时间
                     make_Mess_To_QNSJ_HWTCQ(HWTCQ_CMD_ExpTimeSet, tg_Param.HW_ExpTimeL8, tg_Param.HW_ExpTimeH8);
+                    // 发送红外探测器参数
                     SendHWTCQ_Param(HWTCQ_CMD_ExpTimeSet);
                 } else {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.HWRecMsg_TimerON) && (tg_Param.HWRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.HWCOMCNT_Flag == 1) {
+                            // 将红外发送命令计数器更新为1，清除错误标志
                             RecHWTCQ_Param(0, 1, 0, 0);
                         }
                     } else {
+                        // 等待超时，置错误标志并更新计数器为1
                         RecHWTCQ_Param(1, 1, 0, 0);
                     }
                 }
             } else if (1 == tg_Param.HWSendCmd_cnt) // 设置红外增益
             {
+                // 检查是否未发送消息
                 if (0 == tg_Param.HWRecMsg_TimerON) {
+                    // 制作发送给QNSJ的消息：设置红外积分增益
                     make_Mess_To_QNSJ_HWTCQ(HWTCQ_CMD_IntegGainSet, HWTCQ_INTTYPE_ITR, tg_Param.HW_Gain);
+                    // 发送红外探测器参数
                     SendHWTCQ_Param(HWTCQ_CMD_IntegGainSet);
                 } else {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.HWRecMsg_TimerON) && (tg_Param.HWRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.HWCOMCNT_Flag == 1) {
+                            // 将红外发送命令计数器更新为2，清除错误标志
                             RecHWTCQ_Param(0, 2, 0, 0);
                         }
                     } else {
+                        // 等待超时，置错误标志并更新计数器为2
                         RecHWTCQ_Param(1, 2, 0, 0);
                     }
                 }
             } else {
+                // 配置完成，发送空指令
                 make_Mess_To_QNSJ_HWTCQ(TCQ_Send_NULL, TCQ_Send_NULL, TCQ_Send_NULL);
+                // 发送空指令
                 SendHWTCQ_Param(TCQ_Send_NULL);
+                // 设置红外探测器检光配置完成标志位
                 tg_Param.HWTCQ_JGConfig_Flag = 1;
             }
         } else {
+            // 检查检光状态是否为正在检光
             if (1 == mess_From_TG.JianGuang) {
+                // 检查检光是否完成
                 if ((tg_Param.KJJG_Completed == 1) && (tg_Param.HWJG_Completed == 1)) {
+                    // 调光参数初始化
                     TGParam_Init();
+                    // 设置检光状态为检光完成
                     TG_State_Flag(2, 0, 0, 0, 0);
                 }
+                // 检查检光模式是否为广域成像或区域成像
                 if ((JTGMODE_GY == mess_To_TG.JG_Mode) || (JTGMODE_QY == mess_To_TG.JG_Mode)) // 广域成像、区域成像
                 {
+                    // 执行广域检光处理
                     ScanJG();
                 } else // 监视
                 {
+                    // 执行监视检光处理
                     GazeJG();
                 }
             }
@@ -1641,48 +1732,85 @@ void GazeJG() {
 }
 
 // 广域检光处理,25-9-21
+// 广域检光处理,25-9-21
 void ScanJG() {
+    // 可见探测器检光处理
     if (tg_Param.KJJG_Completed > 1) {
+        // 检查可见信号速度位置信号是否为0（未完成采集）
         if (0 == SIG_SDWZ) {
+            // 读取可见图像灰度均值
             KJImg_GetGray();
+            // 使能可见图像灰度分析
             tg_Param.KJTG_Anal_EN = 1;
         } else {
+            // 可见图像分析使能
             if (1 == tg_Param.KJTG_Anal_EN) {
+                // 禁用可见图像灰度分析
                 tg_Param.KJTG_Anal_EN = 0;
+                // 执行可见图像灰度分析
                 KJImg_Analyse();
+                // 禁用可见曝光计算
                 tg_Param.KJTG_Calc_EN = 0;
+                // 计算可见探测器曝光时间
                 KJTCQ_CaculateExp();
+                // 将曝光时间高字节赋值
                 tg_Param.KJ_ExpTimeH8 = ((UINT16)tg_Param.KJ_ExpTime >> 8) & 0x00FF;
+                // 将曝光时间低字节赋值
                 tg_Param.KJ_ExpTimeL8 = (UINT16)tg_Param.KJ_ExpTime & 0x00FF;
+                // 制作发送给QNSJ的消息：设置可见曝光时间
                 make_Mess_To_QNSJ_KJTCQ(KJTCQ_CMD_ExpTimeSet, tg_Param.KJ_ExpTimeL8, tg_Param.KJ_ExpTimeH8);
+                // 发送可见探测器参数
                 SendKJTCQ_Param(KJTCQ_CMD_ExpTimeSet);
+                // 使能发送曝光时间
                 SendKJTCQ_TGParam(1, 0, 0, 0);
             } else {
+                // 可见曝光时间发送处理
                 if (tg_Param.SendKJTime_EN == 1) {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.KJRecMsg_TimerON) && (tg_Param.KJRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.KJCOMCNT_Flag == 1) {
+                            // 使能发送模拟增益
                             SendKJTCQ_TGParam(0, 1, 0, 0);
+                            // 制作发送给QNSJ的消息：设置可见模拟增益
                             make_Mess_To_QNSJ_KJTCQ(KJTCQ_CMD_AGainSet, tg_Param.KJ_AGain, TCQ_Send_NULL);
+                            // 发送可见探测器参数
                             SendKJTCQ_Param(KJTCQ_CMD_AGainSet);
                         }
                     } else {
+                        // 等待超时处理
+                        // 使能发送模拟增益
                         SendKJTCQ_TGParam(0, 1, 0, 0);
+                        // 制作发送给QNSJ的消息：设置可见模拟增益
                         make_Mess_To_QNSJ_KJTCQ(KJTCQ_CMD_AGainSet, tg_Param.KJ_AGain, TCQ_Send_NULL);
+                        // 发送可见探测器参数
                         SendKJTCQ_Param(KJTCQ_CMD_AGainSet);
+                        // 置标志位表示可见通信错误
                         tg_Param.KJComErr = 1;
                     }
                 }
+                // 可见模拟增益发送处理
                 if (tg_Param.SendKJGain_EN == 1) {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.KJRecMsg_TimerON) && (tg_Param.KJRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.KJCOMCNT_Flag == 1) {
+                            // 可见检光完成次数递减
                             tg_Param.KJJG_Completed = tg_Param.KJJG_Completed - 1;
+                            // 禁用所有可见调光参数发送
                             SendKJTCQ_TGParam(0, 0, 0, 0);
+                            // 清零可见调光计数
                             tg_Param.KJTG_Count = 0;
                         }
                     } else {
+                        // 等待超时处理
+                        // 可见检光完成次数递减
                         tg_Param.KJJG_Completed = tg_Param.KJJG_Completed - 1;
-                        tg_Param.KJComErr       = 1;
+                        // 置标志位表示可见通信错误
+                        tg_Param.KJComErr = 1;
+                        // 禁用所有可见调光参数发送
                         SendKJTCQ_TGParam(0, 0, 0, 0);
+                        // 清零可见调光计数
                         tg_Param.KJTG_Count = 0;
                     }
                 }
@@ -1690,47 +1818,83 @@ void ScanJG() {
         }
     }
 
+    // 红外探测器检光处理
     if (tg_Param.HWJG_Completed > 1) {
+        // 检查红外信号速度位置信号是否为0（未完成采集）
         if (0 == SIG_SDWZ) {
-            HWImg_GetGray(); // 采集红外图像灰度均值
+            // 读取红外图像灰度均值
+            HWImg_GetGray();
+            // 使能红外图像灰度分析
             tg_Param.HWTG_Anal_EN = 1;
         } else {
+            // 红外图像分析处理
             if (1 == tg_Param.HWTG_Anal_EN) {
+                // 禁用红外图像灰度分析
                 tg_Param.HWTG_Anal_EN = 0;
+                // 执行红外图像灰度分析
                 HWImg_Analyse();
+                // 禁用红外曝光计算
                 tg_Param.HWTG_Calc_EN = 0;
-                HWTCQ_CaculateExp(); // 计算红外图像的积分时间
+                // 计算红外探测器积分时间
+                HWTCQ_CaculateExp();
+                // 将积分时间低字节赋值
                 tg_Param.HW_ExpTimeL8 = tg_Param.HW_ExpTime & 0x00FF;
+                // 将积分时间高字节赋值
                 tg_Param.HW_ExpTimeH8 = (tg_Param.HW_ExpTime >> 8) & 0x00FF;
+                // 制作发送给QNSJ的消息：设置红外积分时间
                 make_Mess_To_QNSJ_HWTCQ(HWTCQ_CMD_ExpTimeSet, tg_Param.HW_ExpTimeL8, tg_Param.HW_ExpTimeH8);
+                // 发送红外探测器参数
                 SendHWTCQ_Param(HWTCQ_CMD_ExpTimeSet);
+                // 使能发送积分时间
                 SendHWTCQ_TGParam(1, 0, 0, 0, 0);
             } else {
+                // 红外积分时间发送处理
                 if (tg_Param.SendHWTime_EN == 1) {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.HWRecMsg_TimerON) && (tg_Param.HWRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.HWCOMCNT_Flag == 1) {
+                            // 使能发送积分增益
                             SendHWTCQ_TGParam(0, 1, 0, 0, 0);
+                            // 制作发送给QNSJ的消息：设置红外积分增益
                             make_Mess_To_QNSJ_HWTCQ(HWTCQ_CMD_IntegGainSet, HWTCQ_INTTYPE_ITR, tg_Param.HW_Gain);
+                            // 发送红外探测器参数
                             SendHWTCQ_Param(HWTCQ_CMD_IntegGainSet);
                         }
                     } else {
+                        // 等待超时处理
+                        // 使能发送积分增益
                         SendHWTCQ_TGParam(0, 1, 0, 0, 0);
+                        // 置标志位表示红外通信错误
                         tg_Param.HWComErr = 1;
+                        // 制作发送给QNSJ的消息：设置红外积分增益
                         make_Mess_To_QNSJ_HWTCQ(HWTCQ_CMD_IntegGainSet, HWTCQ_INTTYPE_ITR, tg_Param.HW_Gain);
+                        // 发送红外探测器参数
                         SendHWTCQ_Param(HWTCQ_CMD_IntegGainSet);
                     }
                 }
+                // 红外积分增益发送处理
                 if (tg_Param.SendHWGain_EN == 1) {
+                    // 检查是否收到反馈消息且在超时范围内
                     if ((1 == tg_Param.HWRecMsg_TimerON) && (tg_Param.HWRecMsg_Timer < TCQCOM_WAITTIME_MAX)) {
+                        // 检查通信内容标志位
                         if (tg_Param.HWCOMCNT_Flag == 1) {
+                            // 红外检光完成次数递减
                             tg_Param.HWJG_Completed = tg_Param.HWJG_Completed - 1;
+                            // 禁用所有红外调光参数发送
                             SendHWTCQ_TGParam(0, 0, 0, 0, 0);
+                            // 清零红外调光计数
                             tg_Param.HWTG_Count = 0;
                         }
                     } else {
+                        // 等待超时处理
+                        // 红外检光完成次数递减
                         tg_Param.HWJG_Completed = tg_Param.HWJG_Completed - 1;
-                        tg_Param.HWComErr       = 1;
+                        // 置标志位表示红外通信错误
+                        tg_Param.HWComErr = 1;
+                        // 禁用所有红外调光参数发送
                         SendHWTCQ_TGParam(0, 0, 0, 0, 0);
+                        // 清零红外调光计数
                         tg_Param.HWTG_Count = 0;
                     }
                 }
@@ -2180,7 +2344,11 @@ void KJImg_Analyse() {
     for (index1 = 1; index1 < tg_Param.KJImageGray_INDEX; index1++) {
         tg_Param.KJImageGray_Value = tg_Param.KJImageGray_Value + tg_Param.KJImageGray[index1];
     }
-    tg_Param.KJImageGray_Value = tg_Param.KJImageGray_Value / tg_Param.KJImageGray_INDEX;
+    // todo: 调光逻辑上除以0了
+    // tg_Param.KJImageGray_Value = tg_Param.KJImageGray_Value / tg_Param.KJImageGray_INDEX;
+    // lcy: 20260113
+    tg_Param.KJImageGray_Value = 123;
+
     if ((tg_Param.KJImageGray_Value < 0) || (tg_Param.KJImageGray_Value > 4095)) // 读取图像灰度值错误
     {
         tg_Param.KJImageGray_Value_Update = 1;
@@ -2234,7 +2402,11 @@ void HWImg_Analyse() {
     for (index1 = 1; index1 < tg_Param.HWImageGray_INDEX; index1++) {
         tg_Param.HWImageGray_Value = tg_Param.HWImageGray_Value + tg_Param.HWImageGray[index1];
     }
-    tg_Param.HWImageGray_Value = tg_Param.HWImageGray_Value / tg_Param.HWImageGray_INDEX;
+
+    // tg_Param.HWImageGray_Value = tg_Param.HWImageGray_Value / tg_Param.HWImageGray_INDEX;
+    // lcy: 20260113
+    tg_Param.HWImageGray_Value = 1234;
+
     if ((tg_Param.HWImageGray_Value < 10) || (tg_Param.HWImageGray_Value > 16383)) // 读取图像灰度值错误
     {
         tg_Param.HWImageGray_Value_Update = 1;
@@ -2284,47 +2456,86 @@ void HWImg_Analyse() {
 }
 
 // 可见曝光计算,25-10-3
+/**
+ * @brief 自动曝光时间和模拟增益计算函数
+ * @details 根据图像灰度值与目标灰度值的偏差，自动调整曝光时间和模拟增益倍数，
+ *          实现图像自动曝光控制功能
+ * @return void
+ * @note 函数会修改全局结构体 tg_Param 中的以下成员：
+ *       - KJ_ExpTime: 曝光时间
+ *       - KJ_AGain: 模拟增益档位（0-3）
+ *       - KJ_AGain_mtpl: 模拟增益倍数
+ *       - KJ_ExpMultiply_float: 曝光时间倍数计算值
+ *       - KJ_ExpTime_float: 浮点型曝光时间
+ */
 void KJTCQ_CaculateExp() {
+    // 定义临时变量，用于保存整型曝光时间
     INT32 KJExpTime_temp;
+
+    // 若图像灰度值过高且曝光时间已至最小且增益为0，则锁定在最小曝光时间和零增益状态
     if ((tg_Param.KJImageGray_Value > tg_Param.KJimg_ValueGZhigh) && (tg_Param.KJ_ExpTime <= KJEXPTIME_MIN) && (tg_Param.KJ_AGain == 0)) {
-        tg_Param.KJ_ExpTime    = KJEXPTIME_MIN;
-        tg_Param.KJ_AGain      = 0;
-        tg_Param.KJ_AGain_mtpl = 1.0;
-    } else if ((tg_Param.KJImageGray_Value < tg_Param.KJimg_ValueGZlow) && (tg_Param.KJ_ExpTime >= KJEXPTIME_MAX) && (tg_Param.KJ_AGain == 3)) {
-        tg_Param.KJ_ExpTime    = KJEXPTIME_MAX;
-        tg_Param.KJ_AGain      = 3;
-        tg_Param.KJ_AGain_mtpl = 4.2;
-    } else {
+        tg_Param.KJ_ExpTime    = KJEXPTIME_MIN; // 设置曝光时间为最小值
+        tg_Param.KJ_AGain      = 0;             // 设置增益档位为0
+        tg_Param.KJ_AGain_mtpl = 1.0;           // 设置增益倍数为1.0
+    }
+    // 若图像灰度值过低且曝光时间已至最大且增益为3，则锁定在最大曝光时间和最大增益状态
+    else if ((tg_Param.KJImageGray_Value < tg_Param.KJimg_ValueGZlow) && (tg_Param.KJ_ExpTime >= KJEXPTIME_MAX) && (tg_Param.KJ_AGain == 3)) {
+        tg_Param.KJ_ExpTime    = KJEXPTIME_MAX; // 设置曝光时间为最大值
+        tg_Param.KJ_AGain      = 3;             // 设置增益档位为3
+        tg_Param.KJ_AGain_mtpl = 4.2;           // 设置增益倍数为4.2
+    }
+    // 其他情况下进行动态曝光调整
+    else {
+        // 计算曝光时间倍数：当前曝光值 × 当前增益倍数 × (目标灰度/当前灰度)
         tg_Param.KJ_ExpMultiply_float = tg_Param.KJ_ExpTime * tg_Param.KJ_AGain_mtpl * (tg_Param.KJimg_ValueTarget * 1.0) / (tg_Param.KJImageGray_Value * 1.0);
+
+        // 根据计算出的曝光倍数，选择合适的增益档位和增益倍数
         if (tg_Param.KJ_ExpMultiply_float >= 42.0) {
+            // 曝光倍数 >= 42.0，设置最高增益档位3，增益倍数4.2
             tg_Param.KJ_AGain      = 3;
             tg_Param.KJ_AGain_mtpl = 4.2;
         } else if ((tg_Param.KJ_ExpMultiply_float < 42.0) && (tg_Param.KJ_ExpMultiply_float >= 20.0)) {
+            // 曝光倍数在[20.0, 42.0)范围内，设置增益档位2，增益倍数2.0
             tg_Param.KJ_AGain      = 2;
             tg_Param.KJ_AGain_mtpl = 2.0;
         } else if ((tg_Param.KJ_ExpMultiply_float < 20.0) && (tg_Param.KJ_ExpMultiply_float >= 13.0)) {
+            // 曝光倍数在[13.0, 20.0)范围内，设置增益档位1，增益倍数1.3
             tg_Param.KJ_AGain      = 1;
             tg_Param.KJ_AGain_mtpl = 1.3;
         } else {
+            // 曝光倍数 < 13.0，设置最低增益档位0，增益倍数1.0
             tg_Param.KJ_AGain      = 0;
             tg_Param.KJ_AGain_mtpl = 1.0;
         }
+
+        // 根据新增益倍数计算新的曝光时间（浮点数）
         tg_Param.KJ_ExpTime_float = tg_Param.KJ_ExpMultiply_float / tg_Param.KJ_AGain_mtpl;
-        KJExpTime_temp            = (INT32)(tg_Param.KJ_ExpTime_float + 0.5);
+
+        // 将浮点型曝光时间四舍五入转换为整型
+        KJExpTime_temp = (INT32)(tg_Param.KJ_ExpTime_float + 0.5);
+
+        // 若当前曝光时间与新曝光时间的差值超过100，则每次只减少100（平缓调整）
         if (tg_Param.KJ_ExpTime >= (KJExpTime_temp + 100)) {
             tg_Param.KJ_ExpTime = tg_Param.KJ_ExpTime - 100;
-        } else {
+        }
+        // 否则直接设置为新计算的曝光时间
+        else {
             tg_Param.KJ_ExpTime = KJExpTime_temp;
         }
     }
+
+    // 对曝光时间进行边界限制，确保不超过最大值
     if (tg_Param.KJ_ExpTime > KJEXPTIME_MAX) {
         tg_Param.KJ_ExpTime = KJEXPTIME_MAX;
-    } else {
+    }
+    // 确保曝光时间不低于最小值
+    else {
         if (tg_Param.KJ_ExpTime < KJEXPTIME_MIN) {
             tg_Param.KJ_ExpTime = KJEXPTIME_MIN;
         }
     }
 }
+
 // 红外曝光计算,25-9-21
 void HWTCQ_CaculateExp() {
     if (1 == tg_Param.HW_Gain) {

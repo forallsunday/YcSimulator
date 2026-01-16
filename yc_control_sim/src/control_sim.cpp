@@ -1,4 +1,5 @@
-#include <AppTopicIdDef.h>
+#include <Def/AllAppTopicIdDef.h>
+#include <Def/AppTopicIdDef.h>
 #include <chrono>
 #include <control_sim.h>
 #include <cstring>
@@ -39,12 +40,12 @@ void ControlSimulator::init() {
     // udp连接 设置参数
     std::string ip_0 = "0.0.0.0";
 
-    udp_icp_    = std::unique_ptr<UdpConnect>(new UdpConnect(
+    udp_icp_ = std::make_unique<UdpConnect>(
         ip_0, ctrl_port_recv_icp_, -1,
-        [this](char *data, int size) { this->dataHandlerICP(data, size); }));
-    udp_camera_ = std::unique_ptr<UdpConnect>(new UdpConnect(
+        [this](char *data, int size) { this->dataHandlerICP(data, size); });
+    udp_camera_ = std::make_unique<UdpConnect>(
         ip_0, ctrl_port_recv_camera_, -1,
-        [this](char *data, int size) { this->dataHandlerCamera(data, size); }));
+        [this](char *data, int size) { this->dataHandlerCamera(data, size); });
 
     // udp连接 初始化
     if (udp_icp_->Init()) {
@@ -82,24 +83,148 @@ int ControlSimulator::sendPkt2IcpNodes(const UdpPacket *ptr_packet, std::string 
 
 void ControlSimulator::initMapTopicNodes() {
     // 初始化ICP节点映射
-
     this->map_topic_nodes_[V_TOPIC_IRRM_WORK_STATE_REPORT] = {
+        V_NODE_DCLD,
         V_NODE_MPHL,
+        V_NODE_MPHR,
         V_NODE_SYMM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_SW_CONFIG_INFO_REPORT] = {
+        V_NODE_SYMM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_SW_LOAD_STATE_REPORT_OMP] = {
+        V_NODE_DCLD,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_SPECIAL_MAINT_DATA] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_RECONNAISED_AREA_IR_2GCS_EVENT] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_RECONNAISED_AREA_TV_2GCS_EVENT] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_PHM_DATA_RAW_IRST] = {
         V_NODE_MPHR,
     };
 
-    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS] = {
-        V_NODE_IIPM,
-        V_NODE_DCLD,
-        V_NODE_TMMM,
+    this->map_topic_nodes_[V_TOPIC_IRRM_PHM_DATA_HMC_MS_SUB] = {
+        V_NODE_MPHL,
+        V_NODE_MPHR,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_PHM_DATA_EVENT_MS_SUB] = {
+        V_NODE_MPHL,
+        V_NODE_MPHR,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_PHM_DATA_RAW_IRST] = {
+        // 对应 "PHM DATA RAW IRST"
+        V_NODE_MPHL,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_LSR_CALIBRATE_PARAS] = {
+        V_NODE_DCLM,
         V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_TGT_DOT_CORRELATION_DATA_REPORT] = {
+        V_NODE_CPEG,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_PIXEL_PARAS] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS] = {
+        V_NODE_DCLD,
         V_NODE_DCLM,
         V_NODE_DCRD,
+        V_NODE_DCRM,
+        V_NODE_IIPM,
+        V_NODE_SRMM,
+        V_NODE_TMMM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_LOS] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_COOPERATION_TGT_REPORT_I] = {
+        V_NODE_CNLA,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IRST_ACT_REQ_REPORT] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+        V_NODE_IIPM,
+        V_NODE_MPHL,
+        V_NODE_MPHR,
         V_NODE_SRMM,
     };
 
-    // todo: 根据需要添加更多节点
+    this->map_topic_nodes_[V_TOPIC_IRRM_IR_SURFACE_TRACK_REPORT] = {
+        V_NODE_TGFS,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IR_NAV_DATA] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IR_LOS_GROUND_ALT] = {
+        V_NODE_DCLM,
+        V_NODE_DCRM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IR_AA_TRACK_REPORT] = {
+        V_NODE_CPEG,
+        V_NODE_TGFA,
+        V_NODE_TGFI,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_IR_AA_SEARCH_REPORT] = {
+        V_NODE_TGFA,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_HW_CONFIG_INFO_REPORT] = {
+        V_NODE_SYMM,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_FILE_LOAD_STATE_REPORT] = {
+        V_NODE_SYMD,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_DATABASEINFO] = {
+        V_NODE_SYMD,
+    };
+
+    this->map_topic_nodes_[V_TOPIC_IRRM_BURST_PARAS] = {
+        V_NODE_RDRM,
+        V_NODE_SRMM,
+    };
+
+    //todo: 确认818这几个 topicId 要发送到哪些节点
+    // this->map_topic_nodes_[V_TOPIC_IRRM_A818_E0_IMAGE] = {
+    //     V_NODE_G017,
+    // };
+    // this->map_topic_nodes_[V_TOPIC_IRRM_NORMAL_IMAGE_818] = {
+    //     V_NODE_G018,
+    // };
+    // this->map_topic_nodes_[V_TOPIC_IRRM_GENERAL_VIDEO] = {
+    //     V_NODE_G019,
+    // };
 }
 
 void ControlSimulator::dataHandlerICP(char *data, int size) {
@@ -109,9 +234,9 @@ void ControlSimulator::dataHandlerICP(char *data, int size) {
         size = sizeof(UdpPacket); // 避免越界
     }
 
-    auto ptr_packet = PtrUdpPacket(new UdpPacket());
+    auto ptr_packet = PtrUdpPacket(std::make_unique<UdpPacket>());
     std::memcpy(ptr_packet.get(), data, size);
-    INFO_UDP_PACKET_RECV(*ptr_packet);
+    LOG_INFO_UDP_RECV(*ptr_packet);
 
     // 只接收 发送到 IRRM的包
     if (ptr_packet->dest == V_NODE_IRRM) {
@@ -131,7 +256,7 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
         // return;
     }
 
-    auto ptr_packet = PtrUdpPacket(new UdpPacket());
+    auto ptr_packet = PtrUdpPacket(std::make_unique<UdpPacket>());
     std::memcpy(ptr_packet.get(), data, size);
 
     // //!!! 不发送到icp
@@ -146,7 +271,7 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
             // 不打印 ok msg
         } else {
             // 如果是其他消息
-            // INFO_UDP_PACKET_RECV(*ptr_packet);
+            // LOG_INFO_UDP_RECV(*ptr_packet);
             queue_from_camera_.push(std::move(ptr_packet));
         }
     }
@@ -194,7 +319,7 @@ void ControlSimulator::startSendOkMsg() {
 
                 for (auto &pkt : packets) {
                     pkt.dest = node;
-                    // INFO_UDP_PACKET_SEND(node_name, ip.c_str(), port, pkt);
+                    // LOG_INFO_UDP_SEND(node_name, ip.c_str(), port, pkt);
                     this->sendPkt2IcpNodes(&pkt, ip.c_str(), port);
                 }
             } else {
@@ -233,7 +358,7 @@ void ControlSimulator::startSend2Camera() {
             if (queue_from_icp_.waitForAndPop(ptr_packet, this->timeout)) {
                 // if (queue_from_camera_.waitForAndPop(ptr_packet, this->timeout)) { // Note: 测试从Camera收
                 // 没有竞争条件 不用加锁
-                INFO_UDP_PACKET_SEND("相机仿真", ip_camera_.c_str(), cam_port_, *ptr_packet);
+                LOG_INFO_UDP_SEND("相机仿真", ip_camera_.c_str(), cam_port_, *ptr_packet);
                 this->sendPkt2Camera(ptr_packet.get());
             }
         } // 这里 packet 超出作用域，它会自动 delete UdpPacket
@@ -279,7 +404,7 @@ void ControlSimulator::startSend2IcpNodes() {
                     auto pkt = *ptr_packet; // 拷贝一份 避免多线程混乱
                     // 修改 packet 发送到的节点
                     pkt.dest = node;
-                    INFO_UDP_PACKET_SEND("ICP Nodes 节点", ip.c_str(), port, pkt);
+                    LOG_INFO_UDP_SEND("ICP Nodes 节点", ip.c_str(), port, pkt);
                     // 现在camera 发送过来的包没有发送标记了, 在这里打发送标记
                     pkt.topicId = SEND_TOPIC | topic_id;
 
@@ -296,7 +421,7 @@ void ControlSimulator::startSend2IcpNodes() {
                     // 修改 packet 发送到的节点
                     pkt.dest    = V_NODE_ADAS;
                     pkt.topicId = SEND_TOPIC | topic_id;
-                    INFO_UDP_PACKET_SEND("V_NODE_ADAS 监控", ip_adas.c_str(), port_adas, pkt);
+                    LOG_INFO_UDP_SEND("V_NODE_ADAS 监控", ip_adas.c_str(), port_adas, pkt);
                     this->sendPkt2IcpNodes(&pkt, ip_adas, port_adas);
                 }
             }

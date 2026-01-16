@@ -22,18 +22,23 @@ CameraSimulator::CameraSimulator(int port, std::string ip_control, int port_dst)
 
 void CameraSimulator::init() {
 
-    // 设置周期性发送间隔
-    ps::periodic_interval = PERIOD_TASK_TIME;
+    if (!already_initialized) {
 
-    // UDP线程
-    startUdpConnect();
-    // 心跳线程
-    startHeartbitting();
-    // 共享内存输入参数 指针映射
-    pointShmInputParams();
+        // 设置周期性发送间隔
+        ps::periodic_interval = PERIOD_TASK_TIME;
 
-    // FPGA 模拟器 初始化
-    fpga_sim_.init();
+        // UDP线程
+        startUdpConnect();
+        // 心跳线程
+        startHeartbitting();
+        // 共享内存输入参数 指针映射
+        pointShmInputParams();
+
+        // FPGA 模拟器 初始化
+        fpga_sim_.init();
+
+        this->already_initialized = true;
+    }
 }
 
 void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output) {
@@ -106,80 +111,6 @@ void CameraSimulator::updateShmOutput() {
     this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData = unit_status_data;
 }
 
-void CameraSimulator::udpEventRecv(char *data, int size) {
-    // 如果没有上电 则不处理
-    if (power_status_ != POWER_ON)
-        return;
-
-    // 检查数据大小
-    if (size > sizeof(UdpPacket)) {
-        log_warn("Received data size (%d) > UdpPacket size (%zu)", size, sizeof(UdpPacket));
-        size = sizeof(UdpPacket); // 避免越界
-    }
-
-    auto ptr_packet = PtrUdpPacket(new UdpPacket());
-    std::memcpy(ptr_packet.get(), data, size);
-
-    INFO_UDP_PACKET_RECV(*ptr_packet);
-
-    // 将收到的消息放入对应队列中
-    auto topic_id = ptr_packet->topicId;
-    switch (topic_id) {
-    case V_TOPIC_IRST_ACT_REQ:
-        sq::sq_IRST_act_req.push(std::move(ptr_packet));
-        break;
-    case V_TOPIC_SYMM_SYM_OPERATIONAL_PARAS:
-    case V_TOPIC_SYMD_DATA_LOAD_MSG_IRRM:
-        sq::sq_others.push(std::move(ptr_packet));
-        break;
-        // Note: 缓存参数信息
-        // 系统管理时间信息报告
-    case V_TOPIC_SYMM_SYM_TIME_REPORT:
-        localUpdate(temp_mess_FromFc_SYM_TIME_REPORT, ptr_packet.get());
-        break;
-        // INS1工作参数报告
-    case V_TOPIC_IN1M_INS1_OPERATIONAL_PARAS:
-        localUpdate(temp_mess_FromFc_INS1_OPERATIONAL_PARAS, ptr_packet.get());
-        break;
-        // INS2工作参数报告
-    case V_TOPIC_IN2M_INS2_OPERATIONAL_PARAS:
-        localUpdate(temp_mess_FromFc_INS2_OPERATIONAL_PARAS, ptr_packet.get());
-        break;
-        // INS3工作参数报告
-    case V_TOPIC_IN3M_INS3_OPERATIONAL_PARAS:
-        localUpdate(temp_mess_FromFc_INS3_OPERATIONAL_PARAS, ptr_packet.get());
-        break;
-    // 绝对导航融合飞行参数
-    case V_TOPIC_NAFM_ABSOLUTE_NAV_DATA_FUSED:
-        localUpdate(temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED, ptr_packet.get());
-        break;
-    // 导航参数报告
-    case V_TOPIC_NAV_PARAS:
-        localUpdate(temp_mess_FromFc_NAV_PARAS, ptr_packet.get());
-        break;
-    // 战术任务事件报告（事件类，通常入队）
-    case V_TOPIC_TMMM_MISSION_EVENT_REPORT:
-        localUpdate(temp_mess_FromFc_MISSION_EVENT_REPORT, ptr_packet.get());
-        break;
-
-    // // 内部存储消息（FLASH 相关）
-    // case V_TOPIC_NEIBU_MESS:
-    //     msgUpdate(msg_recv.m_HWINFO_FLASH, ptr_packet.get());
-    //     // 如需要同步写 flash，可在 msgUpdate 内或此处处理
-    //     break;
-    // // 静态成像使用消息
-    // case V_TOPIC_JT_PHOTO:
-    //     msgUpdate(msg_recv.m_JT_PHOTO, ptr_packet.get());
-    //     break;
-
-    // ===================== 默认 =====================
-    default:
-        // 其他消息暂不处理
-        break;
-    }
-    // todo: 5微秒延时？
-}
-
 void CameraSimulator::startTaskThreads() {
     // 任务线程启动
     startMainControl();
@@ -212,8 +143,8 @@ void CameraSimulator::startHeartbitting() {
 
 void CameraSimulator::startUdpConnect() {
     // 初始化udp连接 设置接受函数
-    udpTransInit(port_, ip_contrl_.c_str(), port_dst_,
-                 [this](char *data, int size) { this->udpEventRecv(data, size); });
+    // udpTransInit(port_, ip_contrl_.c_str(), port_dst_, [this](char *data, int size) { this->udpEventRecv(data, size); });
+    udpTransInit(port_, ip_contrl_.c_str(), port_dst_);
 }
 
 void CameraSimulator::startMainControl() {
@@ -373,6 +304,8 @@ void CameraSimulator::close() {
         thread_heartbit_.join();
 
     udpTransClose();
+
+    this->already_initialized = false;
 
     log_info("[CameraSimulator] All threads stopped");
 }

@@ -31,6 +31,7 @@
 
 // lcy add.
 #include <cstring>
+#include <log_def.h>
 #include <udp_trans.h>
 #include <utils.h>
 
@@ -851,9 +852,8 @@ void make_Mess_To_KJ(UINT8 cmd, UINT8 kf_mode) {
     mess_To_KJ.toKJ_pitch_end       = param_Compute_Output.toKJ_pitch_end * 10000;       // 框架俯仰指令   结束角（LSB=0.0001°）
     mess_To_KJ.toKJ_direction_start = param_Compute_Output.toKJ_direction_start * 10000; // 框架方位指令   起始角（LSB=0.0001°）
     mess_To_KJ.toKJ_direction_end   = param_Compute_Output.toKJ_direction_end * 10000;   // 框架方位指令   结束角（LSB=0.0001°）
-
-    mess_To_KJ.toKJ_pitch_speed     = param_Compute_Output.toKJ_pitch_speed * 100;     // 框架俯仰扫描速度指令（LSB=0.01°/s）
-    mess_To_KJ.toKJ_direction_speed = param_Compute_Output.toKJ_direction_speed * 100; // 框架方位扫描速度指令（LSB=0.01°/s）
+    mess_To_KJ.toKJ_pitch_speed     = param_Compute_Output.toKJ_pitch_speed * 100;       // 框架俯仰扫描速度指令（LSB=0.01°/s）
+    mess_To_KJ.toKJ_direction_speed = param_Compute_Output.toKJ_direction_speed * 100;   // 框架方位扫描速度指令（LSB=0.01°/s）
 
     if (main_Control_State_Param.view_State == 0) // 大小视场状态,0:小视场（长焦）；1：大视场（短焦），默认未小视场长焦
     {
@@ -1093,9 +1093,18 @@ void fpga_Mess_Process() {
         param_Compute_Input_Fromfpga.pitch        = nbMess_jt_Photo.Carrier_pitch * PI / 180.0;        // 载机俯仰角    单位°    精度0.001°    范围-180°-180°
         param_Compute_Input_Fromfpga.roll         = nbMess_jt_Photo.Carrier_roll * PI / 180.0;         // 载机横滚角    单位°    精度0.001°    范围-180°-180°
         param_Compute_Input_Fromfpga.north_speed  = nbMess_jt_Photo.Carrier_north_speed;               // 载机北向速度    单位m/s     精度0.0001
-        param_Compute_Input_Fromfpga.east_speed   = nbMess_jt_Photo.Carrier_east_speed;                // 载机北向速度    单位m/s     精度0.0001
+        param_Compute_Input_Fromfpga.east_speed   = nbMess_jt_Photo.Carrier_east_speed;
         param_Compute_Input_Fromfpga.ground_speed = nbMess_jt_Photo.Carrier_ground_speed;
-        ; // 载机北向速度    单位m/s     精度0.0001
+        // log_proc("使用地面测试POS参数\n经度: %.6f 纬度: %.6f 高度: %.2f 真航向: %.3f 俯仰角: %.3f 横滚角: %.3f 北向速度: %.4f 东向速度: %.4f 地速: %.4f\n",
+        //          nbMess_jt_Photo.Carrier_longitude,
+        //          nbMess_jt_Photo.Carrier_latitude,
+        //          nbMess_jt_Photo.Carrier_altitude,
+        //          nbMess_jt_Photo.Carrier_true_heading,
+        //          nbMess_jt_Photo.Carrier_pitch,
+        //          nbMess_jt_Photo.Carrier_roll,
+        //          nbMess_jt_Photo.Carrier_north_speed,
+        //          nbMess_jt_Photo.Carrier_east_speed,
+        //          nbMess_jt_Photo.Carrier_ground_speed);
     }
 
     // 电源故障信息
@@ -1165,7 +1174,7 @@ void make_Mess_To_FPGA(UINT8 cmd, UINT8 irst_form_mode, UINT8 zsxx_valid) {
     mess_To_FPGA.time_kj    = mess_From_TG.KJExpTime_back * 3000; // 可见曝光时间LSB=0.1ms
     mess_To_FPGA.time_hw    = mess_From_TG.HWExpTime_back * 3000; // 红外曝光时间LSB=0.1ms
 
-    mess_To_FPGA.frames_Num    = param_Compute_Output.frames_Num;                   // 条带张数
+    mess_To_FPGA.frames_Num    = param_Compute_Output.frames_Num;                   // 条带帧数
     mess_To_FPGA.time_speed    = param_Compute_Output.toFPGA_time_speed * 30000;    // 速度信号时间LSB=1ms
     mess_To_FPGA.time_location = param_Compute_Output.toFPGA_time_location * 30000; // 位置信号时间LSB=1ms
 

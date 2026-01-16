@@ -16,4 +16,8 @@ namespace ps {
 extern int periodic_interval;
 }
 
+// 锁
+extern std::mutex mutex_fpga;
+
+extern bool speed_locate_timer_enabled;
 #endif // GLOBAL_VARS_H

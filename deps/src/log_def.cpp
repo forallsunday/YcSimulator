@@ -2,6 +2,10 @@
 #include <id_name.hpp>
 #include <log_def.h>
 
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+
 static const char file_udp[] = "UDP";
 
 void log_udp_packet_recv(const UdpPacket &packet) {
@@ -53,9 +57,23 @@ void log_udp_packet_send(const char *where, const char *ip, int port, const UdpP
             static_cast<unsigned long long>(packet.time_tag));
 }
 
-void log_udp_packet_recv_icp_to_irrm(const UdpPacket &packet) {
-    if (packet.dest == V_NODE_IRRM) {
-        log_info("dest == V_NODE_IRRM");
-        log_udp_packet_recv(packet);
+void log_once_func(const char *fmt, ...) {
+    static char last_msg[1024] = {0}; // 上一次打印的内容
+    char        curr_msg[1024];
+
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(curr_msg, sizeof(curr_msg), fmt, ap);
+    va_end(ap);
+
+    // 完全一样 → 不打印
+    if (strcmp(curr_msg, last_msg) == 0) {
+        return;
     }
-};
+
+    // 不一样 → 打印并更新 last_msg
+    strncpy(last_msg, curr_msg, sizeof(last_msg) - 1);
+    last_msg[sizeof(last_msg) - 1] = '\0';
+
+    log_log(LOG_INFO, "once", 0, "%s", curr_msg);
+}

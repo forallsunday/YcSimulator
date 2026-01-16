@@ -47,10 +47,10 @@
             </ICP>
           <SIM>
                 <client_ip ip="127.0.0.1" port="40001">
-                      <SIMROLE NodeID="0x9401" NodeName="cam_port"/>
+                      <SIMROLE NodeID="0x9401" NodeName="port_listen_ctrl"/>
                   </client_ip>
                 <client_ip ip="127.0.0.1" port="30001">
-                      <SIMROLE NodeID="0x9301" NodeName="ctrl_port_recv_camera"/>
+                      <SIMROLE NodeID="0x9301" NodeName="port_listen_camera"/>
                   </client_ip>
             </SIM>
       </tcp_udp>

@@ -61,6 +61,7 @@ std::unique_ptr<CameraSimulator> cam_sim;
  * 仿真过程启动时，由中间件调用一次;
  */
 int usrmode_wait() {
+    log_info("!!!!!!!!正在进行usrmode_wait");
     /*****************************************************/
     /***需要修改模型名称'model.so'，与xml配置中的名称一致***/
     rtn = topic_init("YCSIM", "ModuleConfig.xml");
@@ -70,6 +71,7 @@ int usrmode_wait() {
 
     // 状态处理函数
     printf("usrmode_wait finished\n");
+
     return rtn;
 }
 
@@ -84,6 +86,7 @@ int usrmode_wait() {
  * InitParam:模型初始化所用到的参数，当前为一个字符串需要解析;
  */
 void usrmode_init() {
+    log_info("!!!!!!!!正在进行usrmode_init");
 
     module_status = status_enum::RUNNING;
 
@@ -99,18 +102,16 @@ void usrmode_init() {
     /* ************************************* */
     //    printf("Usr_ModeInit data is NULL \n");
 
-    // Note: 2025-10-28 LCY
-
+    // Note: 2025-12-30 LCY
     log_init("camera_sim.log");
 
     ReadUdpAddr rua;
     readUdpAddr(rua, socket_data);
 
-    cam_sim = std::unique_ptr<CameraSimulator>(
-        new CameraSimulator(
-            rua.cam_port, rua.ip_control, rua.ctrl_port_recv_camera));
-
-    // cam_sim->setPeriodicInterval(500);
+    if (!cam_sim) {
+        cam_sim = std::make_unique<CameraSimulator>(
+            rua.cam_port, rua.ip_control, rua.ctrl_port_recv_camera);
+    }
 
     cam_sim->init();
 
@@ -130,6 +131,7 @@ void usrmode_init() {
  * 运行状态进入运行时，由中间件周期调用;
  */
 void step_calculate() {
+    log_info("!!!!!!!!正在进行step_calculate");
     /***************************************************************************************************/
     /*
      * start

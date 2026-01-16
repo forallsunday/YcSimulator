@@ -23,8 +23,8 @@ set(INCLUDE_YCSIM
 aux_source_directory("yc_camera_sim/src" SRCS_YCSIM)
 aux_source_directory("yc_camera_sim/src/yc" SRCS_YC)
 
-# 如果不是linux-x64平台，则编译ycSim
-if(NOT ${TARGET_PLATFORM} STREQUAL "linux-x64")
+# 如果是linux-arm平台，则编译ycSim
+if(${TARGET_PLATFORM} STREQUAL "linux-aarch64")
   set(LIB_NAME "ycSim")
 
   add_library(${LIB_NAME} SHARED "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/model.cpp"

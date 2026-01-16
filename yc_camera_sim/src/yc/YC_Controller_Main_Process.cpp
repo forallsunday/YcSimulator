@@ -8,7 +8,6 @@
 #include "YC_Controller_Main_Process.h"
 #include "YC_Controller_Constant_Define.h"
 // #include "YC_Controller_FC_Trans.h"
-#include <udp_trans.h>
 // #include "pciConfigLib.h"
 /*标准头文件*/
 // #include <periodtasks.h>
@@ -38,12 +37,10 @@
 
 #include <global_vars.h>
 #include <log_def.h>
+#include <udp_trans.h>
 #include <utils.h>
 
 #include <chrono>
-
-// for test
-#include <udp_trans.h>
 
 bool running_main_ctrl;
 bool running_other_process;
@@ -69,7 +66,6 @@ void main_Control_And_Mess_Process_Act_req_task() {
 
         // 如果收到FPGA中断，或者5ms时间到，正常流程，每5ms处理主控工作流程、计算
         if (flag_Fpga_Interrupt == 1) {
-            // log_info("flag_Fpga_Interrupt == 1");
             make_Mess_To_PCS_DATA(0); // 给pos发送数据
 
             // ACoreOs_clock_get_timestamp(&time_start);
@@ -99,7 +95,6 @@ void main_Control_And_Mess_Process_Act_req_task() {
 
             // 标志位清零
             flag_Fpga_Interrupt = 0;
-            // log_info("flag_Fpga_Interrupt == 0");
         }
 
         // 如果fpga掉线,错误处理，异常流程，
@@ -280,7 +275,7 @@ void fc_Mess_Send_Period_task() {
         {
             nb_HMC_DATA_SET();
         }
-        // 如果有需要上报的hmc
+        // 如果有需要上报的hmc , 可以注释掉
         if (nb_HMC_DATA.hmc_count_upload != 0) {
             send_Mess_PHM_DATA_HMC_MS_SUB(upload_pack_num); // 从1开始
             upload_pack_num++;                              // 发送下一包
@@ -314,6 +309,9 @@ void fc_Mess_Send_Period_task() {
         }
 
         // ACoreOs_periodtask_wait_period(); // 周期任务必要函数，不可删除！！！释放
+
+        // // Note:test直接发送work state report
+        // send_Mess_WORK_STATE_REPORT(0, 0); // 工作状态报告,参数为bit百分比
 
         // lcy: 推进下一周期
         next += std::chrono::milliseconds(ps::periodic_interval);
@@ -1495,6 +1493,9 @@ void Work_Control() {
 
     HWTCQ_CoolingJudge(); // 红外制冷判断
     TG_ErrCheck();        // 调光故障判断
+
+    // // Note: lcy 一些值直接置位
+    // mess_From_TG.Cool_state = 1;
 }
 
 // 工作流程控制----初始化-50s
@@ -1546,43 +1547,61 @@ void init_Model_WorkControl() {
     update_Irst_State(V_IRST_WORK_STATE_INIT);    // 更新IRST工作状态
     update_Irst_Mode(V_IRST_FORM_MODE_WIDE_IMAG); // 更新IRST成像模式：默认广域
 
-    // todo: 模拟器不能50s, 而且这个只跟时间有关系吗？
+    // // 上报工作进度，每1s上报一次，总共50s
+    // if (cnt_wait % 200 == 0) {
+    //     percent = (cnt_wait * 10000.0) / ((1000 / MAIN_PERIOD_TIME) * INIT_TIME);
+
+    //     if (cnt_wait < 2000)
+    //         main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_DIM_ING;
+
+    //     if (cnt_wait > 2000)
+    //         main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_SUCCESS;
+
+    //     if (cnt_wait > 2000 && cnt_wait < 4000)
+    //         main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_ING; // 校正中
+
+    //     if (cnt_wait > 4000)
+    //         main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_COMPLETED; // 校正完成
+
+    //     if (cnt_wait > 4000 && cnt_wait < 6000)
+    //         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_FOCUSING;
+
+    //     if (cnt_wait > 6000)
+    //         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_SUCCESS;
+
+    //     send_Mess_WORK_STATE_REPORT(INIT_TIME - cnt_wait / 200, percent); // 上报工作状态更新，自检进度更新
+    //     make_Mess_IRST_OPERATIONAL_PARAS();
+    // }
+
     // 上报工作进度，每1s上报一次，总共50s
+    // Note: 模拟器中直接将状态置位完成
     if (cnt_wait % 200 == 0) {
-        percent = (cnt_wait * 10000.0) / ((1000 / MAIN_PERIOD_TIME) * INIT_TIME);
+        percent = 100 / 0.01;
 
-        if (cnt_wait < 2000) {
-            main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_DIM_ING;
-        }
-        if (cnt_wait > 2000) {
-            main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_SUCCESS;
-        }
-        if (cnt_wait > 2000 && cnt_wait < 4000) {
-            main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_ING; // 校正中
-        }
-        if (cnt_wait > 4000) {
-            main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_COMPLETED; // 校正完成
-        }
-        if (cnt_wait > 4000 && cnt_wait < 6000) {
-            main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_FOCUSING;
-        }
-        if (cnt_wait > 6000) {
-            main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_SUCCESS;
-        }
+        main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_SUCCESS;
 
-        send_Mess_WORK_STATE_REPORT(INIT_TIME - cnt_wait / 200, percent); // 上报工作状态更新，自检进度更新
+        main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_COMPLETED; // 校正完成
+
+        main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_SUCCESS;
+
+        send_Mess_WORK_STATE_REPORT(0, percent); // 上报工作状态更新，自检进度更新
         make_Mess_IRST_OPERATIONAL_PARAS();
+        int breakpoint = 0;
     }
 
     switch (step) {
-    case 0:                             // 控制电源分系统，全部上电
+    case 0:
         param_Init();                   // 参数初始化
         make_Mess_To_DY(3, 1, 1, 1, 1); // 电源分系统通信，打开所有电源
         // 如果电源返回上电成功
-        if ((mess_From_DY.state_szgd == 1 && mess_From_DY.state_glgd == 1 && mess_From_DY.state_rkbjgd == 1 && mess_From_DY.state_rkgcgd == 1) || cnt_wait > 4) {
-            step = 1; // 进入下一步
+        {
+            // std::lock_guard<std::mutex> lock(mutex_fpga);
+            if ((mess_From_DY.state_szgd == 1 && mess_From_DY.state_glgd == 1 && mess_From_DY.state_rkbjgd == 1 && mess_From_DY.state_rkgcgd == 1) || cnt_wait > 4) {
+                step = 1; // 进入下一步
+            }
         }
         break;
+
     case 1:              // 配置可见、红外探测器参数
         TCQ_Configure(); // 25-8-15,sc
 
@@ -1595,7 +1614,8 @@ void init_Model_WorkControl() {
 
         break;
 
-    case 2: // 向各分系统发送自检命令
+    case 2:
+        // 向各分系统发送自检命令
         cnt_wait_cmd++;
         make_Mess_To_KJ(KJ_CMD_CHECK, KJ_CMD_KF_MODE_STOP);   // 框架自检
         make_Mess_To_TJ(TJ_CMD_CellBIT, TJ_CMD_VIEW_DEFAULT); // 调焦自检
@@ -1608,22 +1628,23 @@ void init_Model_WorkControl() {
         }
         break;
 
-    case 3: // 等待分系统自检完成，收到所有分系统（框架、调焦、惯导）
+    case 3:
+        // 等待分系统自检完成，收到所有分系统（框架、调焦、惯导）
         // 如果自检完成，进入下一步
-        // todo: 实现这些分系统的及时响应
         if (mess_From_KJ.status_sub == 2 && mess_From_TJ.status1_zjzt == 0 && mess_From_PCS_DATA.status_gdgzms != 4) {
             step = 4;
         }
         // 如果超时，进入下一步
         // if (cnt_wait > (1000 / MAIN_PERIOD_TIME) * INIT_TIME) // 超时判定：12min出状态，进入待机——最终版本12分钟，调试过程中为50s
-        if (cnt_wait > 1000 / MAIN_PERIOD_TIME * 5) // !!! 模拟器超时为5s
-        {
+        // 模拟器超时判定3s
+        if (cnt_wait > 3 * 1000 / MAIN_PERIOD_TIME) {
             step = 4;
         }
 
         break;
 
-    case 4: // 进入收藏状态
+    case 4:
+        // 进入收藏状态
         step                              = 0;
         cnt_wait                          = 0;
         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_SUCCESS; // 调焦完成
@@ -1684,7 +1705,9 @@ void collect_Model_WorkControl() {
         if (cmd_From_FC.subsys_main_oper_mode == V_SUBSYS_MAIN_OPER_MODE_STBY) // 如果是待机，直接进入
         {
             // 设置系统状态位，大状态进待机，子状态在收藏
-            update_Main_Mode(V_SUBSYS_MAIN_MODE_NORMAL);  // 更新相机工作模式
+            update_Main_Mode(V_SUBSYS_MAIN_MODE_NORMAL); // 更新相机工作模式
+            // // lcy: 20260112
+            // update_Main_Mode(V_SUBSYS_MAIN_MODE_STBY);    // 更新相机工作模式
             update_Irst_State(V_IRST_WORK_STATE_COLLECT); // 更新IRST工作状态
 
             send_Mess_WORK_STATE_REPORT(0, 0);  // 上报工作状态更新
@@ -1698,6 +1721,7 @@ void collect_Model_WorkControl() {
         return;
     }
 
+    // Note: 模拟器中不存在地面自检测，无意义
     // 如果收到2.	（通用）执行BIT请求指令
     if (cmd_From_FC.general_cmd_BIT_OPERATION == 1) {
         if (cmd_From_FC.bit_mode == V_BIT_MODE_MBIT || cmd_From_FC.bit_mode == V_BIT_MODE_IBIT) {
@@ -1818,8 +1842,10 @@ void collect_Model_WorkControl() {
     }
 
     switch (step) {
-    case 0:                                                                     // 向各分系统发送“收藏”、“停止工作”指令，控制伺服、调焦到特定位置
-        make_Mess_To_KJ(KJ_CMD_STOP, KJ_CMD_KF_MODE_STOP);                      // 框架：停止工作
+    case 0:
+        // 向各分系统发送“收藏”、“停止工作”指令，控制伺服、调焦到特定位置
+        make_Mess_To_KJ(KJ_CMD_STOP, KJ_CMD_KF_MODE_STOP); // 框架：停止工作
+        // todo: 大小视场需要判定吗？
         make_Mess_To_TJ(TJ_CMD_Collect, TJ_CMD_VIEW_DEFAULT);                   // 调焦：收藏
         make_Mess_To_TXCL_CMD(TX_CMD_IMAGE_TRANS_STOP);                         // 图像处理：停传
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // 向FPGA发1
@@ -1831,7 +1857,8 @@ void collect_Model_WorkControl() {
         }
         break;
 
-    case 1:                                                                     // 与各分系统保持通信
+    case 1:
+        // 与各分系统保持通信
         make_Mess_To_KJ(KJ_CMD_WAIT, KJ_CMD_KF_MODE_STOP);                      // 框架：待机
         make_Mess_To_TJ(TJ_CMD_Collect, TJ_CMD_VIEW_DEFAULT);                   // 调焦：收藏
         make_Mess_To_TXCL_CMD(TX_CMD_IMAGE_TRANS_STOP);                         // 图像处理：停传
@@ -1944,13 +1971,15 @@ void prepare_Model_WorkControl() {
         step = 4; // 直接跳到红外校正
     }
 
+    // Note: 流程
     switch (step) {
         // step1:检光------------------------------------------------------------------
         // 场景参数
         // 广域：按照广域成像参数执行摆扫，并成像，执行5s
         // 区域成像、区域监视：按照区域成像的中心点经纬高参数提取左右倾斜方向，方位按80°，俯仰摆扫角度以距离50km为中心摆扫/凝视，执行5s
     case 0:
-        // 检光-子流程1：计算初始位置
+        // ## 检光-子流程1：计算初始位置
+        log_once("[准备] step=%d, 检光-子流程1:计算初始位置", step);
         main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_DIM_ING;
         make_Mess_IRST_OPERATIONAL_PARAS(); // 上报工作参数
         make_Mess_To_JLY(JLY_CMD_OPEN);     // 记录仪:开
@@ -1962,12 +1991,12 @@ void prepare_Model_WorkControl() {
 
             make_Mess_To_TXCL_CMD(TX_CMD_IMAGE_GY); // 图像处理
 
-            if (V_IR_WIDE_IMAGE_MODE_DIS_PRIO == cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_WIDE_IMAGE_MODE) // 如果是距离优先
-            {
+            if (V_IR_WIDE_IMAGE_MODE_DIS_PRIO == cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_WIDE_IMAGE_MODE) {
+                // 如果是距离优先
                 // 距离近界、距离远界、扫描方向、目标区域高度，四个参数有效
                 comp_GY_Dis_ZB_JTG();
-            } else // 如果是方位优先
-            {
+            } else {
+                // 如果是方位优先
                 // 量程、扫描起始角、扫描结束角、目标区域高度，四个参数有效
                 comp_GY_Az_ZB_JTG();
             }
@@ -1994,8 +2023,9 @@ void prepare_Model_WorkControl() {
         step++;
         cnt_wait = 0;
         break;
-    case 1: // 检光-子流程2：预置
-
+    case 1:
+        // ## 检光-子流程2：预置
+        log_once("[准备] step=%d, 检光-子流程2:预置", step);
         make_Mess_To_KJ(KJ_CMD_ZHNBEI, KJ_CMD_KF_MODE_STOP);                    // 框架：准备
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT);                      // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga停拍
@@ -2004,6 +2034,7 @@ void prepare_Model_WorkControl() {
         make_Mess_To_TG(TG_CMD_Light, main_Control_State_Param.irst_form_mode);
         TG_AnalyseCmd(); // 调光指令判断
         JianGuang();     // 检光
+        log_once("(检光) 预置阶段, 可见曝光时间:%d, 红外曝光时间:%d", tg_Param.KJ_ExpTime, tg_Param.HW_ExpTime);
 
         if ((2 == mess_From_KJ.status_sub && mess_From_TG.JianGuang == 1 /*调光判断*/ && cnt_wait > 2) || (cnt_wait > 2000)) // 最长1s伺服到位
         {
@@ -2012,8 +2043,9 @@ void prepare_Model_WorkControl() {
         }
         break;
 
-    case 2: // 检光-子流程3：成像
-
+    case 2:
+        // ## 检光-子流程3：成像
+        log_once("[准备] step=%d, 检光-子流程3:成像", step);
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
 
@@ -2075,13 +2107,16 @@ void prepare_Model_WorkControl() {
         }
         if ((mess_From_TG.JianGuang == 2 /*调光判断*/ || cnt_wait > 3000) && flag_Fpga_bg == 0) // 持续15s
         {
+            // Note: mess_From_TG.JianGuang = 2 这样没有经过调光 直接置为2
+            log_once("(检光) 成像阶段, 可见曝光时间:%d, 红外曝光时间:%d", tg_Param.KJ_ExpTime, tg_Param.HW_ExpTime);
             make_Mess_To_JLY(JLY_CMD_None); // 记录仪:空指令
             step++;                         // 进入下一阶段
             cnt_wait = 0;
         }
         break;
     case 3:
-        // 检光-子流程4：停拍
+        // ## 检光-子流程4：停拍
+        log_once("[准备] step=%d, 检光-子流程4:停拍", step);
         make_Mess_To_KJ(KJ_CMD_ZHNBEI, KJ_CMD_KF_MODE_STOP);                    // 框架：准备
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT);                      // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga：停止工作
@@ -2097,12 +2132,14 @@ void prepare_Model_WorkControl() {
 
         // step2：非均匀性校正jiaozheng_WorkControl()------------------------------------------------------------------
     case 4:
+        log_once("[准备] step=%d, 非均匀性校正", step);
         main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_ING; // 校正中
         if (cnt_wait % 32 == 0) {
             make_Mess_IRST_OPERATIONAL_PARAS(); // 上报工作参数
         }
         if (1 == jiaozheng_WorkControl(1) || cnt_wait > 8000) // 预留40s时间进行非均匀校正过程配置
         {
+            log_once("(非均匀性校正) 完成");
             step++;
             cnt_wait                                   = 0;
             param_Compute_Input_Fromfpga.flag_First_TJ = 1; // 第一次标志置为1
@@ -2134,7 +2171,8 @@ void prepare_Model_WorkControl() {
         // 计算完成后，切入地理跟踪模式，开始成像；等待调焦返回检焦完成
         // 最长超时：1min
     case 5:
-        // 检焦-子流程1：计算初始位置
+        // ## 检焦-子流程1：计算初始位置
+        log_once("[准备] step=%d, 检焦-子流程1:计算初始位置", step);
         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_FOCUSING;
         make_Mess_IRST_OPERATIONAL_PARAS();                      // 上报工作参数
         make_Mess_To_TJ(TJ_CMD_FlyFocus_Pre, TJ_CMD_VIEW_SMALL); // 调焦：小视场切换、调焦电机动
@@ -2171,6 +2209,7 @@ void prepare_Model_WorkControl() {
         }
         break;
     case 6:
+        log_once("[准备] step=%d, 航空实景检焦准备", step);
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
 
@@ -2188,7 +2227,9 @@ void prepare_Model_WorkControl() {
         }
 
         break;
-    case 7: // 检焦-子流程2:调光准备
+    case 7:
+        // ## 检焦-子流程2:调光准备
+        log_once("[准备] step=%d, 检焦-子流程2:调光准备", step);
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
         // 调光用
@@ -2222,8 +2263,9 @@ void prepare_Model_WorkControl() {
         }
         break;
 
-    case 8: // 检焦-子流程3:根据经纬高计算伺服指向，并执行区域监视
-
+    case 8:
+        // ## 检焦-子流程3:根据经纬高计算伺服指向，并执行区域监视
+        log_once("[准备] step=%d, 检焦-子流程3:根据经纬高计算伺服指向，并执行区域监视", step);
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
 
@@ -2243,8 +2285,9 @@ void prepare_Model_WorkControl() {
 
         break;
 
-    case 9: // 检焦-子流程4：停拍
-
+    case 9:
+        // ## 检焦-子流程4：停拍
+        log_once("[准备] step=%d, 检焦-子流程4:停拍", step);
         make_Mess_To_KJ(KJ_CMD_WAIT, KJ_CMD_KF_MODE_STOP);                      // 框架：停止工作
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_SMALL);                        // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga：停止工作
@@ -2260,7 +2303,9 @@ void prepare_Model_WorkControl() {
         break;
 
         // step5:根据成像模式参数，控制控制伺服指向特定位置------------------------------------------------------------------------------
-    case 10: // 预置子流程1：计算初始位置
+    case 10:
+        // ## 预置子流程1：计算初始位置
+        log_once("[准备] step=%d, 预置子流程1:计算初始位置", step);
         // 如果成像模式是广域搜索
         if (cmd_From_FC.irst_cmd_param_irst_form_mode == 1) {
             param_Compute_Input_Fromfpga.flag_GYQYPhoto_FIRST_Compute = 1; // 第一次调用标志
@@ -2296,8 +2341,9 @@ void prepare_Model_WorkControl() {
         step++;
         cnt_wait = 0;
         break;
-    case 11: // 预置子流程2：预置
-
+    case 11:
+        // ## 预置子流程2：预置
+        log_once("[准备] step=%d, 预置子流程2:预置", step);
         make_Mess_To_KJ(KJ_CMD_ZHNBEI, KJ_CMD_KF_MODE_STOP);                    // 框架：准备
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT);                      // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga停拍
@@ -2312,6 +2358,7 @@ void prepare_Model_WorkControl() {
 
         // step7：进入待机状态------------------------------------------------------------------
     case 12:
+        log_once("[准备] step=%d, 进入待机状态", step);
         step     = 0;
         cnt_wait = 0;
         // 进入待机状态
@@ -2495,6 +2542,7 @@ void wait_Model_WorkControl() {
 
     case 1:
         // 调用计算函数
+        log_once("[待机] step=%d, 调用计算函数", step);
         // 如果成像模式是广域搜索
         if (cmd_From_FC.irst_cmd_param_irst_form_mode == 1) {
             param_Compute_Input_Fromfpga.flag_GYQYPhoto_FIRST_Compute = 1; // 第一次调用标志
@@ -2874,7 +2922,9 @@ void photo_Model_WorkControl() {
     switch (step) {
 
     // 成像过程中的检焦-小准备
-    case 0:                                                        // 检焦-子流程1：计算初始位置
+    case 0:
+        // 检焦-子流程1：计算初始位置
+        log_once("[拍照] step=0, 检焦-子流程1:计算初始位置");
         make_Mess_IRST_OPERATIONAL_PARAS();                        // 上报工作参数
         make_Mess_To_TJ(TJ_CMD_FlyFocus_Pre, TJ_CMD_VIEW_DEFAULT); // 调焦：根据指令
         make_Mess_To_TXCL_CMD(TX_CMD_SHOW_JJMS);                   // 图像处理
@@ -2912,6 +2962,7 @@ void photo_Model_WorkControl() {
         break;
     case 1:
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
+        log_once("[拍照] step=1, 检焦-子流程1:区域监视--按照准备计算出的经纬高进行成像");
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
         // 3.区域监视--按照准备计算出的经纬高进行成像
         comp_QY_Video_ZB();
@@ -2928,7 +2979,9 @@ void photo_Model_WorkControl() {
         }
 
         break;
-    case 2: // 检焦-子流程2:调光准备
+    case 2:
+        // 检焦-子流程2:调光准备
+        log_once("[拍照] step=2, 检焦-子流程2:调光准备");
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
         // 调光用
@@ -2962,8 +3015,9 @@ void photo_Model_WorkControl() {
         }
         break;
 
-    case 3: // 检焦-子流程3:根据经纬高计算伺服指向，并执行区域监视
-
+    case 3:
+        // 检焦-子流程3:根据经纬高计算伺服指向，并执行区域监视
+        log_once("[拍照] step=3, 检焦-子流程3:根据经纬高计算伺服指向，并执行区域监视");
         // 图像处理注释信息发送标志位、fc注释信息发送、帧号累加等
         photoing_Control(&flag_zzxx_valid, 0, 0); // 不需要发送fc
 
@@ -2976,14 +3030,15 @@ void photo_Model_WorkControl() {
 
         if ((mess_From_TJ.status2_realtime_jj == 1 || cnt_wait > 12000) && flag_Fpga_bg == 0) // 持续1min
         {
-
             step++; // 进入下一阶段
             cnt_wait = 0;
         }
 
         break;
 
-    case 4:                                                                     // 检焦-子流程4：停拍
+    case 4:
+        // 检焦-子流程4：停拍
+        log_once("[拍照] step=4, 检焦-子流程4:停拍");
         make_Mess_To_KJ(KJ_CMD_WAIT, KJ_CMD_KF_MODE_STOP);                      // 框架：待机
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT);                      // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, FPGA_ZSXX_INVALID); // fpga：停止工作
@@ -2999,8 +3054,9 @@ void photo_Model_WorkControl() {
         }
         break;
 
-    case 5: // 正式成像-子流程1：计算初始位置
-
+    case 5:
+        // 正式成像-子流程1：计算初始位置
+        log_once("[拍照] step=5, 正式成像-子流程1:计算初始位置");
         flag_Fpga_bg = 0; // 曝光信号置零
         // 如果成像模式是广域搜索
         if (main_Control_State_Param.irst_form_mode == 1) {
@@ -3037,7 +3093,9 @@ void photo_Model_WorkControl() {
         step++;
         cnt_wait = 0;
         break;
-    case 6:                                                                   // 子流程2：预置
+    case 6:
+        // 子流程2：预置
+        log_once("[拍照] step=6, 子流程2:预置");
         make_Mess_To_KJ(KJ_CMD_ZHNBEI, KJ_CMD_KF_MODE_STOP);                  // 框架：准备
         make_Mess_To_TJ(TJ_CMD_Wait, TJ_CMD_VIEW_DEFAULT);                    // 调焦：待机
         make_Mess_To_FPGA(FPGA_STOP_PHOTO, FPGA_STOP_PHOTO, flag_zzxx_valid); // fpga停拍
@@ -3068,8 +3126,9 @@ void photo_Model_WorkControl() {
         }
         break;
 
-    case 7: // 子流程3：成像
-
+    case 7:
+        // 子流程3：成像
+        log_once("[拍照] step=7, 子流程3:成像");
         // 如果成像模式是广域搜索
         if (main_Control_State_Param.irst_form_mode == 1) {
             param_Compute_Input_Fromfpga.flag_GYQYPhoto_FIRST_Compute = 0; // 第一次调用标志
@@ -3656,7 +3715,8 @@ UINT8 jiaozheng_WorkControl(UINT8 rst_n) {
 
     switch (step) {
 
-    case 0:                                                // 给调焦非均匀性校正指令，等调焦回复到位
+    case 0:
+        // 给调焦非均匀性校正指令，等调焦回复到位
         make_Mess_To_KJ(KJ_CMD_WAIT, KJ_CMD_KF_MODE_STOP); // 框架：待机
         make_Mess_To_TJ(TJ_CMD_HWJZ, TJ_CMD_VIEW_DEFAULT); // 调焦：非均匀性校正
 
@@ -3667,7 +3727,8 @@ UINT8 jiaozheng_WorkControl(UINT8 rst_n) {
         }
         break;
 
-    case 1: // 给调光校正指令，等调光返回执行完成
+    case 1:
+        // 给调光校正指令，等调光返回执行完成
         // 调光
         make_Mess_To_TG(TG_CMD_HWJZ, JTGMODE_GY); // 调光
         TG_AnalyseCmd();                          // 调光指令判断
@@ -3681,7 +3742,8 @@ UINT8 jiaozheng_WorkControl(UINT8 rst_n) {
         }
         break;
 
-    case 2:                                   // 等调焦回复到位
+    case 2:
+        // 等调焦回复到位
         if (0 == mess_From_TJ.status2_jzb_dw) // 调焦反馈挡板回到非校正位置后
         {
             make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT); // 调焦：空指令，非均匀性校正停止
@@ -3696,7 +3758,8 @@ UINT8 jiaozheng_WorkControl(UINT8 rst_n) {
         }
 
         break;
-    case 3:                                                // 结束非均匀性校正，等待外部重置
+    case 3:
+        // 结束非均匀性校正，等待外部重置
         make_Mess_To_TJ(TJ_CMD_None, TJ_CMD_VIEW_DEFAULT); // 调焦：空指令
         make_Mess_To_KJ(KJ_CMD_WAIT, KJ_CMD_KF_MODE_STOP); // 框架：待机
         step++;
@@ -3775,6 +3838,16 @@ void photoing_Control(UINT8 *toTxcl_zzxx_valid, UINT8 fcSend_Flag, UINT8 numup_F
             //        mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.A818_LineNo,
             //        mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.A818_CycleNo,
             //        mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.A818_EO_LineNo, mess_To_FPGA.frames_Num, 6);
+
+            log_once("图像帧序号:%d, 条带号:%d, 周期号:%d, 条带内序号:%d, 条带帧数:%d",
+                     mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.IMG_ID,
+                     mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.A818_LineNo,
+                     mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.A818_CycleNo,
+                     mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.A818_EO_LineNo,
+                     mess_To_FPGA.frames_Num);
+            log_once("框架曝光时刻俯仰角:%.3f, 框架曝光时刻方位角:%.3f",
+                     0.0001f * mess_From_KJ.exposure_pitch_frame,
+                     0.0001f * mess_From_KJ.exposure_direction_frame);
         }
         if (cnt_wait == 5) // 25ms延时，发送fc注释信息
         {

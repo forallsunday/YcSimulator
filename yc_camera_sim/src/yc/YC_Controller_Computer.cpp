@@ -14,7 +14,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-
 #define Agl_PI 0.01745329
 #define PI_Agl 57.2957795
 
@@ -1521,18 +1520,18 @@ void Process_TarAgl_GY_Dis_ParaComputer(void) {
     GYCX_TarAgl_far_pi  = temp_agl_up;
 }
 // ------------------------------计算广域成像条带帧数-------------------------------//
-//  函数名称：GYCX_Dis_GetTDPhotoNum()
-//  功能： 计算广域成像条带帧数
-//  输入参数： AC_speed飞行速度,PlanTar_high相对高,GYCX_TarAgl目标倾斜角
-//  返回参数：更新  条带周期GYCX_TD_Time；条带帧数GYCX_TD_PhotoNum；条带近端角GYCX_TDAgl_near；条带起始角GYCX_TDAgl_start；条带结束角GYCX_TDAgl_end
-//  说明：无
+//  函数名称:   GYCX_Dis_GetTDPhotoNum()
+//  功能:      计算广域成像条带帧数
+//  输入参数:   AC_speed飞行速度,PlanTar_high相对高,GYCX_TarAgl目标倾斜角
+//  返回参数:   更新  条带周期GYCX_TD_Time；条带帧数GYCX_TD_PhotoNum；条带近端角GYCX_TDAgl_near；条带起始角GYCX_TDAgl_start；条带结束角GYCX_TDAgl_end
+//  说明:      无
 // ---------------------------------------------------------------------------//
 void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *GY_TarAglOver) {
     float foc     = tocal_foclen_KJ * 0.001; // 焦距
     float pic_sec = GYCX_pfs;                // 成像周期
     float P_x_t;                             // x方向重叠率
+    float P_y_t;                             // y方向重叠率
     P_x_t = GYCX_P_x;
-    float P_y_t; // y方向重叠率
     P_y_t = GYCX_P_y;
 
     float picAngle_x_pi;                                                         // X摆扫向视场角

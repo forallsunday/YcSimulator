@@ -32,7 +32,7 @@ class CameraSimulator {
     // 冻结
     void freeze();
 
-    // 
+    //
     void close();
 
     // 上电 delay: 上电延迟时间 单位: s
@@ -40,11 +40,13 @@ class CameraSimulator {
     // 下电
     void powerOff();
 
-
     // 设置周期性间隔
     void setPeriodicInterval(int ms) { ps::periodic_interval = ms; };
 
   private:
+    // 已经初始化了
+    bool already_initialized = false;
+
     // 上电状态
     enum PowerStatus {
         POWER_UNKNOWN,
@@ -84,11 +86,6 @@ class CameraSimulator {
     int         port_;      // udp 监听端口
     std::string ip_contrl_; // udp 机载主控模拟器ip
     int         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
-
-    /// @brief 接收数据 分类消息 放入队列 (对应原 fc_EventRecv_task )
-    /// @param data udp包的指针
-    /// @param size udp包的数据长度
-    void udpEventRecv(char *data, int size);
 
     // 运行状态
     std::atomic<bool> running_subsystem_timer_;

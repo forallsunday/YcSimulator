@@ -2,16 +2,67 @@
 #include "udpconnect.h"
 #include <camera_sim.h>
 #include <read_udp_addr.hpp>
+#include <timer_period.h>
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <thread>
 
 #include <log_def.h>
 #include <log_init.h>
+
+void timerTest() {
+    TimerPeriod timer_test;
+
+    timer_test.init(std::chrono::milliseconds(1200), []() {
+        printf("[callback] TimerPeriod callback executed\n");
+    });
+
+    std::atomic<bool> exit{false};
+
+    // ===============================
+    // 控制定时器 start / stop 的线程
+    // ===============================
+    std::thread controller([&] {
+        while (!exit.load()) {
+
+            printf(">>> controller: START timer\n");
+            timer_test.start();
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1200));
+
+            printf(">>> controller: STOP timer\n");
+            timer_test.stop();
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(900));
+        }
+    });
+
+    // ===============================
+    // 主线程：打印 elapsedTime
+    // ===============================
+    while (true) {
+        auto elapsed_ms = timer_test.elapsedTimeMs();
+
+        if (elapsed_ms >= 0) {
+            printf("[main] elapsed = %.1f ms\n", elapsed_ms);
+        } else {
+            printf("[main] timer not running\n");
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(70));
+    }
+
+    exit = true;
+    controller.join();
+}
 
 int main() {
     log_init("test_.log");
@@ -33,8 +84,32 @@ int main() {
         std::cerr << "Error: Configuration file not found or cannot be opened: " << config_file << std::endl;
     }
 
+    // 获取 Windows 主机的 IP 地址
+    auto getWindowsVethIP_fromCmd = []() -> std::string {
+        std::array<char, 128> buffer;
+        std::string           result;
+        FILE                 *pipe = popen("ip route | grep default | awk '{print $3}'", "r");
+        if (!pipe)
+            return {};
+        while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+            result += buffer.data();
+        }
+        pclose(pipe);
+        if (!result.empty() && result.back() == '\n')
+            result.pop_back();
+        return result;
+    };
+
+    std::string win_ip = getWindowsVethIP_fromCmd();
+    printf("Windows vEthernet IP: %s\n", win_ip.c_str());
+
     ReadUdpAddr rua;
-    readUdpAddr(rua, socket_data);
+
+    // !与检测仪互发
+    // rua.ip_control = "172.20.160.1"; // 发送到windows检测仪的ip
+    rua.ip_control            = win_ip; // 发送到windows检测仪的ip
+    rua.cam_port              = 6000;   // 仿真模型的监听端口
+    rua.ctrl_port_recv_camera = 7000;   // 检测仪的监听端口 (windows)
 
     CameraSimulator cam_sim(rua.cam_port, rua.ip_control, rua.ctrl_port_recv_camera);
 
@@ -43,14 +118,17 @@ int main() {
 
     cam_sim.powerOff();
 
+    // timerTest();
+
     while (true) {
+    // while (false) {
 
         cam_sim.init();
 
         // Note: 测试 时 直接上电
-        cam_sim.powerOn(3);
+        cam_sim.powerOn(1);
 
-        std::this_thread::sleep_for(std::chrono::seconds(30));
+        std::this_thread::sleep_for(std::chrono::minutes(600));
     }
 
     return 0;

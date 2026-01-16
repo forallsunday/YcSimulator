@@ -1,81 +1,101 @@
 ﻿#include "SocketWrapper.h"
-// #include "Tsn_Api.h"
 
-#ifdef _MSC_VER
+#if defined(_WIN32)
 #include <WS2tcpip.h>
 #include <WinSock2.h>
-#endif
-
-#ifdef _MSC_VER
 #pragma comment(lib, "ws2_32.lib")
-#endif
-
-#ifdef _MSC_VER
-#ifdef FWW_MEMLEAK_CHECK
-#include "../MemLeakCheck/MemLeakCheck.h"
-#endif
-#endif
-
-#ifdef __GNUC__
+#else
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #endif
 
-SocketWrapper::SocketWrapper(e_Platform_SocketType socketType) : m_SocketType(socketType) {
+/* ================= 工具宏 ================= */
+
+#if defined(_WIN32)
+using socket_fd_t = SOCKET;
+#define CLOSE_SOCKET closesocket
+#else
+using socket_fd_t = int;
+#define CLOSE_SOCKET close
+#endif
+
+/* ================= 构造 / 析构 ================= */
+
+SocketWrapper::SocketWrapper() {
+#if defined(_WIN32)
+    m_SocketType = Win32Socket;
+#else
+    m_SocketType = LinuxSocket;
+#endif
+
+#if defined(_WIN32)
+    // Winsock 全局初始化（只做一次）
+    static bool wsaInited = false;
+    if (!wsaInited) {
+        WSADATA wsd;
+        WSAStartup(MAKEWORD(2, 2), &wsd);
+        wsaInited = true;
+    }
+#endif
+}
+
+SocketWrapper::SocketWrapper(e_Platform_SocketType socketType)
+    : m_SocketType(socketType) {
+#if defined(_WIN32)
+    static bool wsaInited = false;
+    if (!wsaInited) {
+        WSADATA wsd;
+        WSAStartup(MAKEWORD(2, 2), &wsd);
+        wsaInited = true;
+    }
+#endif
 }
 
 SocketWrapper::~SocketWrapper() {
+    // 不在析构中 WSACleanup（避免多实例问题）
 }
+
+/* ================= socket ================= */
 
 SocketWrapperHandle SocketWrapper::socket(int type) {
-    int sockType = type == SOCKETWRAPPER_SOCK_STREAM ? SOCK_STREAM : SOCK_DGRAM;
-    switch (m_SocketType) {
-    case Win32Socket: {
-#ifdef _MSC_VER
-        WSADATA wsd;
-        WSAStartup(MAKEWORD(2, 2), &wsd);
-        return (SocketWrapperHandle)::socket(AF_INET, sockType, 0);
-#else
-        return nullptr;
-#endif
-    }
-    case LinuxSocket:
-#ifdef __GNUC__
-        return (SocketWrapperHandle)::socket(AF_INET, sockType, 0);
-#else
-        return nullptr;
-#endif
-    case TSNSocket:
-        //    {
-        //        int ret = tsnSocket(AF_INET, sockType, 0);
-        //        if(ret > 0)
-        //        {
-        //            return (SocketWrapperHandle)ret;
-        //        }
-        //        else
-        //        {
-        //            return nullptr;
-        //        }
-        //    }
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
-    }
-    return nullptr;
-}
+    int sockType = (type == SOCKETWRAPPER_SOCK_STREAM) ? SOCK_STREAM : SOCK_DGRAM;
 
-int SocketWrapper::close(SocketWrapperHandle s) {
     switch (m_SocketType) {
     case Win32Socket:
-#ifdef _MSC_VER
-        return ::closesocket((SOCKET)s);
+#if defined(_WIN32)
+        return (SocketWrapperHandle)::socket(AF_INET, sockType, 0);
+#else
+        return nullptr;
+#endif
+
+    case LinuxSocket:
+#if defined(__linux__)
+        return (SocketWrapperHandle)(long)::socket(AF_INET, sockType, 0);
+#else
+        return nullptr;
+#endif
+
+    default:
+        return nullptr;
+    }
+}
+
+/* ================= close ================= */
+
+int SocketWrapper::close(SocketWrapperHandle s) {
+    if (!s)
+        return -1;
+
+    switch (m_SocketType) {
+    case Win32Socket:
+#if defined(_WIN32)
+        return CLOSE_SOCKET((socket_fd_t)s);
 #else
         return -1;
 #endif
+
     case LinuxSocket:
 #ifdef __GNUC__
         // LCY 修改为此 避免 析构后无法重新绑定相同的端口
@@ -84,284 +104,237 @@ int SocketWrapper::close(SocketWrapperHandle s) {
 #else
         return -1;
 #endif
-    case TSNSocket:
-        //        return tsnClose((int)(long)s);
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
-    }
 
-    return 0;
+    default:
+        return -1;
+    }
 }
+
+/* ================= bind ================= */
 
 int SocketWrapper::bind(SocketWrapperHandle s, unsigned int ip, unsigned short port) {
-    sockaddr_in localAddr;
-    localAddr.sin_family      = AF_INET;
-    localAddr.sin_port        = htons(port);
-    localAddr.sin_addr.s_addr = INADDR_ANY;
+    sockaddr_in addr{};
+    addr.sin_family      = AF_INET;
+    addr.sin_port        = htons(port);
+    addr.sin_addr.s_addr = ip;
+
     switch (m_SocketType) {
     case Win32Socket:
-#ifdef _MSC_VER
-        return ::bind((SOCKET)s, (const struct sockaddr *)&localAddr, sizeof(localAddr));
+#if defined(_WIN32)
+        return ::bind((socket_fd_t)s, (sockaddr *)&addr, sizeof(addr));
 #else
         return -1;
 #endif
-    case LinuxSocket:
-#ifdef __GNUC__
-        return ::bind((int)(long)s, (const struct sockaddr *)&localAddr, sizeof(localAddr));
-#else
-        return -1;
-#endif
-    case TSNSocket:
-        //        return tsnBind((int)(long)s, (const struct tsnSockaddr*)&localAddr, sizeof(localAddr));
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
-    }
 
-    return 0;
+    case LinuxSocket:
+#if defined(__linux__)
+        return ::bind((int)(long)s, (sockaddr *)&addr, sizeof(addr));
+#else
+        return -1;
+#endif
+
+    default:
+        return -1;
+    }
 }
+
+/* ================= connect ================= */
 
 int SocketWrapper::connect(SocketWrapperHandle s, unsigned int ip, unsigned short port) {
-    sockaddr_in farAddr;
-    farAddr.sin_family      = AF_INET;
-    farAddr.sin_port        = htons(port);
-    farAddr.sin_addr.s_addr = ip;
+    sockaddr_in addr{};
+    addr.sin_family      = AF_INET;
+    addr.sin_port        = htons(port);
+    addr.sin_addr.s_addr = ip;
+
     switch (m_SocketType) {
     case Win32Socket:
-#ifdef _MSC_VER
-        return ::connect((SOCKET)s, (const struct sockaddr *)&farAddr, sizeof(farAddr));
+#if defined(_WIN32)
+        return ::connect((socket_fd_t)s, (sockaddr *)&addr, sizeof(addr));
 #else
         return -1;
 #endif
+
     case LinuxSocket:
-#ifdef __GNUC__
-        return ::connect((int)(long)s, (const struct sockaddr *)&farAddr, sizeof(farAddr));
+#if defined(__linux__)
+        return ::connect((int)(long)s, (sockaddr *)&addr, sizeof(addr));
 #else
         return -1;
 #endif
-    case TSNSocket:
-        //        return tsnConnect((int)(long)s, (const struct tsnSockaddr*)&farAddr, sizeof(farAddr));
-        break;
-    case SocketCount:
-        break;
+
     default:
-        break;
+        return -1;
     }
-    return 0;
 }
+
+/* ================= listen ================= */
 
 int SocketWrapper::listen(SocketWrapperHandle s, int backlog) {
     switch (m_SocketType) {
     case Win32Socket:
-#ifdef _MSC_VER
-        return ::listen((SOCKET)s, backlog);
+#if defined(_WIN32)
+        return ::listen((socket_fd_t)s, backlog);
 #else
         return -1;
 #endif
+
     case LinuxSocket:
-#ifdef __GNUC__
+#if defined(__linux__)
         return ::listen((int)(long)s, backlog);
 #else
         return -1;
 #endif
-    case TSNSocket:
-        //        return tsnListen((int)(long)s, backlog);
-        break;
-    case SocketCount:
-        break;
+
     default:
-        break;
+        return -1;
     }
-    return 0;
 }
 
-SocketWrapperHandle SocketWrapper::accept(SocketWrapperHandle s, unsigned int *farAddr, unsigned short *farPort) {
-    sockaddr_in addr;
-    int         addrLen = sizeof(addr);
+/* ================= accept ================= */
+
+SocketWrapperHandle SocketWrapper::accept(
+    SocketWrapperHandle s,
+    unsigned int       *farAddr,
+    unsigned short     *farPort) {
+    sockaddr_in addr{};
+#if defined(_WIN32)
+    int addrLen = sizeof(addr);
+#else
+    socklen_t addrLen = sizeof(addr);
+#endif
+
     switch (m_SocketType) {
-    case Win32Socket: {
-#ifdef _MSC_VER
-        SOCKET socket = ::accept((SOCKET)s, (struct sockaddr *)&addr, &addrLen);
-        if (socket == INVALID_SOCKET) {
+    case Win32Socket:
+#if defined(_WIN32)
+    {
+        SOCKET fd = ::accept((socket_fd_t)s, (sockaddr *)&addr, &addrLen);
+        if (fd == INVALID_SOCKET)
             return nullptr;
-        }
-        *farAddr = addr.sin_addr.S_un.S_addr;
-        *farPort = htons(addr.sin_port);
-        return (SocketWrapperHandle)socket;
+        if (farAddr)
+            *farAddr = addr.sin_addr.S_un.S_addr;
+        if (farPort)
+            *farPort = ntohs(addr.sin_port);
+        return (SocketWrapperHandle)fd;
+    }
 #else
         return nullptr;
 #endif
-    }
+
     case LinuxSocket:
-#ifdef __GNUC__
+#if defined(__linux__)
     {
-        int socket = ::accept((int)(long)s, (struct sockaddr *)&addr, (unsigned int *)&addrLen);
-        if (socket == -1) {
+        int fd = ::accept((int)(long)s, (sockaddr *)&addr, &addrLen);
+        if (fd < 0)
             return nullptr;
-        }
-        *farAddr = addr.sin_addr.s_addr;
-        *farPort = htons(addr.sin_port);
-        return (void *)(long)socket;
+        if (farAddr)
+            *farAddr = addr.sin_addr.s_addr;
+        if (farPort)
+            *farPort = ntohs(addr.sin_port);
+        return (SocketWrapperHandle)(long)fd;
     }
 #else
+        return nullptr;
 #endif
-    case TSNSocket:
-        //	{
-        //            int socket = tsnAccept((int)(long)s, (struct tsnSockaddr*)&addr, &addrLen);
-        //			if (socket == -1)
-        //			{
-        //				return nullptr;
-        //			}
-        //			*farAddr = addr.sin_addr.s_addr;
-        //			*farPort = htons(addr.sin_port);
-        //			return (SocketWrapperHandle)socket;
-        //	}
-        break;
-    case SocketCount:
-        break;
+
     default:
-        break;
+        return nullptr;
     }
-    return 0;
 }
 
+/* ================= recv / send ================= */
+
 int SocketWrapper::recv(SocketWrapperHandle s, char *buf, size_t len) {
-    switch (m_SocketType) {
-    case Win32Socket:
-#ifdef _MSC_VER
-        return ::recv((SOCKET)s, buf, len, 0);
+#if defined(_WIN32)
+    return ::recv((socket_fd_t)s, buf, (int)len, 0);
+#elif defined(__linux__)
+    return ::recv((int)(long)s, buf, len, 0);
 #else
-        return -1;
+    return -1;
 #endif
-    case LinuxSocket:
-#ifdef __GNUC__
-        return ::recv((int)(long)s, buf, len, 0);
-#else
-        return -1;
-#endif
-    case TSNSocket:
-        //        return tsnRecv((int)(long)s, buf, len);
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
-    }
-    return 0;
 }
 
 int SocketWrapper::send(SocketWrapperHandle s, const char *buf, size_t len) {
-    switch (m_SocketType) {
-    case Win32Socket:
-#ifdef _MSC_VER
-        return ::send((SOCKET)s, buf, len, 0);
+#if defined(_WIN32)
+    return ::send((socket_fd_t)s, buf, (int)len, 0);
+#elif defined(__linux__)
+    return ::send((int)(long)s, buf, len, 0);
 #else
-        return -1;
+    return -1;
 #endif
-    case LinuxSocket:
-#ifdef __GNUC__
-        return ::send((int)(long)s, buf, len, 0);
-#else
-        return -1;
-#endif
-    case TSNSocket:
-        //        return tsnSend((int)(long)s, buf, len);
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
-    }
-    return 0;
 }
 
-int SocketWrapper::recvfrom(SocketWrapperHandle s, char *buf, size_t len, unsigned int *farAddr, unsigned short *farPort) {
-    sockaddr_in addr;
-    int         addrLen = sizeof(addr);
-    int         ret;
-    switch (m_SocketType) {
-    case Win32Socket:
-#ifdef _MSC_VER
-        ret      = ::recvfrom((SOCKET)s, buf, len, 0, (struct sockaddr *)&addr, &addrLen);
-        *farAddr = addr.sin_addr.S_un.S_addr;
-        *farPort = htons(addr.sin_port);
-        return ret;
-#else
-        return -1;
-#endif
-    case LinuxSocket:
-#ifdef __GNUC__
-        ret      = ::recvfrom((int)(long)s, buf, len, 0, (struct sockaddr *)&addr, (unsigned int *)&addrLen);
-        *farAddr = addr.sin_addr.s_addr;
-        *farPort = htons(addr.sin_port);
-        // 接收到数据
+/* ================= recvfrom / sendto ================= */
 
-        return ret;
+int SocketWrapper::recvfrom(
+    SocketWrapperHandle s,
+    char               *buf,
+    size_t              len,
+    unsigned int       *farAddr,
+    unsigned short     *farPort) {
+    sockaddr_in addr{};
+#if defined(_WIN32)
+    int addrLen = sizeof(addr);
 #else
-        return -1;
+    socklen_t addrLen = sizeof(addr);
 #endif
-    case TSNSocket:
-        //        ret = tsnRecvFrom((int)(long)s, buf, len, (struct tsnSockaddr*)&addr, addrLen);
-        //		*farAddr = addr.sin_addr.s_addr;
-        //		*farPort = htons(addr.sin_port);
-        //		return ret;
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
+
+#if defined(_WIN32)
+    int ret = ::recvfrom((socket_fd_t)s, buf, (int)len, 0, (sockaddr *)&addr, &addrLen);
+    if (ret >= 0) {
+        if (farAddr)
+            *farAddr = addr.sin_addr.S_un.S_addr;
+        if (farPort)
+            *farPort = ntohs(addr.sin_port);
     }
-    return 0;
+    return ret;
+#elif defined(__linux__)
+    int ret = ::recvfrom((int)(long)s, buf, len, 0, (sockaddr *)&addr, &addrLen);
+    if (ret >= 0) {
+        if (farAddr)
+            *farAddr = addr.sin_addr.s_addr;
+        if (farPort)
+            *farPort = ntohs(addr.sin_port);
+    }
+    return ret;
+#else
+    return -1;
+#endif
 }
 
-int SocketWrapper::sendto(SocketWrapperHandle s, const char *buf, size_t len, unsigned int farAddr, unsigned short farPort) {
-    sockaddr_in addr;
+int SocketWrapper::sendto(
+    SocketWrapperHandle s,
+    const char         *buf,
+    size_t              len,
+    unsigned int        farAddr,
+    unsigned short      farPort) {
+    sockaddr_in addr{};
     addr.sin_family      = AF_INET;
     addr.sin_addr.s_addr = farAddr;
     addr.sin_port        = htons(farPort);
-    switch (m_SocketType) {
-    case Win32Socket:
-#ifdef _MSC_VER
-        return ::sendto((SOCKET)s, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr));
+
+#if defined(_WIN32)
+    return ::sendto((socket_fd_t)s, buf, (int)len, 0, (sockaddr *)&addr, sizeof(addr));
+#elif defined(__linux__)
+    return ::sendto((int)(long)s, buf, len, 0, (sockaddr *)&addr, sizeof(addr));
 #else
-        return -1;
+    return -1;
 #endif
-    case LinuxSocket:
-#ifdef __GNUC__
-        return ::sendto((int)(long)s, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr));
-#else
-        return -1;
-#endif
-    case TSNSocket:
-        //        return ::tsnSendto((int)(long)s, buf, len, (struct tsnSockaddr*)&addr, sizeof(addr));
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
-    }
-    return 0;
 }
 
-int SocketWrapper::setsockopt(SocketWrapperHandle s, int level, int optname, void *optval, int *optlen) {
-    switch (m_SocketType) {
-    case Win32Socket:
-        return 0;
-    case LinuxSocket:
-        return 0;
-        // return ::setsockopt((int)(long)s, level, optname, optval, (socklen_t)*optlen);
-    case TSNSocket:
-        //        return ::tsnSetOption((int)(long)s, level, optname, optval, optlen);
-        break;
-    case SocketCount:
-        break;
-    default:
-        break;
-    }
-    return 0;
+/* ================= setsockopt ================= */
+
+int SocketWrapper::setsockopt(
+    SocketWrapperHandle s,
+    int                 level,
+    int                 optname,
+    void               *optval,
+    int                *optlen) {
+#if defined(_WIN32)
+    return ::setsockopt((socket_fd_t)s, level, optname,
+                        (const char *)optval, optlen ? *optlen : 0);
+#elif defined(__linux__)
+    return ::setsockopt((int)(long)s, level, optname, optval,
+                        optlen ? (socklen_t)*optlen : 0);
+#else
+    return -1;
+#endif
 }
