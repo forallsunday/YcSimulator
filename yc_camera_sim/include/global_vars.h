@@ -18,6 +18,6 @@ extern int periodic_interval;
 
 // 锁
 extern std::mutex mutex_fpga;
+extern std::mutex mutex_shm; // 共享内存锁
 
-extern bool speed_locate_timer_enabled;
 #endif // GLOBAL_VARS_H

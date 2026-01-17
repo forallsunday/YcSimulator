@@ -16,3 +16,4 @@ int periodic_interval;
 
 // 锁
 std::mutex mutex_fpga;
+std::mutex mutex_shm; // 共享内存锁

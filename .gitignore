@@ -6,3 +6,5 @@
 ./*.rar
 /log/*
 *.png
+*.doc*
+*.xls*

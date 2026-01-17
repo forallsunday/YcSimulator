@@ -7,8 +7,6 @@
 
 using namespace std::chrono;
 
-bool speed_locate_timer_enabled = false;
-
 static std::atomic<int> speed_or_locate{1}; // 速度位置信号 (0=速度, 1=位置) 不工作时都是位置
 
 int gpio0AIn(int code) {
@@ -212,16 +210,16 @@ void FpgaSimulator::simulatingPCS() {
     mess_From_PCS_DATA.time_s      = sec;
     mess_From_PCS_DATA.time_ms     = ms;
 
-    // 位置
-    mess_From_PCS_DATA.longitude = fused.satellite_nav_data.ac_gnss_position_data._longitude * 0.00001 / PI * pow(2, 31);
-    mess_From_PCS_DATA.latitude  = fused.satellite_nav_data.ac_gnss_position_data._latitude * 0.00001 / PI * pow(2, 31);
+    // 位置 (弧度)
+    mess_From_PCS_DATA.longitude = fused.satellite_nav_data.ac_gnss_position_data._longitude * 0.00001 * 1e-3 / PI * pow(2, 31);
+    mess_From_PCS_DATA.latitude  = fused.satellite_nav_data.ac_gnss_position_data._latitude * 0.00001 * 1e-3 / PI * pow(2, 31);
     mess_From_PCS_DATA.altitude  = fused.satellite_nav_data.ac_GNSS_alt._altitude * 0.01 / 0.001;
     // todo: 检查以上altitude单位
 
     // 姿态
-    mess_From_PCS_DATA.true_heading = fused.ac_flight_vector.ac_true_heading._angle_mrad * 0.001 / PI * pow(2, 31);
-    mess_From_PCS_DATA.pitch        = fused.ac_flight_vector.ac_pitch._angle_mrad * 0.001 / PI * pow(2, 31);
-    mess_From_PCS_DATA.roll         = fused.ac_flight_vector.ac_roll._angle_mrad * 0.001 / PI * pow(2, 31);
+    mess_From_PCS_DATA.true_heading = fused.ac_flight_vector.ac_true_heading._angle_mrad * 0.001 * 1e-3 / PI * pow(2, 31);
+    mess_From_PCS_DATA.pitch        = fused.ac_flight_vector.ac_pitch._angle_mrad * 0.001 * 1e-3 / PI * pow(2, 31);
+    mess_From_PCS_DATA.roll         = fused.ac_flight_vector.ac_roll._angle_mrad * 0.001 * 1e-3 / PI * pow(2, 31);
 
     // 速度
     mess_From_PCS_DATA.north_speed  = fused.ac_flight_vector.ac_plat_vel.Vel_North._velocity * 0.0001 / 0.001;

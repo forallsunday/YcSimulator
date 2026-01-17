@@ -76,12 +76,18 @@ class CameraSimulator {
     // 共享内存输入参数映射对应的主要变量
     char    facility_power_supply_status_ = 0; // 设备供电状态参数 - 设备供电状态
     uint8_t operation_mode_               = 0; // 模拟器运行控制 - 控制模式
+    struct TargetPixelCoordinates {
+        uint16_t up_left_x;    // 左上角像素横坐标
+        uint16_t up_left_y;    // 左上角像素纵坐标
+        uint16_t down_right_x; // 右下角像素横坐标
+        uint16_t down_right_y; // 右下角像素纵坐标
+    } target_pixel_coor;       // 目标像素坐标
 
-    // 共享内存输入关键参数
-    void keyShmInput();
+    // 更新共享内存输入
+    void updateSharedMemoryInput();
 
     // 更新共享内存输出
-    void updateShmOutput();
+    void updateSharedMemoryOutput();
 
     // UDP
     int         port_;      // udp 监听端口
@@ -127,6 +133,12 @@ class CameraSimulator {
 
     // 超时时间 (子线程阻塞时间)
     std::chrono::milliseconds timeout = std::chrono::milliseconds(10);
+
+    // 系数
+    const double rad_to_deg  = 180.0 / PI;        // 弧度转度
+    const double mrad_to_deg = 1e-3 * 180.0 / PI; // 毫弧度转度
+    const double deg_to_rad  = PI / 180.0;        // 度转弧度
+    const double deg_to_mrad = 1e3 * PI / 180.0;  // 度转毫弧度
 
     // 拍照测试
     std::atomic<bool> running_photoing_test{false};
