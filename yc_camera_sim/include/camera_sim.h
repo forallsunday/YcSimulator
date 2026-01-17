@@ -42,6 +42,10 @@ class CameraSimulator {
 
     // 设置周期性间隔
     void setPeriodicInterval(int ms) { ps::periodic_interval = ms; };
+    void startTimer5ms();
+    void startSubsystemTiming();
+
+    void testPhotoing();
 
   private:
     // 已经初始化了
@@ -90,6 +94,9 @@ class CameraSimulator {
     // 运行状态
     std::atomic<bool> running_subsystem_timer_;
 
+    // 定时器
+    TimerPeriod timer_5ms_;
+
     std::thread thread_main_ctrl_;       // 子线程2
     std::thread thread_other_process_;   // 子线程3
     std::thread thread_periodic_send_;   // 子线程4
@@ -110,22 +117,23 @@ class CameraSimulator {
     void startOtherProcess();
     // 子线程4 任务线程 运行函数 : 周期发送
     void startPeriodicSend();
-    // 子线程5 任务线程 运行函数 : 5ms计时器
-    void startTimer5ms();
-    // 子线程6? 任务线程 运行函数 : 分系统计时器
-    void startSubsystemTiming();
+    // 子线程5 任务线程 运行函数 : 5ms计时器 有啥用？
+    // void startTimer5ms();
+    // // 子线程6? 任务线程 运行函数 : 分系统计时器
+    // void startSubsystemTiming();
 
     // 开始所有任务线程 (不包括 udp线程、心跳线程)
     void startTaskThreads();
-
-    // 5ms 计时器
-    TimerPeriod timer_5ms_;
 
     // fpga
     FpgaSimulator fpga_sim_;
 
     // 超时时间 (子线程阻塞时间)
     std::chrono::milliseconds timeout = std::chrono::milliseconds(10);
+
+    // 拍照测试
+    std::atomic<bool> running_photoing_test{false};
+    std::thread       thread_photoing_test_;
 };
 
 #endif // CAMERA_SIM_H

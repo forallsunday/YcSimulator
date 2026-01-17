@@ -300,8 +300,14 @@ void CameraSimulator::close() {
 
     // 停止心跳
     running_hearbit = false;
+
     if (thread_heartbit_.joinable())
         thread_heartbit_.join();
+
+    // 停止拍照测试
+    running_photoing_test = false;
+    if (thread_photoing_test_.joinable())
+        thread_photoing_test_.join();
 
     udpTransClose();
 
@@ -312,4 +318,106 @@ void CameraSimulator::close() {
 
 CameraSimulator::~CameraSimulator() {
     this->close();
+}
+
+void CameraSimulator::testPhotoing() {
+    if (running_photoing_test)
+        return;
+
+    running_photoing_test = true;
+    thread_photoing_test_ = std::thread([this]() {
+        using namespace std::chrono;
+        using namespace std::this_thread;
+
+        auto setParams = []() {
+            // 设置参数 - 参考 prepare_Model_WorkControl 流程
+            // ===================== 成像模式参数 =====================
+            // 成像模式：广域成像 (1=广域, 2=区域成像, 3=区域监视)
+            cmd_From_FC.irst_cmd_param_irst_form_mode = V_IRST_FORM_MODE_WIDE_IMAG;
+            main_Control_State_Param.irst_form_mode   = V_IRST_FORM_MODE_WIDE_IMAG;
+            // 广域成像参数有效
+            cmd_From_FC.irst_cmd_param_IR_wide_image_paras_validity = 1;
+            // 由于没有udp包 不能处理act_req的参数传递 只能直接修改全局参数
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION = V_IR_WIDE_IMAGE_DIRECTION_RIGHT;
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_WIDE_IMAGE_MODE      = V_IR_WIDE_IMAGE_MODE_DIS_PRIO;
+            // 距离优先参数
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_range_lowline = 40;
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_range_upline  = 80;
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude  = 123;
+            // 方位优先参数
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE      = 0;
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_scan_start_angle = 0;
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_scan_end_angle   = 0;
+            param_Compute_Input_Fromfc.comp_IR_wide_image_paras.AZ_area_altitude    = 123;
+
+            // ===================== temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED 数据填充 =====================
+            // 反推填充 temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED
+            // 参考 fpga_sim.cpp 中的转换公式进行反推
+
+            // 时间数据（当前时间）
+            auto now         = std::chrono::system_clock::now();
+            auto time_t      = std::chrono::system_clock::to_time_t(now);
+            auto tm          = *std::localtime(&time_t);
+            auto duration    = now.time_since_epoch();
+            auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_year  = tm.tm_year + 1900;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_month = tm.tm_mon + 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_day   = tm.tm_mday;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.time_gnss_calendartime            = nanoseconds;
+
+            // 位置数据反推
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_gnss_position_data._longitude = 102.54f * PI / 180 / 0.00001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_gnss_position_data._latitude  = 30.05f * PI / 180 / 0.00001;
+
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_GNSS_alt._altitude = 17000.0f / 0.01;
+
+            // 姿态数据反推
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_true_heading._angle_mrad = 90.0f * PI / 180 / 0.001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_pitch._angle_mrad        = 2.0f * PI / 180 / 0.001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_roll._angle_mrad         = 3.0f * PI / 180 / 0.001;
+
+            // 速度数据反推
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_vel.Vel_North._velocity  = 0.0f / 0.0001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_vel.Vel_West._velocity   = -180.0f / 0.0001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_GNSS_ground_speed._velocity = 0.0f / 0.0001;
+
+            // 设置数据有效性标志
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_position      = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_GNSS_alt      = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_vel_north     = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_vel_west      = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_ground_speed  = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_CNI_GNSS_time = 1;
+        };
+
+        // 准备
+        log_once("[CameraSimulator] 设置准备");
+        while (running_photoing_test) {
+            setParams();
+            cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_PREPARE;
+            if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_PREPARE) {
+                cmd_From_FC.irst_cmd_STATE_SET = 0;
+            } else {
+                cmd_From_FC.irst_cmd_STATE_SET = 1;
+            }
+            if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_STBY) {
+                break;
+            }
+            sleep_for(10ms);
+        }
+
+        log_once("[CameraSimulator] 开始拍照");
+        while (running_photoing_test) {
+            setParams();
+            cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_TAKE_PIC;
+            if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_TAKE_PIC) {
+                cmd_From_FC.irst_cmd_STATE_SET = 0;
+            } else {
+                cmd_From_FC.irst_cmd_STATE_SET = 1;
+            }
+            // main_Control_State_Param.irst_work_state   = V_IRST_WORK_STATE_TAKE_PIC;
+            sleep_for(10ms);
+        }
+    });
 }

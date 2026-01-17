@@ -121,6 +121,9 @@ void usrmode_init() {
     // // Note: 测试 时 直接上电
     // cam_sim->powerOn(5);
 
+    // Note: 测试直接执行拍照模式
+    cam_sim->testPhotoing();
+
     return;
 }
 
