@@ -32,7 +32,7 @@ void CameraSimulator::init() {
         // 心跳线程
         startHeartbitting();
         // 共享内存输入参数 指针映射
-        pointShmInputParams();
+        keyShmInput();
 
         // FPGA 模拟器 初始化
         fpga_sim_.init();
@@ -42,17 +42,16 @@ void CameraSimulator::init() {
 }
 
 void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output) {
-    // todo: 是否需要上锁
+    // 是否需要上锁
     // std::lock_guard<std::mutex> lock(this->mtx_shm_);
 
-    // TODO: 实现相机模拟器的步进逻辑
     // 复制共享内存输入
     memcpy(&(this->shm_input_), shm_input, sizeof(SharedMemoryInput));
 
     // log_info("上电指令为: %d", *facility_power_supply_status_);
 
     // [5]综合光电系统 0-NA 1-上电 2-快速上电 3-降级 4-下电
-    switch (*facility_power_supply_status_) {
+    switch (facility_power_supply_status_) {
     case 0:
         break;
     case 1:
@@ -80,35 +79,62 @@ void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutpu
     memcpy(shm_output, &(this->shm_output_), sizeof(SharedMemoryOutput));
 }
 
-void CameraSimulator::pointShmInputParams() {
+void CameraSimulator::keyShmInput() {
     // [5]综合光电系统 0-NA 1-上电 2-快速上电 3-降级 4-下电
-    this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
-                                               .ArrU1_FacilitiesPowerSupplyStatus[5];
-
+    constexpr int idx = 5;
     // // !!!!!调试时 供电暂时使用4
-    // this->facility_power_supply_status_ = &shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData
-    //                                            .ArrU1_FacilitiesPowerSupplyStatus[4];
+    // constexpr int idx             = 4;
+    facility_power_supply_status_ = shm_input_.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData.ArrU1_FacilitiesPowerSupplyStatus[idx];
 
     // 0-NA；1-初始化；2-快速启动；3-常规启动；4-冻结；5-停止
-    this->operation_mode_ = &shm_input_.m_SecSimulatorControlMsg.St_SimulatorStatusControl.U1_OperationMode;
+    operation_mode_ = shm_input_.m_SecSimulatorControlMsg.St_SimulatorStatusControl.U1_OperationMode;
 }
 
 void CameraSimulator::updateShmOutput() {
     // std::lock_guard<std::mutex> lock(this->mtx_send_); // 不用加锁吧?
-    SM_MessageHeader msg_header;
-    msg_header.U4_Heartbeat       = this->heartbit_;
-    msg_header.U2_EffectiveLength = sizeof(SM_MessageHeader);
-    msg_header.St_GenerateTime    = getCurrentTimestamp();
-    msg_header.St_PubTime         = getCurrentTimestamp();
 
-    UnitStatusData unit_status_data;
-    unit_status_data.ArrI1_UnitID[0]  = 6;
-    unit_status_data.U1_MemberStatus  = 1;
-    unit_status_data.U4_UnitHeartbeat = this->heartbit_;
+    static SM_MessageHeader St_MessageHeader;
+    St_MessageHeader.U4_Heartbeat       = this->heartbit_;
+    St_MessageHeader.U2_EffectiveLength = sizeof(SM_MessageHeader);
+    St_MessageHeader.St_GenerateTime    = getCurrentTimestamp();
+    St_MessageHeader.St_PubTime         = getCurrentTimestamp();
 
-    // update...
-    this->shm_output_.m_FunctionalUnitStatusMsg.St_MessageHeader  = msg_header;
-    this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData = unit_status_data;
+    // FunctionalUnitStatusMsg 功能单元状态
+    shm_output_.m_FunctionalUnitStatusMsg.St_MessageHeader                       = St_MessageHeader;
+    shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.ArrI1_UnitID[0]      = 6;
+    shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.ArrI1_UnitVersion[0] = 6; // ?
+    shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U1_MemberStatus      = 1;
+    shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U4_UnitHeartbeat     = this->heartbit_;
+
+    /// SecEOImageDriveMsg 综合光电成像驱动参数
+    static EOImageState      St_EOImageState;      ///< @ID(1) 成像状态
+    static EOImageShowArea   St_EOImageShowArea;   ///< @ID(2) 显示区域参数
+    static EOImageParasIS    St_EOImageParasIS;    ///< @ID(3) 图像注释信息
+    static EOImageModifyPara St_EOImageModifyPara; ///< @ID(4) 光电图像调节参数
+    static EOTgtPara         Arr_EOTgtPara[5];     ///< @ID(5) 动目标检测成像参数[5] (最多包含5个目标)
+
+    St_EOImageState.U1_IRSensor = mess_To_TXCL_CMD.mode_IR_SENSOR; // @ID(0) // 传感器状态 0-NA，1-可见光，2-红外，3-可见+红外，4-红外+可见
+    switch (mess_To_TXCL_ZSXX.tx_info[3]) {
+    case 0: // 正常帧标记
+        St_EOImageState.U1_TVState = 1;
+        break;
+    case 1: // 每秒1帧标记
+    case 2: // 冻结标记
+        St_EOImageState.U1_TVState = 2;
+        break;
+    default:
+        St_EOImageState.U1_TVState = 0;
+        break;
+    }
+    St_EOImageState.U1_ImageMode = main_Control_State_Param.irst_form_mode; // @ID(2) // 成像模式 0-NA，1-广域成像，2-区域成像，3-区域监视
+    St_EOImageState.U1_Channel;                                             // @ID(3) // ? 通道? 待定
+
+    shm_output_.m_SecEOImageDriveMsg.St_SMMessageHeader   = St_MessageHeader;
+    shm_output_.m_SecEOImageDriveMsg.St_EOImageState      = St_EOImageState;
+    shm_output_.m_SecEOImageDriveMsg.St_EOImageShowArea   = St_EOImageShowArea;
+    shm_output_.m_SecEOImageDriveMsg.St_EOImageParasIS    = St_EOImageParasIS;
+    shm_output_.m_SecEOImageDriveMsg.St_EOImageModifyPara = St_EOImageModifyPara;
+    // memcpy(shm_output_.m_SecEOImageDriveMsg.Arr_EOTgtPara, Arr_EOTgtPara, sizeof(Arr_EOTgtPara));
 }
 
 void CameraSimulator::startTaskThreads() {
@@ -226,11 +252,13 @@ void CameraSimulator::powerOn(int delay) {
             // 上电成功
             this->remain_time   = 0;
             this->power_status_ = POWER_ON;
-            // 初始化参数
-            param_Init();
+
             // 队列 初始化
             sq::sq_IRST_act_req.clearAndNotify();
             sq::sq_others.clearAndNotify();
+
+            // 设备中的初始化参数
+            param_Init();
 
             log_info("[CameraSimulator] Power ON complete");
 

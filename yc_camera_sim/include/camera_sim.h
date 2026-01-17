@@ -73,18 +73,15 @@ class CameraSimulator {
     SharedMemoryInput  shm_input_;
     SharedMemoryOutput shm_output_;
 
-    // 将共享内存输入参数映射到本地(指针指向共享内存输入对应的位置)
-    void pointShmInputParams();
-
     // 共享内存输入参数映射对应的主要变量
-    char    *facility_power_supply_status_; // 设备供电状态参数 - 设备供电状态
-    uint8_t *operation_mode_;               // 模拟器运行控制 - 控制模式
+    char    facility_power_supply_status_ = 0; // 设备供电状态参数 - 设备供电状态
+    uint8_t operation_mode_               = 0; // 模拟器运行控制 - 控制模式
+
+    // 共享内存输入关键参数
+    void keyShmInput();
 
     // 更新共享内存输出
     void updateShmOutput();
-
-    // todo: 计算模块
-    // void compute();
 
     // UDP
     int         port_;      // udp 监听端口

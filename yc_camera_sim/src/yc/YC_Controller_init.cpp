@@ -1,9 +1,9 @@
 /*
  * YC_Controller_init.c
  *
- *  Created on: 2025Äê4ÔÂ30ÈÕ
+ *  Created on: 2025å¹´4æœˆ30æ—¥
  *      Author: wangx
- *      ³õÊ¼»¯ÏµÍ³±äÁ¿º¯Êı
+ *      åˆå§‹åŒ–ç³»ç»Ÿå˜é‡å‡½æ•°
  */
 
 #include "YC_Controller_init.h"
@@ -21,29 +21,29 @@
 #include <cstring>
 #include <global_vars.h>
 
-// //**************************´´½¨Ïß³Ì**************************
-// //**UINT32 affinity:´¦ÀíÆ÷ºËºÅ
-// //**ACoreOs_task_priority priority£ºÓÅÏÈ¼¶
-// //**ULONG stack_size£ºÈÎÎñÕ»´óĞ¡
-// //**ACoreOs_name name£ºÈÎÎñÃû³Æ
-// //**Task_ID task_id£ºÈÎÎñid
-// //**ACoreOs_task_entry entryPoint£ºÈÎÎñÈë¿Úº¯Êı
-// //**************************´´½¨Ïß³Ì**************************
+// //**************************åˆ›å»ºçº¿ç¨‹**************************
+// //**UINT32 affinity:å¤„ç†å™¨æ ¸å·
+// //**ACoreOs_task_priority priorityï¼šä¼˜å…ˆçº§
+// //**ULONG stack_sizeï¼šä»»åŠ¡æ ˆå¤§å°
+// //**ACoreOs_name nameï¼šä»»åŠ¡åç§°
+// //**Task_ID task_idï¼šä»»åŠ¡id
+// //**ACoreOs_task_entry entryPointï¼šä»»åŠ¡å…¥å£å‡½æ•°
+// //**************************åˆ›å»ºçº¿ç¨‹**************************
 // void yc_Create_Task(UINT32 affinity, ACoreOs_task_priority priority, ULONG stack_size, ACoreOs_name name, Task_ID task_id, ACoreOs_task_entry entryPoint) {
-//     ACoreOs_Task_Param  taskCreateParam;              // ´´½¨Ïß³ÌÓÃµÄ²ÎÊı£¬¿É¸´ÓÃ
-//     ACoreOs_status_code retCode = ACOREOS_SUCCESSFUL; // ·µ»ØÖµ½ÓÊÕ
+//     ACoreOs_Task_Param  taskCreateParam;              // åˆ›å»ºçº¿ç¨‹ç”¨çš„å‚æ•°ï¼Œå¯å¤ç”¨
+//     ACoreOs_status_code retCode = ACOREOS_SUCCESSFUL; // è¿”å›å€¼æ¥æ”¶
 
-//     taskCreateParam.affinity         = affinity;                            // ÈÎÎñÎŞÇ×ºËÊôĞÔÉèÖÃACOREOS_TASK_NO_AFFINITY£¬·ñÔò¸ø¶¨´¦ÀíÆ÷ºËºÅ
-//     taskCreateParam.attribute_set    = ACOREOS_PREEMPT | ACOREOS_TIMESLICE; // ¾ÍÓÃÕâ¸ö²»ÓÃ¸Ä
-//     taskCreateParam.domain           = (ULONG)ACOREOS_KERNEL_ID;            // ¾ÍÓÃÕâ¸ö²»ÓÃ¸Ä
-//     taskCreateParam.initial_priority = priority;                            // ÓÅÏÈ¼¶
-//     taskCreateParam.stack_size       = stack_size;                          // ×Ö½Ú
-//     // ´´½¨YC_Others_Porcess
+//     taskCreateParam.affinity         = affinity;                            // ä»»åŠ¡æ— äº²æ ¸å±æ€§è®¾ç½®ACOREOS_TASK_NO_AFFINITYï¼Œå¦åˆ™ç»™å®šå¤„ç†å™¨æ ¸å·
+//     taskCreateParam.attribute_set    = ACOREOS_PREEMPT | ACOREOS_TIMESLICE; // å°±ç”¨è¿™ä¸ªä¸ç”¨æ”¹
+//     taskCreateParam.domain           = (ULONG)ACOREOS_KERNEL_ID;            // å°±ç”¨è¿™ä¸ªä¸ç”¨æ”¹
+//     taskCreateParam.initial_priority = priority;                            // ä¼˜å…ˆçº§
+//     taskCreateParam.stack_size       = stack_size;                          // å­—èŠ‚
+//     // åˆ›å»ºYC_Others_Porcess
 //     retCode = ACoreOs_task_create(name, &taskCreateParam, &task_id);
 //     if (retCode != ACOREOS_SUCCESSFUL) {
 //         printf("Failed to create %s, return code:%#x!\n", name, retCode);
 //     }
-//     // Æô¶¯YC_Others_PorcessÆäËûÏûÏ¢Ïß³Ì£¬µÈµ½initº¯ÊıÖ´ĞĞÍê²ÅÆô¶¯£¬Æô¶¯Ç°ÈÎÎñ×´Ì¬Îªready£¬Ö´ĞĞÖĞÎªrunning
+//     // å¯åŠ¨YC_Others_Porcesså…¶ä»–æ¶ˆæ¯çº¿ç¨‹ï¼Œç­‰åˆ°initå‡½æ•°æ‰§è¡Œå®Œæ‰å¯åŠ¨ï¼Œå¯åŠ¨å‰ä»»åŠ¡çŠ¶æ€ä¸ºreadyï¼Œæ‰§è¡Œä¸­ä¸ºrunning
 //     retCode = ACoreOs_task_start(task_id, entryPoint, 0);
 //     if (retCode != ACOREOS_SUCCESSFUL) {
 //         printf("Failed to start %s, return code:%d!\n", name, retCode);
@@ -51,15 +51,15 @@
 //     printf("Create %s success!!\n\n", name);
 // }
 
-// //**************************´´½¨ÖÜÆÚÏß³Ì**************************
-// //**UINT32 affinity:´¦ÀíÆ÷ºËºÅ
-// //**ACoreOs_task_priority priority£ºÓÅÏÈ¼¶
-// //**ULONG stack_size£ºÈÎÎñÕ»´óĞ¡
-// //**ACoreOs_name name£ºÈÎÎñÃû³Æ
-// //**Task_ID task_id£ºÈÎÎñid
-// //**ACoreOs_task_entry entryPoint£ºÈÎÎñÈë¿Úº¯Êı
-// //**periodLength£ºÖÜÆÚ
-// //**************************´´½¨Ïß³Ì**************************
+// //**************************åˆ›å»ºå‘¨æœŸçº¿ç¨‹**************************
+// //**UINT32 affinity:å¤„ç†å™¨æ ¸å·
+// //**ACoreOs_task_priority priorityï¼šä¼˜å…ˆçº§
+// //**ULONG stack_sizeï¼šä»»åŠ¡æ ˆå¤§å°
+// //**ACoreOs_name nameï¼šä»»åŠ¡åç§°
+// //**Task_ID task_idï¼šä»»åŠ¡id
+// //**ACoreOs_task_entry entryPointï¼šä»»åŠ¡å…¥å£å‡½æ•°
+// //**periodLengthï¼šå‘¨æœŸ
+// //**************************åˆ›å»ºçº¿ç¨‹**************************
 // void yc_Create_Period_Task(UINT32 affinity, ACoreOs_task_priority priority, ULONG stack_size, ACoreOs_name name, Task_ID *task_id, ACoreOs_task_entry entryPoint, ACoreOs_interval periodLength) {
 //     *task_id = ACoreOs_periodtask_create(name, priority, stack_size, ACOREOS_DEFAULT_ATTRIBUTES, entryPoint, 0, periodLength, periodLength, affinity);
 //     if (*task_id != NULL) {
@@ -75,193 +75,193 @@
 // }
 
 void param_Init() {
-    // // Ïß³Ìid¶¨Òå
-    // YC_FC_Recv          = NULL; // ½ÓÊÕFCÏûÏ¢Ïß³Ì£¬·ÅÈëlist»º³åÇø
-    // YC_Main_Control     = NULL; // Ö÷Á÷³Ì¿ØÖÆÏß³Ì
-    // YC_Others_Porcess   = NULL; // ÆäËûÏûÏ¢´¦ÀíÏß³Ì
-    // YC_Period_Send_Mess = NULL; // ÖÜÆÚ·¢ËÍÏß³Ì
+    // // çº¿ç¨‹idå®šä¹‰
+    // YC_FC_Recv          = NULL; // æ¥æ”¶FCæ¶ˆæ¯çº¿ç¨‹ï¼Œæ”¾å…¥listç¼“å†²åŒº
+    // YC_Main_Control     = NULL; // ä¸»æµç¨‹æ§åˆ¶çº¿ç¨‹
+    // YC_Others_Porcess   = NULL; // å…¶ä»–æ¶ˆæ¯å¤„ç†çº¿ç¨‹
+    // YC_Period_Send_Mess = NULL; // å‘¨æœŸå‘é€çº¿ç¨‹
 
-    // timer_id_5ms = 0; // 5msÖÜÆÚ¶¨Ê±Æ÷
+    // timer_id_5ms = 0; // 5mså‘¨æœŸå®šæ—¶å™¨
 
-    // lstInit(&list_Mess_FromFc_IRST_act_req); // FC½ÓÊÕÏûÏ¢»º³åÇø
-    // lstInit(&list_Mess_FromFc_Others);       // FC½ÓÊÕÏûÏ¢»º³åÇø-ÆäËûÏûÏ¢
+    // lstInit(&list_Mess_FromFc_IRST_act_req); // FCæ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒº
+    // lstInit(&list_Mess_FromFc_Others);       // FCæ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒº-å…¶ä»–æ¶ˆæ¯
 
-    // // ´´½¨ĞÅºÅÁ¿
-    // bSemId_list_Mess_FromFc_IRST_act_req = createBinarysem(bSemName_list_Mess_FromFc_IRST_act_req); // FC½ÓÊÕÏûÏ¢»º³åÇø»¥³âËø
-    // bSemId_list_Mess_FromFc_Others       = createBinarysem(bSemName_list_Mess_FromFc_Others);       // FC½ÓÊÕÏûÏ¢»º³åÇø»¥³âËø
+    // // åˆ›å»ºä¿¡å·é‡
+    // bSemId_list_Mess_FromFc_IRST_act_req = createBinarysem(bSemName_list_Mess_FromFc_IRST_act_req); // FCæ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒºäº’æ–¥é”
+    // bSemId_list_Mess_FromFc_Others       = createBinarysem(bSemName_list_Mess_FromFc_Others);       // FCæ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒºäº’æ–¥é”
 
 
-    // Ö÷¿ØÓÃ±êÖ¾Î»
-    flag_Fpga_Interrupt  = 0; // fpgaÖĞ¶Ï£¬0ÎªÎ´ÊÕµ½ÖĞ¶Ï£¬1ÎªÒÑÊÕµ½ÖĞ¶Ï
-    flag_Fpga_down_times = 0; // Í³¼ÆfpgaÎ´´¥·¢´ÎÊı
-    flag_Fpga_bg         = 0; // ÆØ¹âĞÅºÅµ½´ï
+    // ä¸»æ§ç”¨æ ‡å¿—ä½
+    flag_Fpga_Interrupt  = 0; // fpgaä¸­æ–­ï¼Œ0ä¸ºæœªæ”¶åˆ°ä¸­æ–­ï¼Œ1ä¸ºå·²æ”¶åˆ°ä¸­æ–­
+    flag_Fpga_down_times = 0; // ç»Ÿè®¡fpgaæœªè§¦å‘æ¬¡æ•°
+    flag_Fpga_bg         = 0; // æ›å…‰ä¿¡å·åˆ°è¾¾
 
     memset(&main_Control_State_Param, 0, sizeof(MAIN_CONTROL_STATE_PARAM));
     main_Control_State_Param.totalNo = 0;
-    // Ö÷¿ØÓÃÏà¹Ø×´Ì¬Î»
-    main_Control_State_Param.work_state      = V_SUBSYS_WORK_STATE_NORMAL; // Õı³£
-    main_Control_State_Param.main_mode       = V_SUBSYS_MAIN_MODE_INI;     // Ïà»ú¹¤×÷Ä£Ê½£¬ÉÏ±¨µÄ¹¤×÷Ä£Ê½,¿ª»úÄ¬ÈÏ³É³õÊ¼»¯
-    main_Control_State_Param.irst_work_state = V_IRST_WORK_STATE_INIT;     // IRST¹¤×÷×´Ì¬:³õÊ¼»¯
-    main_Control_State_Param.irst_form_mode  = V_IRST_FORM_MODE_NA;        // IRST³ÉÏñÄ£Ê½¹ãÓò³ÉÏñ¡¢ÇøÓò³ÉÏñ¡¢ÇøÓò¼àÊÓ
-    main_Control_State_Param.trans_state     = V_ID_DATA_TRANS_FLAG_NO;    // ´«Í¼×´Ì¬£¬³õÊ¼»¯Îª·ñ
+    // ä¸»æ§ç”¨ç›¸å…³çŠ¶æ€ä½
+    main_Control_State_Param.work_state      = V_SUBSYS_WORK_STATE_NORMAL; // æ­£å¸¸
+    main_Control_State_Param.main_mode       = V_SUBSYS_MAIN_MODE_INI;     // ç›¸æœºå·¥ä½œæ¨¡å¼ï¼Œä¸ŠæŠ¥çš„å·¥ä½œæ¨¡å¼,å¼€æœºé»˜è®¤æˆåˆå§‹åŒ–
+    main_Control_State_Param.irst_work_state = V_IRST_WORK_STATE_INIT;     // IRSTå·¥ä½œçŠ¶æ€:åˆå§‹åŒ–
+    main_Control_State_Param.irst_form_mode  = V_IRST_FORM_MODE_NA;        // IRSTæˆåƒæ¨¡å¼å¹¿åŸŸæˆåƒã€åŒºåŸŸæˆåƒã€åŒºåŸŸç›‘è§†
+    main_Control_State_Param.trans_state     = V_ID_DATA_TRANS_FLAG_NO;    // ä¼ å›¾çŠ¶æ€ï¼Œåˆå§‹åŒ–ä¸ºå¦
 
-    memset(&param_Compute_Output, 0, sizeof(PARAM_COMPUTE_OUTPUT)); // Ö÷¿Ø¼ÆËãÊä³ö²ÎÊı½á¹¹Ìå
+    memset(&param_Compute_Output, 0, sizeof(PARAM_COMPUTE_OUTPUT)); // ä¸»æ§è®¡ç®—è¾“å‡ºå‚æ•°ç»“æ„ä½“
 
-    memset(&cmd_From_FC, 0, sizeof(CMD_FROM_FC)); // ÓÃÓÚ»º´æ´ÓfcÀ´µÄIRST_ACT_REQÏûÏ¢£¬ºÍÄÜÖ´ĞĞµÄÖ¸Áî
+    memset(&cmd_From_FC, 0, sizeof(CMD_FROM_FC)); // ç”¨äºç¼“å­˜ä»fcæ¥çš„IRST_ACT_REQæ¶ˆæ¯ï¼Œå’Œèƒ½æ‰§è¡Œçš„æŒ‡ä»¤
     memset(&param_Compute_Input_Fromfc, 0, sizeof(PARAM_COMPUTE_INPUT_FROMFC));
     memset(&param_Compute_Input_Fromfpga, 0, sizeof(PARAM_COMPUTE_INPUT_FROMFPGA));
-    memset(&vnode_APP_STATE, 0, sizeof(V_NODE_APP_STATE)); // ¼ÇÂ¼¸÷¹¦ÄÜµ¥ÔªµÄÓ¦ÓÃ×´Ì¬½á¹¹Ìå
+    memset(&vnode_APP_STATE, 0, sizeof(V_NODE_APP_STATE)); // è®°å½•å„åŠŸèƒ½å•å…ƒçš„åº”ç”¨çŠ¶æ€ç»“æ„ä½“
 
-    // µ÷¹âÓÃÏà¹Ø²ÎÊı
-    memset(&tg_Param, 0, sizeof(TG_PARAM));         // µ÷¹âÓÃ²ÎÊı½á¹¹Ìå
-    memset(&mess_To_TG, 0, sizeof(MESS_TO_TG));     // Ïòµ÷¹â·¢ËÍ
-    memset(&mess_From_TG, 0, sizeof(MESS_FROM_TG)); // ´Óµ÷¹â½ÓÊÕ
+    // è°ƒå…‰ç”¨ç›¸å…³å‚æ•°
+    memset(&tg_Param, 0, sizeof(TG_PARAM));         // è°ƒå…‰ç”¨å‚æ•°ç»“æ„ä½“
+    memset(&mess_To_TG, 0, sizeof(MESS_TO_TG));     // å‘è°ƒå…‰å‘é€
+    memset(&mess_From_TG, 0, sizeof(MESS_FROM_TG)); // ä»è°ƒå…‰æ¥æ”¶
 
-    // ¾²Ì¬³ÉÏñICD
+    // é™æ€æˆåƒICD
     memset(&nbMess_jt_Photo, 0, sizeof(MESS_FROMFC_JT_PHOTO));
-    nbMess_jt_Photo.zl_Switch = 1; // ºìÍâÖÆÀä»úÄ¬ÈÏÎª1-¿ª
+    nbMess_jt_Photo.zl_Switch = 1; // çº¢å¤–åˆ¶å†·æœºé»˜è®¤ä¸º1-å¼€
 
     param_Compute_Input_Fromfpga.flag_GYQYPhoto_FIRST_Compute = 1;
-    // ÏûÏ¢³õÊ¼»¯
+    // æ¶ˆæ¯åˆå§‹åŒ–
     mess_Init();
 
-    TG_VarInit(); // µ÷¹â³õÊ¼»¯-25-8-15,sc
+    TG_VarInit(); // è°ƒå…‰åˆå§‹åŒ–-25-8-15,sc
 
-    // flash_Data_Init(); // ³Ö¾Ã»¯´æ´¢ĞÅÏ¢³õÊ¼»¯
+    // flash_Data_Init(); // æŒä¹…åŒ–å­˜å‚¨ä¿¡æ¯åˆå§‹åŒ–
 
-    nb_HMC_DATA_INIT(); // HMC³õÊ¼»¯
+    nb_HMC_DATA_INIT(); // HMCåˆå§‹åŒ–
 
-    comp_Parm_init(); // ¼ÆËã³õÊ¼»¯
+    comp_Parm_init(); // è®¡ç®—åˆå§‹åŒ–
 
-    make_Mess_To_JLY(JLY_CMD_OPEN); // ¼ÇÂ¼ÒÇ
+    make_Mess_To_JLY(JLY_CMD_OPEN); // è®°å½•ä»ª
 
-    // Ä¬ÈÏ²ÎÉèÖÃ
-    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_focus_mode           = V_LIGHT_FOCUS_MODE_AUTO;            // Ãû  ³Æ:¿É¼û¹âµ÷½¹Ä£Ê½
-    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_dim_mode             = V_LIGHT_DIM_MODE_AUTO;              // Ãû  ³Æ:¿É¼û¹âµ÷¹âÄ£Ê½
-    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_enhance_mode         = V_LIGHT_ENHANCE_MODE_OFF;           // Ãû  ³Æ:¿É¼û¹âÔöÇ¿×´Ì¬
-    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_mist_eliminate_state = V_LIGHT_MIST_ELIMINATE_STATE_OFF;   // Ãû  ³Æ:¿É¼û¹âÈ¥Îí×´Ì¬
-    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_focus_mode        = V_INFRARED_FOCUS_MODE_AUTO;         // Ãû  ³Æ:ºìÍâµ÷½¹Ä£Ê½
-    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_dim_mode          = V_INFRARED_DIM_MODE_AUTO;           // Ãû  ³Æ: ºìÍâµ÷¹âÄ£Ê½
-    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_enhance_mode      = V_INFRARED_ENHANCE_MODE_OFF;        ////Ãû  ³Æ:ºìÍâÔöÇ¿×´Ì¬
-    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.video_polar                = V_VIDEO_POLAR_WHOT;                 // Ãû  ³Æ:ÊÓÆµ¼«»¯
-    cmd_From_FC.irst_cmd_param_IR_Transom_paras.Transom_mist_eliminate_state   = V_TRANSOM_MIST_ELIMINATE_STATE_OFF; ////Ãû  ³Æ:¹â´°È¥Îí×´Ì¬
-    cmd_From_FC.irst_cmd_param_irst_form_mode                                  = V_IRST_FORM_MODE_WIDE_IMAG;         // Ãû  ³Æ:IRST³ÉÏñÄ£Ê½1
+    // é»˜è®¤å‚è®¾ç½®
+    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_focus_mode           = V_LIGHT_FOCUS_MODE_AUTO;            // å  ç§°:å¯è§å…‰è°ƒç„¦æ¨¡å¼
+    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_dim_mode             = V_LIGHT_DIM_MODE_AUTO;              // å  ç§°:å¯è§å…‰è°ƒå…‰æ¨¡å¼
+    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_enhance_mode         = V_LIGHT_ENHANCE_MODE_OFF;           // å  ç§°:å¯è§å…‰å¢å¼ºçŠ¶æ€
+    cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_mist_eliminate_state = V_LIGHT_MIST_ELIMINATE_STATE_OFF;   // å  ç§°:å¯è§å…‰å»é›¾çŠ¶æ€
+    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_focus_mode        = V_INFRARED_FOCUS_MODE_AUTO;         // å  ç§°:çº¢å¤–è°ƒç„¦æ¨¡å¼
+    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_dim_mode          = V_INFRARED_DIM_MODE_AUTO;           // å  ç§°: çº¢å¤–è°ƒå…‰æ¨¡å¼
+    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_enhance_mode      = V_INFRARED_ENHANCE_MODE_OFF;        ////å  ç§°:çº¢å¤–å¢å¼ºçŠ¶æ€
+    cmd_From_FC.irst_cmd_param_IR_image_paras_infra.video_polar                = V_VIDEO_POLAR_WHOT;                 // å  ç§°:è§†é¢‘æåŒ–
+    cmd_From_FC.irst_cmd_param_IR_Transom_paras.Transom_mist_eliminate_state   = V_TRANSOM_MIST_ELIMINATE_STATE_OFF; ////å  ç§°:å…‰çª—å»é›¾çŠ¶æ€
+    cmd_From_FC.irst_cmd_param_irst_form_mode                                  = V_IRST_FORM_MODE_WIDE_IMAG;         // å  ç§°:IRSTæˆåƒæ¨¡å¼1
 
-    cmd_From_FC.irst_cmd_param_area_image_paras[0].IR_IMG_MODE = V_IR_IMG_MODE_CONTINUES; // Ãû  ³Æ:¹âµç³ÉÏñ·½Ê½
-    cmd_From_FC.irst_cmd_param_area_image_paras[1].IR_IMG_MODE = V_IR_IMG_MODE_CONTINUES; // Ãû  ³Æ:¹âµç³ÉÏñ·½Ê½
-    cmd_From_FC.irst_cmd_param_area_image_paras[2].IR_IMG_MODE = V_IR_IMG_MODE_CONTINUES; // Ãû  ³Æ:¹âµç³ÉÏñ·½Ê½
-    cmd_From_FC.irst_cmd_param_IRST_Video_BAND                 = V_IRST_VIDEO_BAND_NA;    ////Ãû  ³Æ:IRST_ÇøÓò¼àÊÓÊÓÆµ´ø¿í1
-    cmd_From_FC.irst_cmd_param_environmnet_type                = V_ENVIRONMNET_TYPE_AUTO; // ÉèÖÃÄ¬ÈÏÖµ
-    cmd_From_FC.irst_cmd_param_IR_SENSOR                       = V_IR_SENSOR_LANDI;       // ´«¸ĞÆ÷×´Ì¬£ºÄ¬ÈÏ¿É¼û+ºìÍâ
-    cmd_From_FC.irst_cmd_VIEW_STATE                            = 0;                       // Ãû  ³Æ:´óĞ¡ÊÓ³¡£¬0:Ğ¡ÊÓ³¡£¨³¤½¹£©£»1£º´óÊÓ³¡£¨¶Ì½¹£©£¬Ä¬ÈÏÎ´Ğ¡ÊÓ³¡³¤½¹
+    cmd_From_FC.irst_cmd_param_area_image_paras[0].IR_IMG_MODE = V_IR_IMG_MODE_CONTINUES; // å  ç§°:å…‰ç”µæˆåƒæ–¹å¼
+    cmd_From_FC.irst_cmd_param_area_image_paras[1].IR_IMG_MODE = V_IR_IMG_MODE_CONTINUES; // å  ç§°:å…‰ç”µæˆåƒæ–¹å¼
+    cmd_From_FC.irst_cmd_param_area_image_paras[2].IR_IMG_MODE = V_IR_IMG_MODE_CONTINUES; // å  ç§°:å…‰ç”µæˆåƒæ–¹å¼
+    cmd_From_FC.irst_cmd_param_IRST_Video_BAND                 = V_IRST_VIDEO_BAND_NA;    ////å  ç§°:IRST_åŒºåŸŸç›‘è§†è§†é¢‘å¸¦å®½1
+    cmd_From_FC.irst_cmd_param_environmnet_type                = V_ENVIRONMNET_TYPE_AUTO; // è®¾ç½®é»˜è®¤å€¼
+    cmd_From_FC.irst_cmd_param_IR_SENSOR                       = V_IR_SENSOR_LANDI;       // ä¼ æ„Ÿå™¨çŠ¶æ€ï¼šé»˜è®¤å¯è§+çº¢å¤–
+    cmd_From_FC.irst_cmd_VIEW_STATE                            = 0;                       // å  ç§°:å¤§å°è§†åœºï¼Œ0:å°è§†åœºï¼ˆé•¿ç„¦ï¼‰ï¼›1ï¼šå¤§è§†åœºï¼ˆçŸ­ç„¦ï¼‰ï¼Œé»˜è®¤æœªå°è§†åœºé•¿ç„¦
 
-    // ¹ãÓò³ÉÏñÄ¬ÈÏ²ÎÊı
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_range_lowline        = 6000;                           // ¾àÀë½ü½ç60km
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION = V_IR_WIDE_IMAGE_DIRECTION_LEFT; // É¨Ãè·½Ïò£¬×ó²à
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_WIDE_IMAGE_MODE      = V_IR_WIDE_IMAGE_MODE_DIS_PRIO;  // ¹âµç¹ãÓò³ÉÏñ×ÓÄ£Ê½£¬¾àÀëÓÅÏÈ
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_IMAGE_RANGE          = 10000;                          // Á¿³Ì£¬100km
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_range_upline         = 12000;                          // ¾àÀë½ü½ç120km
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_scan_start_angle     = -5236;                          // ¹âµçÉ¨ÃèÆğÊ¼½Ç,-30¶È
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_scan_end_angle       = 5236;                           // ¹âµçÉ¨Ãè½áÊø½Ç,30¶È
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.D_area_altitude         = 0;                              // ¸ß¶È£¬0
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.AZ_area_altitude        = 0;                              // ¸ß¶È£¬0
-    cmd_From_FC.irst_cmd_param_IR_wide_image_paras_validity                = 1;                              // ÓĞĞ§ĞÔÄ¬ÈÏÎª1
-    cmd_From_FC.irst_cmd_param_area_image_paras[0].IR_AREA_LENGTH          = 4;                              // ÇøÓò±ß³¤Ä¬ÈÏÎª4km
-    cmd_From_FC.irst_cmd_param_area_image_paras[1].IR_AREA_LENGTH          = 4;                              // ÇøÓò±ß³¤Ä¬ÈÏÎª4km
-    cmd_From_FC.irst_cmd_param_area_image_paras[2].IR_AREA_LENGTH          = 4;                              // ÇøÓò±ß³¤Ä¬ÈÏÎª4km
+    // å¹¿åŸŸæˆåƒé»˜è®¤å‚æ•°
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_range_lowline        = 6000;                           // è·ç¦»è¿‘ç•Œ60km
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_WIDE_IMAGE_DIRECTION = V_IR_WIDE_IMAGE_DIRECTION_LEFT; // æ‰«ææ–¹å‘ï¼Œå·¦ä¾§
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_WIDE_IMAGE_MODE      = V_IR_WIDE_IMAGE_MODE_DIS_PRIO;  // å…‰ç”µå¹¿åŸŸæˆåƒå­æ¨¡å¼ï¼Œè·ç¦»ä¼˜å…ˆ
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_IMAGE_RANGE          = 10000;                          // é‡ç¨‹ï¼Œ100km
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_range_upline         = 12000;                          // è·ç¦»è¿‘ç•Œ120km
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_scan_start_angle     = -5236;                          // å…‰ç”µæ‰«æèµ·å§‹è§’,-30åº¦
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_scan_end_angle       = 5236;                           // å…‰ç”µæ‰«æç»“æŸè§’,30åº¦
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.D_area_altitude         = 0;                              // é«˜åº¦ï¼Œ0
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras.AZ_area_altitude        = 0;                              // é«˜åº¦ï¼Œ0
+    cmd_From_FC.irst_cmd_param_IR_wide_image_paras_validity                = 1;                              // æœ‰æ•ˆæ€§é»˜è®¤ä¸º1
+    cmd_From_FC.irst_cmd_param_area_image_paras[0].IR_AREA_LENGTH          = 4;                              // åŒºåŸŸè¾¹é•¿é»˜è®¤ä¸º4km
+    cmd_From_FC.irst_cmd_param_area_image_paras[1].IR_AREA_LENGTH          = 4;                              // åŒºåŸŸè¾¹é•¿é»˜è®¤ä¸º4km
+    cmd_From_FC.irst_cmd_param_area_image_paras[2].IR_AREA_LENGTH          = 4;                              // åŒºåŸŸè¾¹é•¿é»˜è®¤ä¸º4km
 }
 
-// // ³Ö¾Ã»¯´æ´¢ĞÅÏ¢³õÊ¼»¯
+// // æŒä¹…åŒ–å­˜å‚¨ä¿¡æ¯åˆå§‹åŒ–
 // void flash_Data_Init() {
-//     // ³Ö¾Ã»¯´æ´¢ĞÅÏ¢³õÊ¼»¯
-//     memcpy(&nbMess_hwInfo_FLASH, (void *)FLASH_ADDR, sizeof(MESS_FROMFC_HWINFO_FLASH));                        // ·ÅÈë½ÓÊÕ»º´æ
-//     nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave++;                                                      // ÀÛ¼ÓÉÏµç´ÎÊı
-//     my_flash_write(FLASH_ADDR, (void *)&(nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave), sizeof(UINT32)); // Ğ´»Øflash
+//     // æŒä¹…åŒ–å­˜å‚¨ä¿¡æ¯åˆå§‹åŒ–
+//     memcpy(&nbMess_hwInfo_FLASH, (void *)FLASH_ADDR, sizeof(MESS_FROMFC_HWINFO_FLASH));                        // æ”¾å…¥æ¥æ”¶ç¼“å­˜
+//     nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave++;                                                      // ç´¯åŠ ä¸Šç”µæ¬¡æ•°
+//     my_flash_write(FLASH_ADDR, (void *)&(nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave), sizeof(UINT32)); // å†™å›flash
 
-//     // 20251128Ôö¼Ó±£´æÖ¡ĞòºÅ¹¦ÄÜ
-//     memcpy((void *)(&(main_Control_State_Param.totalNo)), (void *)(FLASH_ADDR + sizeof(MESS_FROMFC_HWINFO_FLASH)), sizeof(UINT32)); // ´Ó³Ö¾Ã»¯ÖĞ¶ÁÈ¡Ö¡ĞòºÅ
+//     // 20251128å¢åŠ ä¿å­˜å¸§åºå·åŠŸèƒ½
+//     memcpy((void *)(&(main_Control_State_Param.totalNo)), (void *)(FLASH_ADDR + sizeof(MESS_FROMFC_HWINFO_FLASH)), sizeof(UINT32)); // ä»æŒä¹…åŒ–ä¸­è¯»å–å¸§åºå·
 
 //     printf("readflash:%d\n", main_Control_State_Param.totalNo);
 
-//     param_Compute_Input_Fromfpga.jj_Small_KJ = nbMess_hwInfo_FLASH.jj_Small_KJ; // ¿É¼ûĞ¡ÊÓ³¡-³¤½¹
-//     param_Compute_Input_Fromfpga.jj_Big_KJ   = nbMess_hwInfo_FLASH.jj_Big_KJ;   // ¿É¼û´óÊÓ³¡-¶Ì½¹
-//     param_Compute_Input_Fromfpga.jj_Small_HW = nbMess_hwInfo_FLASH.jj_Small_HW; // ºìÍâĞ¡ÊÓ³¡-³¤½¹
-//     param_Compute_Input_Fromfpga.jj_Big_HW   = nbMess_hwInfo_FLASH.jj_Big_HW;   // ºìÍâ´óÊÓ³¡-¶Ì½¹
+//     param_Compute_Input_Fromfpga.jj_Small_KJ = nbMess_hwInfo_FLASH.jj_Small_KJ; // å¯è§å°è§†åœº-é•¿ç„¦
+//     param_Compute_Input_Fromfpga.jj_Big_KJ   = nbMess_hwInfo_FLASH.jj_Big_KJ;   // å¯è§å¤§è§†åœº-çŸ­ç„¦
+//     param_Compute_Input_Fromfpga.jj_Small_HW = nbMess_hwInfo_FLASH.jj_Small_HW; // çº¢å¤–å°è§†åœº-é•¿ç„¦
+//     param_Compute_Input_Fromfpga.jj_Big_HW   = nbMess_hwInfo_FLASH.jj_Big_HW;   // çº¢å¤–å¤§è§†åœº-çŸ­ç„¦
 // }
 
-// ÏûÏ¢³õÊ¼»¯
+// æ¶ˆæ¯åˆå§‹åŒ–
 void mess_Init() {
-    // FCÍ¨ĞÅÏûÏ¢³õÊ¼»¯
-    memset(&temp_mess_FromFc_SYM_OPERATIONAL_PARAS, 0, sizeof(SYM_OPERATIONAL_PARAS));     // ÏµÍ³¹ÜÀí¹¤×÷²ÎÊı±¨¸æ
-    memset(&temp_mess_FromFc_SYM_TIME_REPORT, 0, sizeof(SYM_TIME_REPORT));                 // ÏµÍ³¹ÜÀíÊ±¼äĞÅÏ¢±¨¸æ
-    memset(&temp_mess_FromFc_INS1_OPERATIONAL_PARAS, 0, sizeof(INS1_OPERATIONAL_PARAS));   // INS1¹¤×÷²ÎÊı±¨¸æ
-    memset(&temp_mess_FromFc_INS2_OPERATIONAL_PARAS, 0, sizeof(INS2_OPERATIONAL_PARAS));   // INS2¹¤×÷²ÎÊı±¨¸æ
-    memset(&temp_mess_FromFc_INS3_OPERATIONAL_PARAS, 0, sizeof(INS3_OPERATIONAL_PARAS));   // INS3¹¤×÷²ÎÊı±¨¸æ
-    memset(&temp_mess_FromFc_INS1_NAV_DATA, 0, sizeof(INS1_NAV_DATA));                     // INS1µ¼º½Êı¾İ
-    memset(&temp_mess_FromFc_INS2_NAV_DATA, 0, sizeof(INS2_NAV_DATA));                     // INS2µ¼º½Êı¾İ
-    memset(&temp_mess_FromFc_INS3_NAV_DATA, 0, sizeof(INS3_NAV_DATA));                     // INS3µ¼º½Êı¾İ
-    memset(&temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED, 0, sizeof(ABSOLUTE_NAV_DATA_FUSED)); // ¾ø¶Ôµ¼º½ÈÚºÏ·ÉĞĞ²ÎÊı
-    memset(&temp_mess_FromFc_NAV_PARAS, 0, sizeof(NAV_PARAS));                             // µ¼º½²ÎÊı±¨¸æ
-    memset(&temp_mess_FromFc_MISSION_EVENT_REPORT, 0, sizeof(MISSION_EVENT_REPORT));       // Õ½ÊõÈÎÎñÊÂ¼ş±¨¸æ
+    // FCé€šä¿¡æ¶ˆæ¯åˆå§‹åŒ–
+    memset(&temp_mess_FromFc_SYM_OPERATIONAL_PARAS, 0, sizeof(SYM_OPERATIONAL_PARAS));     // ç³»ç»Ÿç®¡ç†å·¥ä½œå‚æ•°æŠ¥å‘Š
+    memset(&temp_mess_FromFc_SYM_TIME_REPORT, 0, sizeof(SYM_TIME_REPORT));                 // ç³»ç»Ÿç®¡ç†æ—¶é—´ä¿¡æ¯æŠ¥å‘Š
+    memset(&temp_mess_FromFc_INS1_OPERATIONAL_PARAS, 0, sizeof(INS1_OPERATIONAL_PARAS));   // INS1å·¥ä½œå‚æ•°æŠ¥å‘Š
+    memset(&temp_mess_FromFc_INS2_OPERATIONAL_PARAS, 0, sizeof(INS2_OPERATIONAL_PARAS));   // INS2å·¥ä½œå‚æ•°æŠ¥å‘Š
+    memset(&temp_mess_FromFc_INS3_OPERATIONAL_PARAS, 0, sizeof(INS3_OPERATIONAL_PARAS));   // INS3å·¥ä½œå‚æ•°æŠ¥å‘Š
+    memset(&temp_mess_FromFc_INS1_NAV_DATA, 0, sizeof(INS1_NAV_DATA));                     // INS1å¯¼èˆªæ•°æ®
+    memset(&temp_mess_FromFc_INS2_NAV_DATA, 0, sizeof(INS2_NAV_DATA));                     // INS2å¯¼èˆªæ•°æ®
+    memset(&temp_mess_FromFc_INS3_NAV_DATA, 0, sizeof(INS3_NAV_DATA));                     // INS3å¯¼èˆªæ•°æ®
+    memset(&temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED, 0, sizeof(ABSOLUTE_NAV_DATA_FUSED)); // ç»å¯¹å¯¼èˆªèåˆé£è¡Œå‚æ•°
+    memset(&temp_mess_FromFc_NAV_PARAS, 0, sizeof(NAV_PARAS));                             // å¯¼èˆªå‚æ•°æŠ¥å‘Š
+    memset(&temp_mess_FromFc_MISSION_EVENT_REPORT, 0, sizeof(MISSION_EVENT_REPORT));       // æˆ˜æœ¯ä»»åŠ¡äº‹ä»¶æŠ¥å‘Š
 
-    memset(&mess_ToFC_IRST_ACT_REQ_REPORT, 0, sizeof(IRST_ACT_REQ_REPORT));                       // IRST_»î¶¯ÇëÇóÍ¨¸æ
-    memset(&mess_ToFC_WORK_STATE_REPORT, 0, sizeof(IRST_ACT_REQ_REPORT));                         // ¹¤×÷×´Ì¬±¨¸æ
-    memset(&mess_ToFC_IRST_OPERATIONAL_PARAS, 0, sizeof(IRST_OPERATIONAL_PARAS));                 // IRST¹¤×÷²ÎÊı±¨¸æ
-    memset(&temp_mess_ToFC_IRST_OPERATIONAL_PARAS, 0, sizeof(IRST_OPERATIONAL_PARAS));            // IRST¹¤×÷²ÎÊı±¨¸æ
-    memset(&mess_ToFC_HW_CONFIG_INFO_REPORT, 0, sizeof(HW_CONFIG_INFO_REPORT));                   // Ó²¼şÅäÖÃĞÅÏ¢±¨¸æ
-    memset(&mess_ToFC_SW_CONFIG_INFO_REPORT, 0, sizeof(SW_CONFIG_INFO_REPORT));                   // Èí¼şÅäÖÃĞÅÏ¢±¨¸æ
-    memset(&mess_ToFC_PHM_DATA_RAW_IRST, 0, sizeof(PHM_DATA_RAW_IRST));                           // ½¡¿µ¹ÜÀí_RawÊı¾İ_IRST
-    memset(&mess_ToFC_PHM_DATA_EVENT_MS_SUB, 0, sizeof(PHM_DATA_EVENT_MS_SUB));                   // ½¡¿µ¹ÜÀí_EventÊı¾İ_MS_SUB
-    memset(&mess_ToFC_PHM_DATA_HMC_MS_SUB, 0, sizeof(PHM_DATA_HMC_MS_SUB));                       // ½¡¿µ¹ÜÀí_HMCÊı¾İ_MS_SUB
-    memset(&mess_ToFC_DATABASEINFO, 0, sizeof(DATABASEINFO));                                     // Êı¾İ¿âĞÅÏ¢
-    memset(&mess_ToFC_IRST_PIXEL_PARAS, 0, sizeof(IRST_PIXEL_PARAS));                             // IRSTÏñÔª²ÎÊı10
-    memset(&mess_ToFC_IRST_LOS, 0, sizeof(IRST_LOS));                                             // ÉÏ±¨losÊı¾İ
-    memset(&mess_ToFC_IR_NAV_DATA, 0, sizeof(IR_NAV_DATA));                                       // ¹âµçIMUµ¼º½Êı¾İ
-    memset(&mess_ToFC_RECONNAISED_AREA_IR_2GCS_EVENT, 0, sizeof(RECONNAISED_AREA_IR_2GCS_EVENT)); // Õì²ì¸²¸ÇÇøÓò²ÎÊı_IR,ºìÍâ×¢ÊÍĞÅÏ¢
-    memset(&mess_ToFC_RECONNAISED_AREA_TV_2GCS_EVENT, 0, sizeof(RECONNAISED_AREA_TV_2GCS_EVENT)); // Õì²ì¸²¸ÇÇøÓò²ÎÊı_TV,¿É¼û×¢ÊÍĞÅÏ¢
-    memset(&mess_ToFC_ID_DATA_TRANSMIT_STATE, 0, sizeof(ID_DATA_TRANSMIT_STATE));                 // Çé±¨Êı¾İ´«Êä×´Ì¬
+    memset(&mess_ToFC_IRST_ACT_REQ_REPORT, 0, sizeof(IRST_ACT_REQ_REPORT));                       // IRST_æ´»åŠ¨è¯·æ±‚é€šå‘Š
+    memset(&mess_ToFC_WORK_STATE_REPORT, 0, sizeof(IRST_ACT_REQ_REPORT));                         // å·¥ä½œçŠ¶æ€æŠ¥å‘Š
+    memset(&mess_ToFC_IRST_OPERATIONAL_PARAS, 0, sizeof(IRST_OPERATIONAL_PARAS));                 // IRSTå·¥ä½œå‚æ•°æŠ¥å‘Š
+    memset(&temp_mess_ToFC_IRST_OPERATIONAL_PARAS, 0, sizeof(IRST_OPERATIONAL_PARAS));            // IRSTå·¥ä½œå‚æ•°æŠ¥å‘Š
+    memset(&mess_ToFC_HW_CONFIG_INFO_REPORT, 0, sizeof(HW_CONFIG_INFO_REPORT));                   // ç¡¬ä»¶é…ç½®ä¿¡æ¯æŠ¥å‘Š
+    memset(&mess_ToFC_SW_CONFIG_INFO_REPORT, 0, sizeof(SW_CONFIG_INFO_REPORT));                   // è½¯ä»¶é…ç½®ä¿¡æ¯æŠ¥å‘Š
+    memset(&mess_ToFC_PHM_DATA_RAW_IRST, 0, sizeof(PHM_DATA_RAW_IRST));                           // å¥åº·ç®¡ç†_Rawæ•°æ®_IRST
+    memset(&mess_ToFC_PHM_DATA_EVENT_MS_SUB, 0, sizeof(PHM_DATA_EVENT_MS_SUB));                   // å¥åº·ç®¡ç†_Eventæ•°æ®_MS_SUB
+    memset(&mess_ToFC_PHM_DATA_HMC_MS_SUB, 0, sizeof(PHM_DATA_HMC_MS_SUB));                       // å¥åº·ç®¡ç†_HMCæ•°æ®_MS_SUB
+    memset(&mess_ToFC_DATABASEINFO, 0, sizeof(DATABASEINFO));                                     // æ•°æ®åº“ä¿¡æ¯
+    memset(&mess_ToFC_IRST_PIXEL_PARAS, 0, sizeof(IRST_PIXEL_PARAS));                             // IRSTåƒå…ƒå‚æ•°10
+    memset(&mess_ToFC_IRST_LOS, 0, sizeof(IRST_LOS));                                             // ä¸ŠæŠ¥losæ•°æ®
+    memset(&mess_ToFC_IR_NAV_DATA, 0, sizeof(IR_NAV_DATA));                                       // å…‰ç”µIMUå¯¼èˆªæ•°æ®
+    memset(&mess_ToFC_RECONNAISED_AREA_IR_2GCS_EVENT, 0, sizeof(RECONNAISED_AREA_IR_2GCS_EVENT)); // ä¾¦å¯Ÿè¦†ç›–åŒºåŸŸå‚æ•°_IR,çº¢å¤–æ³¨é‡Šä¿¡æ¯
+    memset(&mess_ToFC_RECONNAISED_AREA_TV_2GCS_EVENT, 0, sizeof(RECONNAISED_AREA_TV_2GCS_EVENT)); // ä¾¦å¯Ÿè¦†ç›–åŒºåŸŸå‚æ•°_TV,å¯è§æ³¨é‡Šä¿¡æ¯
+    memset(&mess_ToFC_ID_DATA_TRANSMIT_STATE, 0, sizeof(ID_DATA_TRANSMIT_STATE));                 // æƒ…æŠ¥æ•°æ®ä¼ è¾“çŠ¶æ€
 
-    // ÄÚ²¿fpgaÏûÏ¢³õÊ¼»¯
-    memset(&mess_To_TJ, 0, sizeof(Mess_To_TJ));                 // Ïòµ÷½¹·¢
-    memset(&mess_To_KJ, 0, sizeof(Mess_To_KJ));                 // Ïò¿ò¼Ü·¢
-    memset(&mess_To_TXCL_CMD, 0, sizeof(Mess_To_TXCL_CMD));     // ÏòÍ¼Ïñ´¦ÀíÖ¸Áî
-    memset(&mess_To_TXCL_ZSXX, 0, sizeof(Mess_To_TXCL_ZSXX));   // Í¼Ïñ´¦Àí-×¢ÊÍĞÅÏ¢
-    memset(&mess_To_DY, 0, sizeof(Mess_To_DY));                 // ÏòµçÔ´·¢
-    memset(&mess_To_GCWK, 0, sizeof(MESS_To_GCWK));             // Ïò¹â´°ÎÂ¿Ø·¢
-    memset(&mess_TO_PCS_DATA, 0, sizeof(Mess_TO_PCS_DATA));     // Ïò¹ßµ¼·¢Êı¾İ°ü
-    memset(&mess_To_PCS_Update, 0, sizeof(MESS_To_PCS_Update)); // Ïò¹ßµ¼·¢
-    memset(&mess_To_JLY, 0, sizeof(MESS_To_JLY));               // Ïò¼ÇÂ¼ÒÇ·¢
-    memset(&mess_To_QNSJ, 0, sizeof(MESS_To_QNSJ));             // ÏòÇòÄÚÊı¾İ·¢
-    memset(&mess_To_FPGA, 0, sizeof(MESS_To_FPGA));             // ÏòFPGA·¢
+    // å†…éƒ¨fpgaæ¶ˆæ¯åˆå§‹åŒ–
+    memset(&mess_To_TJ, 0, sizeof(Mess_To_TJ));                 // å‘è°ƒç„¦å‘
+    memset(&mess_To_KJ, 0, sizeof(Mess_To_KJ));                 // å‘æ¡†æ¶å‘
+    memset(&mess_To_TXCL_CMD, 0, sizeof(Mess_To_TXCL_CMD));     // å‘å›¾åƒå¤„ç†æŒ‡ä»¤
+    memset(&mess_To_TXCL_ZSXX, 0, sizeof(Mess_To_TXCL_ZSXX));   // å›¾åƒå¤„ç†-æ³¨é‡Šä¿¡æ¯
+    memset(&mess_To_DY, 0, sizeof(Mess_To_DY));                 // å‘ç”µæºå‘
+    memset(&mess_To_GCWK, 0, sizeof(MESS_To_GCWK));             // å‘å…‰çª—æ¸©æ§å‘
+    memset(&mess_TO_PCS_DATA, 0, sizeof(Mess_TO_PCS_DATA));     // å‘æƒ¯å¯¼å‘æ•°æ®åŒ…
+    memset(&mess_To_PCS_Update, 0, sizeof(MESS_To_PCS_Update)); // å‘æƒ¯å¯¼å‘
+    memset(&mess_To_JLY, 0, sizeof(MESS_To_JLY));               // å‘è®°å½•ä»ªå‘
+    memset(&mess_To_QNSJ, 0, sizeof(MESS_To_QNSJ));             // å‘çƒå†…æ•°æ®å‘
+    memset(&mess_To_FPGA, 0, sizeof(MESS_To_FPGA));             // å‘FPGAå‘
 
-    memset(&mess_From_TJ, 0, sizeof(Mess_From_TJ));             // ´Óµ÷½¹ÊÕ
-    memset(&mess_From_KJ, 0, sizeof(Mess_From_KJ));             // ´Ó¿ò¼ÜÊÕ
-    memset(&mess_From_TXCL, 0, sizeof(Mess_From_TXCL));         // ´ÓÍ¼Ïñ´¦ÀíÊÕ
-    memset(&mess_From_DY, 0, sizeof(Mess_From_DY));             // ´ÓµçÔ´ÊÕ
-    memset(&mess_From_PCS_DATA, 0, sizeof(Mess_From_PCS_DATA)); // ´ÓPCSÊÕ
-    memset(&mess_From_GCWK, 0, sizeof(MESS_From_GCWK));         // ´Ó¹â´°ÎÂ¿ØÊÕ
-    memset(&mess_From_JLY, 0, sizeof(MESS_From_JLY));           // Ïò¼ÇÂ¼ÒÇ·¢
-    memset(&mess_From_QNSJ, 0, sizeof(MESS_From_QNSJ));         // ÏòÇòÄÚÊı¾İ·¢
-    memset(&mess_From_FPGA, 0, sizeof(MESS_From_FPGA));         // ÏòFPGA·¢
+    memset(&mess_From_TJ, 0, sizeof(Mess_From_TJ));             // ä»è°ƒç„¦æ”¶
+    memset(&mess_From_KJ, 0, sizeof(Mess_From_KJ));             // ä»æ¡†æ¶æ”¶
+    memset(&mess_From_TXCL, 0, sizeof(Mess_From_TXCL));         // ä»å›¾åƒå¤„ç†æ”¶
+    memset(&mess_From_DY, 0, sizeof(Mess_From_DY));             // ä»ç”µæºæ”¶
+    memset(&mess_From_PCS_DATA, 0, sizeof(Mess_From_PCS_DATA)); // ä»PCSæ”¶
+    memset(&mess_From_GCWK, 0, sizeof(MESS_From_GCWK));         // ä»å…‰çª—æ¸©æ§æ”¶
+    memset(&mess_From_JLY, 0, sizeof(MESS_From_JLY));           // å‘è®°å½•ä»ªå‘
+    memset(&mess_From_QNSJ, 0, sizeof(MESS_From_QNSJ));         // å‘çƒå†…æ•°æ®å‘
+    memset(&mess_From_FPGA, 0, sizeof(MESS_From_FPGA));         // å‘FPGAå‘
 
-    make_Mess_To_DY(0, 1, 1, 1, 1); // µçÔ´·ÖÏµÍ³Í¨ĞÅ£¬´ò¿ªËùÓĞµçÔ´
+    make_Mess_To_DY(0, 1, 1, 1, 1); // ç”µæºåˆ†ç³»ç»Ÿé€šä¿¡ï¼Œæ‰“å¼€æ‰€æœ‰ç”µæº
 }
 
-// // ÖĞ¶Ï³õÊ¼»¯
+// // ä¸­æ–­åˆå§‹åŒ–
 // void interrupt_Init() {
 //     int ret;
-//     // ¸´ÓÃÎªgpio,È«²¿¸´ÓÃÎªgpio
+//     // å¤ç”¨ä¸ºgpio,å…¨éƒ¨å¤ç”¨ä¸ºgpio
 //     gpio_pinmux();
-//     // gpioÊäÈë/Êä³ö³õÊ¼»¯
+//     // gpioè¾“å…¥/è¾“å‡ºåˆå§‹åŒ–
 //     gpio_input_output_init();
-//     // gpioÖĞ¶Ï³õÊ¼»¯
+//     // gpioä¸­æ–­åˆå§‹åŒ–
 //     gpio_int_init();
-//     // °ó¶¨ÖĞ¶ÏÏìÓ¦º¯Êı
+//     // ç»‘å®šä¸­æ–­å“åº”å‡½æ•°
 //     ret = ACoreOs_interrupt_set_handler(GPIO0_INT_IRQ_NUM, isr_Fpga_Mess, FALSE, 0);
 //     if (ret != ACOREOS_SUCCESSFUL) {
 //         return;
 //     }
-//     // Ê¹ÄÜÖĞ¶Ï
+//     // ä½¿èƒ½ä¸­æ–­
 //     ret = ACoreOs_intPIC_enable(GPIO0_INT_IRQ_NUM);
 //     if (ret != ACOREOS_SUCCESSFUL) {
 //         return;
