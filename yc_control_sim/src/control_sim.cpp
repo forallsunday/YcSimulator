@@ -215,16 +215,16 @@ void ControlSimulator::initMapTopicNodes() {
         V_NODE_SRMM,
     };
 
-    //todo: 确认818这几个 topicId 要发送到哪些节点
-    // this->map_topic_nodes_[V_TOPIC_IRRM_A818_E0_IMAGE] = {
-    //     V_NODE_G017,
-    // };
-    // this->map_topic_nodes_[V_TOPIC_IRRM_NORMAL_IMAGE_818] = {
-    //     V_NODE_G018,
-    // };
-    // this->map_topic_nodes_[V_TOPIC_IRRM_GENERAL_VIDEO] = {
-    //     V_NODE_G019,
-    // };
+    // todo: 确认818这几个 topicId 要发送到哪些节点
+    //  this->map_topic_nodes_[V_TOPIC_IRRM_A818_E0_IMAGE] = {
+    //      V_NODE_G017,
+    //  };
+    //  this->map_topic_nodes_[V_TOPIC_IRRM_NORMAL_IMAGE_818] = {
+    //      V_NODE_G018,
+    //  };
+    //  this->map_topic_nodes_[V_TOPIC_IRRM_GENERAL_VIDEO] = {
+    //      V_NODE_G019,
+    //  };
 }
 
 void ControlSimulator::dataHandlerICP(char *data, int size) {
@@ -259,7 +259,7 @@ void ControlSimulator::dataHandlerCamera(char *data, int size) {
     auto ptr_packet = PtrUdpPacket(std::make_unique<UdpPacket>());
     std::memcpy(ptr_packet.get(), data, size);
 
-    // //!!! 不发送到icp
+    // //  不发送到icp
     // setSend2IcpNodes(false);
 
     // 只接收 camera 发送过来的包

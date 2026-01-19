@@ -136,12 +136,21 @@ void FpgaSimulator::simulatingMotionKJ() {
         count++;
     }
 
+    // YC_Controller_Computer.cpp
+    // KJAgl_pi.WKJ     = param_Compute_Input_Fromfpga.rtime_direction_frame * Agl_PI;       // 实时外框架角
+    // KJAgl_pi.NKJ     = (param_Compute_Input_Fromfpga.rtime_pitch_frame + 90) * Agl_PI;    // 实时内框架角
+    // KJAgl_exp_pi.WKJ = param_Compute_Input_Fromfpga.exposure_direction_frame * Agl_PI;    // 曝光时刻外框架角
+    // KJAgl_exp_pi.NKJ = (param_Compute_Input_Fromfpga.exposure_pitch_frame + 90) * Agl_PI; // 曝光时刻内框架角
+
+    // YC_Controller_Mess_Process.cpp
     // param_Compute_Input_Fromfpga.rtime_pitch_frame        = mess_From_KJ.rtime_pitch_frame * 0.0001;        // 框架实时俯仰角（LSB = 0.0001°)
     // param_Compute_Input_Fromfpga.rtime_direction_frame    = mess_From_KJ.rtime_direction_frame * 0.0001;    // 框架实时方位角（LSB = 0.0001°)
     // param_Compute_Input_Fromfpga.exposure_pitch_frame     = mess_From_KJ.exposure_pitch_frame * 0.0001;     // 框架曝光时刻俯仰角（LSB = 0.0001°)
     // param_Compute_Input_Fromfpga.exposure_direction_frame = mess_From_KJ.exposure_direction_frame * 0.0001; // 框架曝光时刻方位角（LSB = 0.0001°)
     // param_Compute_Input_Fromfpga.kfbgskfybcwz             = mess_From_KJ.kfbgskfybcwz * 0.0001;             // 快反曝光时刻俯仰补偿位置（LSB = 0.0001°)
     // param_Compute_Input_Fromfpga.kfbgskfwbcwz             = mess_From_KJ.kfbgskfwbcwz * 0.0001;             // 快反曝光时刻方位补偿位置（LSB = 0.0001°)
+
+    // param_Compute_Output.toKJ_pitch_start = KJ_start_pi.NKJ * PI_Agl - 90; // 框架俯仰指令   起始角 °
 
     float pitch_start     = param_Compute_Output.toKJ_pitch_start;
     float pitch_end       = param_Compute_Output.toKJ_pitch_end;
@@ -154,8 +163,10 @@ void FpgaSimulator::simulatingMotionKJ() {
 
     // 框架实时俯仰角（LSB = 0.0001°)
     mess_From_KJ.rtime_pitch_frame = 1e4 * (pitch_start + count * interval * pitch_speed);
+    mess_From_KJ.rtime_pitch_frame = std::min(mess_From_KJ.rtime_pitch_frame, (int32_t)(1e4 * pitch_start));
     // 框架实时方位角（LSB = 0.0001°)
     mess_From_KJ.rtime_direction_frame = 1e4 * (direction_start + count * interval * direction_speed);
+    mess_From_KJ.rtime_direction_frame = std::min(mess_From_KJ.rtime_direction_frame, (int32_t)(1e4 * direction_end));
 
     if (flag_Fpga_bg) {
         // 框架曝光时刻俯仰角（LSB = 0.0001°)
@@ -453,4 +464,6 @@ void FpgaSimulator::simulatingTG() {
     default:
         break;
     }
+    // todo: 模拟 可见光去雾 可见光增强 极化 红外增强
+    mess_From_TG.KJImg_ReMoveMist_back = mess_To_TG.KJImg_ReMoveMist;
 }

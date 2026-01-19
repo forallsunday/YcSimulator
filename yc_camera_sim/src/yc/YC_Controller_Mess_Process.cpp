@@ -84,7 +84,10 @@ void send_Mess_WORK_STATE_REPORT(UINT32 start_remain_time, UINT32 bitpercent) {
     mess_ToFC_WORK_STATE_REPORT.security_level = V_SECURITY_LEVEL_SECRET; // 秘密
     // 标识符:bit_process_percent
     // 名  称:自检测进度,用于表示百分比数值，LSB=0.01表示的是0.01%。
-    mess_ToFC_WORK_STATE_REPORT.bit_process_percent = bitpercent;
+    if (bitpercent <= 10000) {
+        // Note: lcy bitpercent范围0~10000表示0%~100%, 如果超过10000则不赋值，为了应对模拟器的需求周期性发送, 保持上次值不变。
+        mess_ToFC_WORK_STATE_REPORT.bit_process_percent = bitpercent;
+    }
     // 标识符:subsys_electrify_amount
     // 名  称:上电次数
     mess_ToFC_WORK_STATE_REPORT.subsys_electrify_amount = nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave;
@@ -1469,8 +1472,9 @@ void make_Mess_To_TXCL_ZSXX_Time_Pos() {
     const UINT64 NS_PER_SECOND = 1000000000ULL;
     const UINT64 NS_PER_MINUTE = 60ULL * NS_PER_SECOND;
     const UINT64 NS_PER_HOUR   = 3600ULL * NS_PER_SECOND;
-    UINT64       ns            = temp_mess_FromFc_SYM_TIME_REPORT.time_calendartime;
-    UINT32       h             = ns / NS_PER_HOUR;
+
+    UINT64 ns = temp_mess_FromFc_SYM_TIME_REPORT.time_calendartime;
+    UINT32 h  = ns / NS_PER_HOUR;
     ns %= NS_PER_HOUR;
     UINT32 m = ns / NS_PER_MINUTE;
     ns %= NS_PER_MINUTE;
@@ -1543,7 +1547,7 @@ void make_Mess_To_TXCL_ZSXX_Time_Pos() {
     mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_position_data._latitude  = mess_From_PCS_DATA.latitude * PI / pow(2, 31) * 1e3 * 100000;
     mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_position_data._longitude = mess_From_PCS_DATA.longitude * PI / pow(2, 31) * 1e3 * 100000;
     // 名  称:载机海拔高度
-    mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_height._altitude = mess_From_PCS_DATA.altitude * 1000 * 100;
+    mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_height._altitude = mess_From_PCS_DATA.altitude * 0.001 * 100;
     // 名  称:载机真航向
     mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_true_heading._angle_mrad = mess_From_PCS_DATA.true_heading * PI / pow(2, 31) * 1e3 * 1000;
     // 名  称:载机俯仰角

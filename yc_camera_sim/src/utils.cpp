@@ -7,14 +7,20 @@ Timestamp getCurrentTimestamp() {
     // 获取当前时间点
     auto now = system_clock::now();
 
-    // 转为 time_t（秒）
-    std::time_t t = system_clock::to_time_t(now);
+    // 先计算总毫秒数
+    auto total_ms = duration_cast<milliseconds>(now.time_since_epoch());
+
+    // 从毫秒数计算秒数
+    auto total_sec = duration_cast<seconds>(total_ms);
+
+    // 转为 time_t
+    std::time_t t = total_sec.count();
     std::tm     local_tm{};
 
     localtime_r(&t, &local_tm);
 
-    // 计算毫秒部分
-    auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+    // 毫秒部分 = 总毫秒数 - 秒数对应的毫秒数
+    auto ms = total_ms - total_sec;
 
     Timestamp ts{};
     ts.U1_Year        = static_cast<unsigned char>((local_tm.tm_year + 1900) % 100); // 年份只取后两位
@@ -28,15 +34,22 @@ Timestamp getCurrentTimestamp() {
     return ts;
 };
 
-// 得到系统RTC TODO: How? 原来为fc函数
+// 得到系统RTC
+// TODO: How? 原来为fc函数
 uint64_t getSysRTC() {
-    // todo: 不对
-    using namespace std::chrono;
-    // 获取当前时间点（系统时钟）
-    auto now = steady_clock::now();
-    // 转换为毫秒数
-    auto ms = duration_cast<milliseconds>(now.time_since_epoch()).count();
-    return static_cast<uint64_t>(ms);
+    // 时间数据（当前时间）
+    auto now    = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    auto tm     = *std::localtime(&time_t);
+    // 把 tm 改成今天 0 点
+    tm.tm_hour = 0;
+    tm.tm_min  = 0;
+    tm.tm_sec  = 0;
+    // 今天 0 点（system_clock::time_point）
+    auto today_midnight = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+    // 距离今天 0 点的纳秒数
+    auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(now - today_midnight).count();
+    return static_cast<uint64_t>(nanoseconds);
 };
 
 void timespec_add_us(timespec &ts, long us) {

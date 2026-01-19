@@ -43,6 +43,15 @@ void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutpu
     // 是否需要上锁
     // std::lock_guard<std::mutex> lock(this->mtx_shm_);
 
+    if (!already_initialized) {
+        log_error("[CameraSimulator] Not initialized yet!");
+        return;
+    }
+    if (shm_input == nullptr || shm_output == nullptr) {
+        log_error("[CameraSimulator] Shared memory input or output is null!");
+        return;
+    }
+
     // 复制共享内存输入
     memcpy(&(this->shm_input_), shm_input, sizeof(SharedMemoryInput));
 
@@ -151,7 +160,7 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageState.U1_ImageMode = main_Control_State_Param.irst_form_mode; // @ID(2) // 成像模式 0-NA，1-广域成像，2-区域成像，3-区域监视
     St_EOImageState.U1_Channel   = 1;                                       // todo: 确认通道填充规则
 
-    // Note: 指针以减少代码字数
+    // 指针以减少代码字数
     auto *image_paras_transit = &mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit; // 图像参数_下传
     auto *ac_ins_info         = &mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info;         // 飞机惯导信息
 
@@ -215,20 +224,20 @@ void CameraSimulator::updateSharedMemoryOutput() {
     // 载机位置
     St_EntityPosition.D8_Longitude_deg_CGCS = ac_ins_info->AC_data_start.ac_position_data._longitude * 0.00001 * mrad_to_deg;
     St_EntityPosition.D8_Latitude_deg_CGCS  = ac_ins_info->AC_data_start.ac_position_data._latitude * 0.00001 * mrad_to_deg;
-    St_EntityPosition.F4_AltitudeAsl_m_CGCS = ac_ins_info->AC_data_start.ac_height._altitude * 0.01f;
+    St_EntityPosition.F4_AltitudeAsl_m_CGCS = ac_ins_info->AC_data_start.ac_height._altitude * 0.01;
     // 载机速度
-    St_EntityLinearVelocit.F4_VelocityNorth_mDs_NED = ac_ins_info->AC_data_start.Vel_North._velocity * 0.0001f;
-    St_EntityLinearVelocit.F4_VelocityEast_mDs_NED  = ac_ins_info->AC_data_start.Vel_East._velocity * 0.0001f;
-    St_EntityLinearVelocit.F4_VelocityUp_mDs_NED    = ac_ins_info->AC_data_start.Vel_Up._velocity * 0.0001f;
+    St_EntityLinearVelocit.F4_VelocityNorth_mDs_NED = ac_ins_info->AC_data_start.Vel_North._velocity * 0.0001;
+    St_EntityLinearVelocit.F4_VelocityEast_mDs_NED  = ac_ins_info->AC_data_start.Vel_East._velocity * 0.0001;
+    St_EntityLinearVelocit.F4_VelocityUp_mDs_NED    = ac_ins_info->AC_data_start.Vel_Up._velocity * 0.0001;
     // 载机加速度
-    St_EntityLinearAcceleratio.F4_AccelerationNorth_mDs2_NED = ac_ins_info->AC_data_start.ac_accel_North._acceleration * 0.0001f;
-    St_EntityLinearAcceleratio.F4_AccelerationEast_mDs2_NED  = ac_ins_info->AC_data_start.ac_accel_East._acceleration * 0.0001f;
-    St_EntityLinearAcceleratio.F4_AccelerationUp_mDs2_NED    = ac_ins_info->AC_data_start.ac_accel_Up._acceleration * 0.0001f;
+    St_EntityLinearAcceleratio.F4_AccelerationNorth_mDs2_NED = ac_ins_info->AC_data_start.ac_accel_North._acceleration * 0.0001;
+    St_EntityLinearAcceleratio.F4_AccelerationEast_mDs2_NED  = ac_ins_info->AC_data_start.ac_accel_East._acceleration * 0.0001;
+    St_EntityLinearAcceleratio.F4_AccelerationUp_mDs2_NED    = ac_ins_info->AC_data_start.ac_accel_Up._acceleration * 0.0001;
     // 载机姿态
     // todo:确认 航向、俯仰、横滚 对应共享内存中的哪个变量
-    St_EntityAttitude.F4_Psi_deg   = ac_ins_info->AC_data_start.ac_true_heading._angle_mrad * 0.001f * mrad_to_deg; // 航向角
-    St_EntityAttitude.F4_Theta_deg = ac_ins_info->AC_data_start.ac_pitch._angle_mrad * 0.001f * mrad_to_deg;        // 俯仰角
-    St_EntityAttitude.F4_Phi_deg   = ac_ins_info->AC_data_start.ac_roll._angle_mrad * 0.001f * mrad_to_deg;         // 横滚角
+    St_EntityAttitude.F4_Psi_deg   = ac_ins_info->AC_data_start.ac_true_heading._angle_mrad * 0.001 * mrad_to_deg; // 航向角
+    St_EntityAttitude.F4_Theta_deg = ac_ins_info->AC_data_start.ac_pitch._angle_mrad * 0.001 * mrad_to_deg;        // 俯仰角
+    St_EntityAttitude.F4_Phi_deg   = ac_ins_info->AC_data_start.ac_roll._angle_mrad * 0.001 * mrad_to_deg;         // 横滚角
     // 赋值载机信息
     St_EOImageParasIS.St_AcParas.St_EntityPosition          = St_EntityPosition;
     St_EOImageParasIS.St_AcParas.St_EntityLinearVelocit     = St_EntityLinearVelocit;
@@ -489,7 +498,66 @@ void CameraSimulator::testPhotoing() {
         using namespace std::chrono;
         using namespace std::this_thread;
 
-        auto setParams = []() {
+        // 测试模式选择：广域成像=1, 区域成像=2, 区域监视=3
+        // const int test_mode = 1;
+        const int test_mode = 3;
+
+        // 通用导航数据设置函数
+        auto setNavData = [this]() {
+            // ===================== temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED 数据填充 =====================
+            // 反推填充 temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED
+            // 参考 fpga_sim.cpp 中的转换公式进行反推
+
+            // 时间数据（当前时间）
+            auto now    = std::chrono::system_clock::now();
+            auto time_t = std::chrono::system_clock::to_time_t(now);
+            auto tm     = *std::localtime(&time_t);
+            // 把 tm 改成今天 0 点
+            tm.tm_hour = 0;
+            tm.tm_min  = 0;
+            tm.tm_sec  = 0;
+            // 今天 0 点（system_clock::time_point）
+            auto today_midnight = std::chrono::system_clock::from_time_t(std::mktime(&tm));
+            // 距离今天 0 点的纳秒数
+            auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(now - today_midnight).count();
+
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_year  = tm.tm_year + 1900;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_month = tm.tm_mon + 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_day   = tm.tm_mday;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.time_gnss_calendartime            = nanoseconds;
+
+            // todo: 还是不太对
+            temp_mess_FromFc_SYM_TIME_REPORT.time_calendartime            = nanoseconds;
+            temp_mess_FromFc_SYM_TIME_REPORT.date_calendartime.date_year  = tm.tm_year + 1900;
+            temp_mess_FromFc_SYM_TIME_REPORT.date_calendartime.date_month = tm.tm_mon + 1;
+            temp_mess_FromFc_SYM_TIME_REPORT.date_calendartime.date_day   = tm.tm_mday;
+
+            // 位置数据反推
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_gnss_position_data._longitude = 102.54 * deg_to_mrad / 0.00001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_gnss_position_data._latitude  = 30.05 * deg_to_mrad / 0.00001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_GNSS_alt._altitude            = 17000.0 / 0.01;
+
+            // 姿态数据反推
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_true_heading._angle_mrad = 90.0 * deg_to_mrad / 0.001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_pitch._angle_mrad        = 0.0 * deg_to_mrad / 0.001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_roll._angle_mrad         = 0.0 * deg_to_mrad / 0.001;
+
+            // 速度数据反推
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_vel.Vel_North._velocity  = 0.0 / 0.0001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_vel.Vel_West._velocity   = -180.0 / 0.0001;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_GNSS_ground_speed._velocity = 0.0 / 0.0001;
+
+            // 设置数据有效性标志
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_position      = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_GNSS_alt      = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_vel_north     = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_vel_west      = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_ground_speed  = 1;
+            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_CNI_GNSS_time = 1;
+        };
+
+        // 广域成像参数设置
+        auto setParamsWideImage = [this, &setNavData]() {
             // 设置参数 - 参考 prepare_Model_WorkControl 流程
             // ===================== 成像模式参数 =====================
             // 成像模式：广域成像 (1=广域, 2=区域成像, 3=区域监视)
@@ -510,51 +578,64 @@ void CameraSimulator::testPhotoing() {
             param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_scan_end_angle   = 0;
             param_Compute_Input_Fromfc.comp_IR_wide_image_paras.AZ_area_altitude    = 123;
 
-            // ===================== temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED 数据填充 =====================
-            // 反推填充 temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED
-            // 参考 fpga_sim.cpp 中的转换公式进行反推
+            // 设置导航数据
+            setNavData();
+        };
 
-            // 时间数据（当前时间）
-            auto now         = std::chrono::system_clock::now();
-            auto time_t      = std::chrono::system_clock::to_time_t(now);
-            auto tm          = *std::localtime(&time_t);
-            auto duration    = now.time_since_epoch();
-            auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+        // 区域监视参数设置
+        auto setParamsAreaMonitor = [this, &setNavData]() {
+            // 设置参数 - 参考 prepare_Model_WorkControl 流程
+            // ===================== 成像模式参数 =====================
+            // 成像模式：区域监视 (1=广域, 2=区域成像, 3=区域监视)
+            cmd_From_FC.irst_cmd_param_irst_form_mode = V_IRST_FORM_MODE_AREA_MONI;
+            main_Control_State_Param.irst_form_mode   = V_IRST_FORM_MODE_AREA_MONI;
 
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_year  = tm.tm_year + 1900;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_month = tm.tm_mon + 1;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.date_gnss_calendartime.date_day   = tm.tm_mday;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.time_gnss_calendartime            = nanoseconds;
+            // 区域监视参数有效
+            cmd_From_FC.irst_cmd_param_area_monitor_paras_validity = 1;
 
-            // 位置数据反推
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_gnss_position_data._longitude = 102.54f * PI / 180 / 0.00001;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_gnss_position_data._latitude  = 30.05f * PI / 180 / 0.00001;
+            const float lon = 102.54;
+            const float lat = 31.0;
+            const float alt = 300.0;
 
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_GNSS_alt._altitude = 17000.0f / 0.01;
+            // 区域监视参数设置 - 中心点经纬高 (ICD格式)
+            // 目标中心点经度 (单位: 0.00001 mrad)
+            cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._longitude =
+                static_cast<INT32>(lon * deg_to_mrad / 0.00001);
+            // 目标中心点纬度 (单位: 0.00001 mrad)
+            cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._latitude =
+                static_cast<INT32>(alt * deg_to_mrad / 0.00001);
+            // 目标中心点高度 (单位: 0.01 m)
+            cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._altitude =
+                static_cast<INT32>(alt / 0.01);
 
-            // 姿态数据反推
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_true_heading._angle_mrad = 90.0f * PI / 180 / 0.001;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_pitch._angle_mrad        = 2.0f * PI / 180 / 0.001;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_roll._angle_mrad         = 3.0f * PI / 180 / 0.001;
+            // 区域监视修改标识 - 标识所有参数都已修改
+            cmd_From_FC.irst_cmd_param_area_monitor_paras.area_monitor_paras_mark.HEIGHT_CHG = 1;
+            cmd_From_FC.irst_cmd_param_area_monitor_paras.area_monitor_paras_mark.LATI_CHG   = 1;
+            cmd_From_FC.irst_cmd_param_area_monitor_paras.area_monitor_paras_mark.LONG_CHG   = 1;
 
-            // 速度数据反推
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_vel.Vel_North._velocity  = 0.0f / 0.0001;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_vel.Vel_West._velocity   = -180.0f / 0.0001;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.ac_GNSS_ground_speed._velocity = 0.0f / 0.0001;
+            // 同步到计算参数结构体 (COMP格式, 单位: mrad/m)
+            param_Compute_Input_Fromfc.comp_area_monitor_paras.longitude = lon * deg_to_mrad;
+            param_Compute_Input_Fromfc.comp_area_monitor_paras.latitude  = lat * deg_to_mrad;
+            param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude  = alt;
 
-            // 设置数据有效性标志
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_position      = 1;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_GNSS_alt      = 1;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_vel_north     = 1;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_vel_west      = 1;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_ground_speed  = 1;
-            temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.satellite_nav_data.satellite_nav_data_validity.validity_CNI_GNSS_time = 1;
+            // 设置导航数据
+            setNavData();
         };
 
         // 准备
         log_once("[CameraSimulator] 设置准备");
         while (running_photoing_test) {
-            setParams();
+            // 根据测试模式设置参数
+            switch (test_mode) {
+            case 1:
+                setParamsWideImage();
+                break;
+            case 3:
+                setParamsAreaMonitor();
+                break;
+            }
+
+            // act_req_IRST_Process();
             cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_PREPARE;
             if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_PREPARE) {
                 cmd_From_FC.irst_cmd_STATE_SET = 0;
@@ -569,7 +650,17 @@ void CameraSimulator::testPhotoing() {
 
         log_once("[CameraSimulator] 开始拍照");
         while (running_photoing_test) {
-            setParams();
+            // 根据测试模式设置参数
+            switch (test_mode) {
+            case 1:
+                setParamsWideImage();
+                break;
+            case 3:
+                setParamsAreaMonitor();
+                break;
+            }
+
+            // act_req_IRST_Process();
             cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_TAKE_PIC;
             if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_TAKE_PIC) {
                 cmd_From_FC.irst_cmd_STATE_SET = 0;

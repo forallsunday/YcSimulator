@@ -116,21 +116,23 @@ int main() {
     // 设置周期性发送线程中发送间隔
     cam_sim.setPeriodicInterval(1000);
 
-
     cam_sim.init();
 
-    // Note: 测试 时 直接上电
-    cam_sim.powerOn(1);
-
-    // 等待上电完成
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-
-    // 测试直接拍照
+    // Note: 测试直接拍照
     cam_sim.testPhotoing();
 
+    SharedMemoryInput  shm_input;
+    SharedMemoryOutput shm_output;
+
+    shm_input.m_FacilitiesPowerSupplyStatusParasMsg
+        .St_FacilitiesPowerSupplyStatusData
+        .ArrU1_FacilitiesPowerSupplyStatus[5] = 2; // 快速上电
+
+    using namespace std::chrono_literals;
     // 保持程序运行，持续拍照
     while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        cam_sim.step(&shm_input, &shm_output);
+        std::this_thread::sleep_for(10ms);
     }
 
     return 0;

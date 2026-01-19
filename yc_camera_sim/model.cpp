@@ -86,7 +86,7 @@ int usrmode_wait() {
  * InitParam:模型初始化所用到的参数，当前为一个字符串需要解析;
  */
 void usrmode_init() {
-    log_info("!!!!!!!!正在进行usrmode_init");
+    // log_info("!!!!!!!!正在进行usrmode_init");
 
     module_status = status_enum::RUNNING;
 
@@ -103,7 +103,8 @@ void usrmode_init() {
     //    printf("Usr_ModeInit data is NULL \n");
 
     // Note: 2025-12-30 LCY
-    log_init("camera_sim.log");
+    // log_init("camera_sim.log");
+    log_init(nullptr);
 
     ReadUdpAddr rua;
     readUdpAddr(rua, socket_data);
@@ -116,7 +117,7 @@ void usrmode_init() {
     cam_sim->init();
 
     // 调试时设置周期发送间隔
-    cam_sim->setPeriodicInterval(3000);
+    cam_sim->setPeriodicInterval(2000);
 
     // // Note: 测试 时 直接上电
     // cam_sim->powerOn(5);
@@ -134,7 +135,7 @@ void usrmode_init() {
  * 运行状态进入运行时，由中间件周期调用;
  */
 void step_calculate() {
-    log_info("!!!!!!!!正在进行step_calculate");
+    // log_info("!!!!!!!!正在进行step_calculate");
     /***************************************************************************************************/
     /*
      * start
@@ -149,6 +150,8 @@ void step_calculate() {
                &(shm_input.m_FacilitiesPowerSupplyStatusParasMsg), 0);
     topic_read("SecSimulatorControlMsg",
                &(shm_input.m_SecSimulatorControlMsg), 0);
+    topic_read("SecTgtPositionParaMsg",
+               &(shm_input.m_SecTgtPositionParaMsg), 0);
     // 继续添加...
 
     /* 2. 添加模型单步运行逻辑 */
@@ -157,6 +160,8 @@ void step_calculate() {
     /* 3. 调用topic_write将模型计算后的数据写回共享内存 */
     topic_write("FunctionalUnitStatusMsg",
                 &(shm_output.m_FunctionalUnitStatusMsg), 0);
+    topic_write("SecEOImageDriveMsg",
+                &(shm_output.m_SecEOImageDriveMsg), 0);
     // 继续添加...
 
     /* ************************************* */

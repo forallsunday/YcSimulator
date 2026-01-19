@@ -14,6 +14,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+// Note: lcy 添加定位模块
+#include <geolocation.h>
+#include <rotation.h>
+
 #define Agl_PI 0.01745329
 #define PI_Agl 57.2957795
 
@@ -2697,54 +2701,99 @@ void QYCX_GetTDstart() {
 //  说明：无
 // ---------------------------------------------------------------------------//
 void Geolocation() {
-    float              x; //
-    float              y; //
-    struct_GPS_float64 Tar_gps;
-    //==============右上点================
-    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
-    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
+    // float              x; //
+    // float              y; //
+    // struct_GPS_float64 Tar_gps;
+    // //==============右上点================
+    // x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
+    // y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
 
-    ComptGps(x, y, &Tar_gps);
+    // ComptGps(x, y, &Tar_gps);
 
-    param_Compute_Output.imaging_right_up_latitude  = Tar_gps.Lat;
-    param_Compute_Output.imaging_right_up_longitude = Tar_gps.Lon;
+    // param_Compute_Output.imaging_right_up_latitude  = Tar_gps.Lat;
+    // param_Compute_Output.imaging_right_up_longitude = Tar_gps.Lon;
 
-    //==============右下点================
-    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2;      // 飞行方向
-    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
+    // //==============右下点================
+    // x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2;      // 飞行方向
+    // y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
 
-    ComptGps(x, y, &Tar_gps);
+    // ComptGps(x, y, &Tar_gps);
 
-    param_Compute_Output.imaging_right_down_latitude  = Tar_gps.Lat;
-    param_Compute_Output.imaging_right_down_longitude = Tar_gps.Lon;
+    // param_Compute_Output.imaging_right_down_latitude  = Tar_gps.Lat;
+    // param_Compute_Output.imaging_right_down_longitude = Tar_gps.Lon;
 
-    //==============左上点================
-    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
-    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2;      // 扫描方向
+    // //==============左上点================
+    // x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
+    // y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2;      // 扫描方向
 
-    ComptGps(x, y, &Tar_gps);
+    // ComptGps(x, y, &Tar_gps);
 
-    param_Compute_Output.imaging_left_up_latitude  = Tar_gps.Lat;
-    param_Compute_Output.imaging_left_up_longitude = Tar_gps.Lon;
+    // param_Compute_Output.imaging_left_up_latitude  = Tar_gps.Lat;
+    // param_Compute_Output.imaging_left_up_longitude = Tar_gps.Lon;
 
-    //==============左下点================
-    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
-    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
+    // //==============左下点================
+    // x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
+    // y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
 
-    ComptGps(x, y, &Tar_gps);
+    // ComptGps(x, y, &Tar_gps);
 
-    param_Compute_Output.imaging_left_down_latitude  = Tar_gps.Lat;
-    param_Compute_Output.imaging_left_down_longitude = Tar_gps.Lon;
+    // param_Compute_Output.imaging_left_down_latitude  = Tar_gps.Lat;
+    // param_Compute_Output.imaging_left_down_longitude = Tar_gps.Lon;
 
-    //==============中心点================
-    x = 0; // 飞行方向
-    y = 0; // 扫描方向
+    // //==============中心点================
+    // x = 0; // 飞行方向
+    // y = 0; // 扫描方向
 
-    ComptGps(x, y, &Tar_gps);
+    // ComptGps(x, y, &Tar_gps);
 
-    param_Compute_Output.image_center_latitude  = Tar_gps.Lat;
-    param_Compute_Output.image_center_longitude = Tar_gps.Lon;
-    param_Compute_Output.A818_ImageCenterHeight = (int)Tar_gps.Alt;
+    // param_Compute_Output.image_center_latitude  = Tar_gps.Lat;
+    // param_Compute_Output.image_center_longitude = Tar_gps.Lon;
+    // param_Compute_Output.A818_ImageCenterHeight = (int)Tar_gps.Alt;
+
+    // Note: lcy BEGIN -----------------------------------------
+    constexpr double fx = 1960e-3;
+    constexpr double fy = 1960e-3;
+    constexpr double cx = (5120 - 1) / 2.0;
+    constexpr double cy = (4096 - 1) / 2.0;
+
+    Eigen::Vector3d body_lla{AC_Position_pi.Lat * PI_Agl, AC_Position_pi.Lon * PI_Agl, AC_Position_pi.Alt};
+    double          yaw        = AttitudeAC_pi.Yaw;   // 航向角
+    double          pitch      = AttitudeAC_pi.Pitch; // 俯仰角
+    double          roll       = AttitudeAC_pi.Roll;  // 横滚角
+    double          depression = (param_Compute_Input_Fromfpga.rtime_pitch_frame + 90) * Agl_PI;
+    double          azimuth    = (param_Compute_Input_Fromfpga.rtime_direction_frame + 90) * Agl_PI;
+
+    Eigen::Vector3d rvec = rot::calcRotationVector(yaw, pitch, roll, depression, azimuth, true);
+
+    GeolocatorLOS geolocator(body_lla, fx, fy, cx, cy, rvec);
+
+    // 中心 左上 右上 左下 右下
+    Eigen::Vector2d px_center, px_lefttop, px_righttop, px_leftdown, px_rightdown;
+    px_center    = Eigen::Vector2d(cx, cy);
+    px_lefttop   = Eigen::Vector2d(0, 0);
+    px_righttop  = Eigen::Vector2d(5120 - 1, 0);
+    px_leftdown  = Eigen::Vector2d(0, 4096 - 1);
+    px_rightdown = Eigen::Vector2d(5120 - 1, 4096 - 1);
+
+    Eigen::Vector3d lla_center, lla_lefttop, lla_righttop, lla_leftdown, lla_rightdown;
+    lla_center   = geolocator.get_target_lla(px_center, tar_high);
+    lla_lefttop  = geolocator.get_target_lla(px_lefttop, tar_high);
+    lla_righttop = geolocator.get_target_lla(px_righttop, tar_high);
+    lla_leftdown = geolocator.get_target_lla(px_leftdown, tar_high);
+
+    param_Compute_Output.image_center_latitude        = lla_center[0];
+    param_Compute_Output.image_center_longitude       = lla_center[1];
+    param_Compute_Output.A818_ImageCenterHeight       = std::round(lla_center[2]);
+    param_Compute_Output.imaging_left_up_latitude     = lla_lefttop[0];
+    param_Compute_Output.imaging_left_up_longitude    = lla_lefttop[1];
+    param_Compute_Output.imaging_right_up_latitude    = lla_righttop[0];
+    param_Compute_Output.imaging_right_up_longitude   = lla_righttop[1];
+    param_Compute_Output.imaging_left_down_latitude   = lla_leftdown[0];
+    param_Compute_Output.imaging_left_down_longitude  = lla_leftdown[1];
+    param_Compute_Output.imaging_right_down_latitude  = lla_rightdown[0];
+    param_Compute_Output.imaging_right_down_longitude = lla_rightdown[1];
+
+    // Note: lcy END -------------------------------------------
 
     param_Compute_Output.view_fov_center_azimuth   = (KJAgl_exp_pi.WKJ + KFKZAgl_exp_pi.WKJ + geo_WKJ_ParaErro) * PI_Agl;
     param_Compute_Output.view_fov_center_elevation = (KJAgl_exp_pi.NKJ + KFKZAgl_exp_pi.NKJ + geo_NKJ_ParaErro) * PI_Agl;
@@ -2979,7 +3028,7 @@ void ComptRange() {
 //  说明：无
 // ---------------------------------------------------------------------------//
 void ProcessInPram() {
-    AC_Position_pi.Lat  = param_Compute_Input_Fromfpga.latitude;     // 载机纬度
+    AC_Position_pi.Lat  = param_Compute_Input_Fromfpga.latitude;     // 载机纬度 (弧度)
     AC_Position_pi.Lon  = param_Compute_Input_Fromfpga.longitude;    // 载机经度
     AC_Position_pi.Alt  = param_Compute_Input_Fromfpga.altitude;     // 载机高度
     AttitudeAC_pi.Yaw   = param_Compute_Input_Fromfpga.true_heading; // 航向角

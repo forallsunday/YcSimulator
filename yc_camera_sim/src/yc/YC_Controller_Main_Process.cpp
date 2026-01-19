@@ -240,6 +240,7 @@ void fc_Mess_Process_Others_task() {
 
 // 周期消息发送处理
 void fc_Mess_Send_Period_task() {
+    using namespace std::chrono;
     using clock = std::chrono::steady_clock;
 
     static int a               = 0;
@@ -248,6 +249,7 @@ void fc_Mess_Send_Period_task() {
     while (running_periodic_send) {
         // 当前时间
         auto next = clock::now();
+        next += milliseconds(ps::periodic_interval);
 
         // {
         //     // !!! 20251230 测试时直接上报
@@ -310,11 +312,9 @@ void fc_Mess_Send_Period_task() {
 
         // ACoreOs_periodtask_wait_period(); // 周期任务必要函数，不可删除！！！释放
 
-        // // Note:test直接发送work state report
-        // send_Mess_WORK_STATE_REPORT(0, 0); // 工作状态报告,参数为bit百分比
+        // Note: 模拟器持续发送 WORK_STATE_REPORT 消息 发送的bit百分比为一个较大值 这样自检率不会更新
+        send_Mess_WORK_STATE_REPORT(0, 1e6); // 工作状态报告,参数为bit百分比
 
-        // lcy: 推进下一周期
-        next += std::chrono::milliseconds(ps::periodic_interval);
         std::this_thread::sleep_until(next);
     }
 }
