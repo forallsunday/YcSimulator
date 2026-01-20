@@ -1410,7 +1410,7 @@ void make_Mess_To_TXCL_ZSXX() {
         if (cmd_From_FC.irst_cmd_param_area_image_paras_photoing[2] == 1)
             i = 2;
         // 名  称:区域中心位置X
-        mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.REGION_CENTER_X._longitude = cmd_From_FC.irst_cmd_param_area_image_paras[i].center_point_pos._latitude;
+        mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.REGION_CENTER_X._longitude = cmd_From_FC.irst_cmd_param_area_image_paras[i].center_point_pos._longitude;
         // 名  称:区域中心位置Y
         mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit.REGION_CENTER_Y._latitude = cmd_From_FC.irst_cmd_param_area_image_paras[i].center_point_pos._latitude;
     }
@@ -1506,42 +1506,6 @@ void make_Mess_To_TXCL_ZSXX_Time_Pos() {
             (temp_mess_FromFc_INS1_OPERATIONAL_PARAS.Integrated_NAV_Work_State_ & 0x0F);
     mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.A818_INS_GroupStatus = value;
 
-    // // 名  称:成像开始时刻载机数据
-    // // 名  称:载机位置数据
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_position_data._latitude  = mess_From_PCS_DATA.latitude * PI / pow(2, 31) * 100000;
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_position_data._longitude = mess_From_PCS_DATA.longitude * PI / pow(2, 31) * 100000;
-    // // 名  称:载机海拔高度
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_height._altitude = mess_From_PCS_DATA.altitude * 1000;
-    // // 名  称:载机真航向
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_true_heading._angle_mrad = mess_From_PCS_DATA.true_heading * PI / pow(2, 31) * 1000;
-    // // 名  称:载机俯仰角
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_pitch._angle_mrad = mess_From_PCS_DATA.pitch * PI / pow(2, 31) * 1000;
-    // // 名  称:载机横滚角
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_roll._angle_mrad = mess_From_PCS_DATA.roll * PI / pow(2, 31) * 1000;
-    // // 名  称:载机偏航角
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_CDI_angle._angle_mrad = temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_ground_track_angle._angle_mrad;
-    // // 名  称:载机偏流角
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_sl_angle._angle_mrad = temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_sl_angle._angle_mrad;
-    // // 名  称:载机地速
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_ground_speed._velocity = temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_ground_speed._velocity;
-    // // 名  称:载机真空速
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_true_airspeed._velocity = temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.air_nav_data.ac_true_airspeed._velocity;
-    // // 名  称:指示空速
-    // //	mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_indicate_airspeed._velocity = ;
-    // // 名  称:速度_东向
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.Vel_East._velocity = mess_From_PCS_DATA.east_speed * 10;
-    // // 名  称:速度_北向
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.Vel_North._velocity = mess_From_PCS_DATA.north_speed * 10;
-    // // 名  称:速度_天向
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.Vel_Up._velocity = -mess_From_PCS_DATA.ground_speed * 10;
-    // // 名  称:飞机东向加速度_
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_accel_East._acceleration = -temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_accel.Accel_West._acceleration;
-    // // 名  称:飞机北向加速度_
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_accel_North._acceleration = temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_accel.Accel_North._acceleration;
-    // // 名  称:飞机天向加速度_
-    // mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_accel_Up._acceleration = temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_plat_accel.Accel_Up._acceleration;
-
-    // Note: 等号左右的单位不太对
     // 名  称:成像开始时刻载机数据
     // 名  称:载机位置数据
     mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info.AC_data_start.ac_position_data._latitude  = mess_From_PCS_DATA.latitude * PI / pow(2, 31) * 1e3 * 100000;

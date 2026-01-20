@@ -18,8 +18,51 @@
 #include <geolocation.h>
 #include <rotation.h>
 
+#define Sec_KJPosREADY_NKJ 0.8 // 内框架位置好时间s
+#define Sec_KJPosREADY_WKJ 1.2 // 外框架位置好时间s
+#define Sec_KJSpeedREADY 0.2   // 框架速度好时间s
+
+#define GYCX_Near_K 0.5; // 广域成像近地点系数
+#define Max_TDNum 40     // 最大条带数
+// 框架角极限值
+#define NKJ_Max_PI 1.658063 // 弧度95度
+#define NKJ_Min_PI 0.785398 // 弧度45度
+#define WKJ_Max_PI 1.88495  // 弧度108度
+#define WKJ_Min_PI -1.88495 // 弧度-108度
+
+#define GYCX_P_x 0.15 // 广域成像x重叠率
+#define GYCX_P_y 0.12 // 广域成像y重叠率
+
+#define QYCX_P_x 0.15 // 区域成像x重叠率
+#define QYCX_P_y 0.15 // 区域成像y重叠率
+
+#define GYCX_pfs 0.0667 // 广域成像帧频（15HZ）
+#define QYCX_pfs 0.0667 // 0.0417//区域成像帧频（15HZ）//（24HZ）
+
+#define KJ_pixnum_X 5120 // 可见X方向像素
+#define KJ_pixnum_Y 4096 // 可见Y方向像素
+#define pixsize_KJ 4.5   // 可见像素尺寸
+
 #define Agl_PI 0.01745329
 #define PI_Agl 57.2957795
+
+// 长焦修正参数_外框架
+#define rewkj1_long -0.122284 //-0.026093
+#define rewkj2_long 3.836065  //-3.686053
+#define rewkj3_long -5.555062 //-5.909498
+// 长焦修正参数_内框架
+#define renkj1_long -0.015946  //-0.022343
+#define renkj2_long 6.726445   // 8.689177
+#define renkj3_long -10.522569 //-13.464319
+
+// 短焦修正参数_外框架
+#define rewkj1_short 0.000837  //-0.087974//1.764474
+#define rewkj2_short 2.53061   //-2.02316//1.360242
+#define rewkj3_short -2.915975 // 3.872457//1.692228
+// 短焦修正参数_内框架
+#define renkj1_short 0.021493   //-0.032872//1.764474
+#define renkj2_short 10.059979  // 10.438168//1.360242
+#define renkj3_short -14.723323 //-15.449768//
 
 //------------------------参数计算用变量 byL.B----------------------------//
 //----------输入
@@ -32,74 +75,76 @@ struct_KJAgl       KFKZAgl_exp_pi; // 曝光时刻快反角
 struct_KJAgl KJ_start_pi;         // 框架起始角
 struct_KJAgl KJ_end_pi;           // 框架结束角
 struct_KJAgl KJ_omiga_pi;         // 框架角速度角
-float        speed_hight;         // 速高比
-float        img_move_omiga_x_pi; // 前向向像移速度
-float        img_move_omiga_y_pi; // 横向向像移速度
-float        photo_Dis;           // 成像距离 m
-float        TD_Time;             // 一条带周期时间 s
+double       speed_hight;         // 速高比
+double       img_move_omiga_x_pi; // 前向向像移速度
+double       img_move_omiga_y_pi; // 横向向像移速度
+double       photo_Dis;           // 成像距离 m
+double       TD_Time;             // 一条带周期时间 s
 int          TD_Num;              // 条带数
 int          TD_PhotoNum;         // 每条带成像帧数
-float        speed_time;          // 速度信号时间 s
-float        location_time;       // 位置信号时间 s
+double       speed_time;          // 速度信号时间 s
+double       location_time;       // 位置信号时间 s
 int          QYCX_NeedTDNum;      // 需要扫描条带
 int          QYCX_ScanOverTime;   // 已完成扫描次数
-float        range_lowline;       // 距离近界
-float        range_upline;        // 距离远界
+double       range_lowline;       // 距离近界
+double       range_upline;        // 距离远界
 // 焦距、帧频、像元尺寸、像元数
-int   tocal_foclen_KJ;  // 可见焦距 单位: mm
-float tocal_pixsize_KJ; // 像元尺寸4.5
+int    tocal_foclen_KJ;  // 可见焦距 单位: mm
+double tocal_pixsize_KJ; // 像元尺寸4.5
 
 struct_Position_float64 ZB_ecef_Tar;                 // 准备用ECEF中目标坐标
 struct_AttiAgl          sin_AttiAgl;                 // 姿态角的sin值
 struct_AttiAgl          cos_AttiAgl;                 // 姿态角的cos值
-float                   AC_NED[3][3];                // AC坐标系向NED坐标系转换
-float                   NED_ECEF[3][4];              // NED坐标系向ECEF坐标系转换
-float                   AC_ECEF[3][4];               // AC坐标系向ECEF坐标系转换
-float                   planTar_high;                // 相对高度 米
-float                   tar_high;                    // 目标高度
+double                  AC_NED[3][3];                // AC坐标系向NED坐标系转换
+double                  NED_ECEF[3][4];              // NED坐标系向ECEF坐标系转换
+double                  AC_ECEF[3][4];               // AC坐标系向ECEF坐标系转换
+double                  planTar_high;                // 相对高度 米
+double                  tar_high;                    // 目标高度
 struct_KJAgl            sin_KJAgl;                   // 框架角sin值
 struct_KJAgl            cos_KJAgl;                   // 框架角cos值
 struct_KJAgl            sin_KJAgl_exp;               // 框架角sin值
 struct_KJAgl            cos_KJAgl_exp;               // 框架角cos值
-float                   AC_speed;                    // 速度
+double                  AC_speed;                    // 速度
 double                  ECEF_NED_Plan[3][4];         // ECEF到飞机NED坐标系转换矩阵
-float                   GYCX_Tar_YawAgl_last_sin[4]; // 记录当前航向角sin
-float                   GYCX_Tar_YawAgl_last_cos[4]; // 记录当前航向角cos
+double                  GYCX_Tar_YawAgl_last_sin[4]; // 记录当前航向角sin
+double                  GYCX_Tar_YawAgl_last_cos[4]; // 记录当前航向角cos
 int                     LL_yaw_i;                    // 航向计数
-float                   GYCX_YawAgl_pi;              // 广域成像用航向角
-float                   GYCX_PitchAgl_pi;            // 广域成像用俯仰角
-float                   GYCX_WKJ_omiga;              // 广域成像外框架角速度
-float                   GYCX_NKJ_omiga;              // 广域成像内框架角速度
-float                   GYCX_TarAgl_pi;              // 广域成像 目标倾斜角 弧度
-float                   GYCX_TarAgl_near_pi;         // 距离优先广域成像 目标倾斜角近界 弧度
-float                   GYCX_TarAgl_far_pi;          // 距离优先广域成像 目标倾斜角远界 弧度
-float                   GYCX_TarAgl_min_pi;          // 方位优先广域成像 方位角小角 弧度
-float                   GYCX_TarAgl_max_pi;          // 方位优先广域成像 方位角大角 弧度
-float                   GYCX_TarAgl_FYAgl_pi;        // 方位优先广域成像 俯仰角大角 弧度
+double                  GYCX_YawAgl_pi;              // 广域成像用航向角
+double                  GYCX_PitchAgl_pi;            // 广域成像用俯仰角
+double                  GYCX_WKJ_omiga;              // 广域成像外框架角速度
+double                  GYCX_NKJ_omiga;              // 广域成像内框架角速度
+double                  GYCX_TarAgl_pi;              // 广域成像 目标倾斜角 弧度
+double                  GYCX_TarAgl_near_pi;         // 距离优先广域成像 目标倾斜角近界 弧度
+double                  GYCX_TarAgl_far_pi;          // 距离优先广域成像 目标倾斜角远界 弧度
+double                  GYCX_TarAgl_min_pi;          // 方位优先广域成像 方位角小角 弧度
+double                  GYCX_TarAgl_max_pi;          // 方位优先广域成像 方位角大角 弧度
+double                  GYCX_TarAgl_FYAgl_pi;        // 方位优先广域成像 俯仰角大角 弧度
 
-float QYCX_WKJ_omiga; // 区域成像外框架角速度
-int   QYCX_Over_flag; // 已完成扫描标志
-int   QYCX_ScanTDNum; // 已扫描条带数
+double QYCX_WKJ_omiga; // 区域成像外框架角速度
+int    QYCX_Over_flag; // 已完成扫描标志
+int    QYCX_ScanTDNum; // 已扫描条带数
 
-int   QYCX_QYNo_Doing;      // 正在执行的区域号
-int   QYCX_DointQY_flag;    // 是否正在执行一个区域
-float QYCX_TDAgl_WKJ_first; // 区域用起始外框架
-float QYCX_TDAgl_NKJ_first; // 区域用起始内框架
-float QYCX_WKJ_change;      // 区域用外框架变化量
-float QYCX_NKJ_change;      // 区域用内框架变化量
+int    QYCX_QYNo_Doing;      // 正在执行的区域号
+int    QYCX_DointQY_flag;    // 是否正在执行一个区域
+double QYCX_TDAgl_WKJ_first; // 区域用起始外框架
+double QYCX_TDAgl_NKJ_first; // 区域用起始内框架
+double QYCX_WKJ_change;      // 区域用外框架变化量
+double QYCX_NKJ_change;      // 区域用内框架变化量
 
 // 目标在ECEF坐标
-float ECEF_TarA[3];
+double ECEF_TarA[3];
 // 目标在ECEF坐标
-float ECEF_TarC[3];
+double ECEF_TarC[3];
 
 struct_KJAgl KJAgl_AC_pi;  // AC坐标系下框架角
 struct_KJAgl KJAgl_NED_pi; // NED坐标系下框架角
 int          cover_wide;   // 垂直航向覆盖宽度
 
 struct_Position_float64 GeoTrack_ecef_Tar; // 地理跟踪用ECEF中目标坐标
-float                   geo_WKJ_ParaErro;  // 定位修正角 外框架定位计算角 度
-float                   geo_NKJ_ParaErro;  // 定位修正角 内框架定位计算角 度
+double                  geo_WKJ_ParaErro;  // 定位修正角 外框架定位计算角 弧度
+double                  geo_NKJ_ParaErro;  // 定位修正角 内框架定位计算角 弧度
+double                  fly_prm_WKJ;       // 指向修正角 外框架指向计算角 弧度
+double                  fly_prm_NKJ;       // 指向修正角 内框架指向计算角 弧度
 
 //------------------------参数计算用变量 byL.B---------end-------------------//
 
@@ -167,6 +212,8 @@ void comp_Parm_init() {
     memset(&GeoTrack_ecef_Tar, 0, sizeof(GeoTrack_ecef_Tar)); // 地理跟踪用ECEF中目标坐标
     geo_WKJ_ParaErro = 0;                                     // 定位修正角 外框架定位计算角 度
     geo_NKJ_ParaErro = 0;                                     // 定位修正角 内框架定位计算角 度
+    fly_prm_WKJ      = 0;                                     // 指向修正角 外框架指向计算角 度
+    fly_prm_NKJ      = 0;                                     // 指向修正角 内框架指向计算角 度
 
     GYCX_Tar_YawAgl_last_sin[0] = 0; // 记录当前航向角sin
     GYCX_Tar_YawAgl_last_sin[1] = 0; // 记录当前航向角sin
@@ -192,10 +239,15 @@ void comp_Parm_init() {
 // 根据距离近界、距离远界、扫描方向、目标区域高度，计算指令角等工作参数
 // 返回值为是否超限
 UINT8 comp_GY_Dis_Normal() {
-    int   overPara_flag_t = 0;    // 参数超限标识
-    float TDAgl_bigger_t;         // 条带较大角
-    float TDAgl_smaller_t;        // 条带较小角
-    ProcessInPram();              // 处理接收数据
+    int    overPara_flag_t = 0; // 参数超限标识
+    double TDAgl_bigger_t;      // 条带较大角
+    double TDAgl_smaller_t;     // 条带较小角
+    ProcessInPram();            // 处理接收数据
+
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();  // 处理姿态角
     Process_KJAgl_ParaComputer(); // 处理框架角
     // 计算相对高度
@@ -235,9 +287,6 @@ UINT8 comp_GY_Dis_Normal() {
 
     cover_wide = tan(fabs(TDAgl_bigger_t)) * planTar_high - tan(fabs(TDAgl_smaller_t)) * planTar_high; // 垂直航向覆盖宽度
 
-    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
-    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
-
     // 依据姿态给出指向控制角
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
@@ -248,7 +297,15 @@ UINT8 comp_GY_Dis_Normal() {
     if (1 == TD_PhotoNum) {
         KJ_omiga_pi.WKJ = 0;
         KJ_omiga_pi.NKJ = 0;
+        location_time   = Sec_KJPosREADY_NKJ;
+        speed_time      = TD_Time - location_time; // 速度信号时间 s
+        KJ_start_pi.WKJ = KJ_Agl_start.WKJ;        // 强修 todo
+        KJ_Agl_end.WKJ  = KJ_Agl_end.WKJ;
     }
+
+    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
+    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_start_pi);
+
     param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // 旁向重叠率
     param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // 前向重叠率
 
@@ -265,12 +322,16 @@ UINT8 comp_GY_Dis_Normal() {
 }
 // 2.根据量程和起始角结束角算——方位优先使用：检调光、正常工作使用
 UINT8 comp_GY_Az_Normal() {
-    int   overPara_flag_t = 0; // 参数超限标识
-    float TDAgl_bigger_t;      // 条带较大角
-    float TDAgl_smaller_t;     // 条带较小角
-    float temp_dis = 0;
+    int    overPara_flag_t = 0; // 参数超限标识
+    double TDAgl_bigger_t;      // 条带较大角
+    double TDAgl_smaller_t;     // 条带较小角
+    double temp_dis = 0;
     //	float temp_agl = 0;//临时近界角
-    ProcessInPram();              // 处理接收数据
+    ProcessInPram(); // 处理接收数据
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();  // 处理姿态角
     Process_KJAgl_ParaComputer(); // 处理框架角
     // 计算相对高度
@@ -310,14 +371,22 @@ UINT8 comp_GY_Az_Normal() {
         cover_wide = fabs(tan(fabs(TDAgl_bigger_t)) * temp_dis - tan(fabs(TDAgl_smaller_t)) * temp_dis); // 垂直航向覆盖宽度
     }
 
-    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
-    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
     // 依据姿态给出指向控制角
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
     KJ_omiga_pi.WKJ = GYCX_WKJ_omiga;      // 框架方位扫描速度指令°/s
     KJ_omiga_pi.NKJ = img_move_omiga_x_pi; // 框架俯仰扫描速度指令 °/s
+
+    if (1 == TD_PhotoNum) {
+        KJ_omiga_pi.WKJ = 0;
+        KJ_omiga_pi.NKJ = 0;
+        location_time   = Sec_KJPosREADY_WKJ;
+        speed_time      = TD_Time - location_time; // 速度信号时间 s
+    }
+
+    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
+    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_start_pi);
 
     param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_y; // 旁向重叠率
     param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_x; // 前向重叠率
@@ -335,8 +404,12 @@ UINT8 comp_GY_Az_Normal() {
 // 3.准备中的检调焦使用——距离优先
 // 侧向（距离优先）：只考虑左右倾，方位按85°，俯仰按照距离32km计算
 UINT8 comp_GY_Dis_ZB_JTJ() {
-    int overPara_flag_t = 0;                                                    // 参数超限标识
-    ProcessInPram();                                                            // 输入参数处理
+    int overPara_flag_t = 0; // 参数超限标识
+    ProcessInPram();         // 输入参数处理
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();                                                // 处理姿态角
     Process_KJAgl_ParaComputer();                                               // 处理框架角
     GetScanTarYaw();                                                            // 更新广域成像扫描航向角
@@ -398,8 +471,12 @@ UINT8 comp_GY_Dis_ZB_JTJ() {
 // 4.准备中的检调焦使用——方位优先
 // 前向（方位优先）：右侧前，方位右侧倾角30°（前为0），前向俯仰角按距离32km计算
 UINT8 comp_GY_Az_ZB_JTJ() {
-    int overPara_flag_t = 0;                                                    // 参数超限标识
-    ProcessInPram();                                                            // 输入参数处理
+    int overPara_flag_t = 0; // 参数超限标识
+    ProcessInPram();         // 输入参数处理
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();                                                // 处理姿态角
     Process_KJAgl_ParaComputer();                                               // 处理框架角
     GetScanTarYaw();                                                            // 更新广域成像扫描航向角
@@ -457,10 +534,14 @@ UINT8 comp_GY_Az_ZB_JTJ() {
 
 // 5.维护自检，执行广域成像——距离优先，右倾成像
 UINT8 comp_GY_Dis_WHZJ() {
-    int   overPara_flag_t = 0;    // 参数超限标识
-    float TDAgl_bigger_t;         // 条带较大角
-    float TDAgl_smaller_t;        // 条带较小角
-    ProcessInPram();              // 处理接收数据
+    int    overPara_flag_t = 0; // 参数超限标识
+    double TDAgl_bigger_t;      // 条带较大角
+    double TDAgl_smaller_t;     // 条带较小角
+    ProcessInPram();            // 处理接收数据
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();  // 处理姿态角
     Process_KJAgl_ParaComputer(); // 处理框架角
     // 计算相对高度
@@ -510,6 +591,12 @@ UINT8 comp_GY_Dis_WHZJ() {
 
     KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // 框架方位扫描速度指令°/s
     KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // 框架俯仰扫描速度指令 °/s
+    if (1 == TD_PhotoNum) {
+        KJ_omiga_pi.WKJ = 0;
+        KJ_omiga_pi.NKJ = 0;
+        location_time   = Sec_KJPosREADY_NKJ;
+        speed_time      = TD_Time - location_time; // 速度信号时间 s
+    }
 
     param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_x; // 旁向重叠率
     param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_y; // 前向重叠率
@@ -525,10 +612,14 @@ UINT8 comp_GY_Dis_WHZJ() {
 // 6.准备中调光使用——广域成像——距离优先
 // 返回值为是否超限
 UINT8 comp_GY_Dis_ZB_JTG() {
-    int   overPara_flag_t = 0;    // 参数超限标识
-    float TDAgl_bigger_t;         // 条带较大角
-    float TDAgl_smaller_t;        // 条带较小角
-    ProcessInPram();              // 处理接收数据
+    int    overPara_flag_t = 0; // 参数超限标识
+    double TDAgl_bigger_t;      // 条带较大角
+    double TDAgl_smaller_t;     // 条带较小角
+    ProcessInPram();            // 处理接收数据
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();  // 处理姿态角
     Process_KJAgl_ParaComputer(); // 处理框架角
     // 计算相对高度
@@ -551,7 +642,7 @@ UINT8 comp_GY_Dis_ZB_JTG() {
     {
         TD_PhotoNum = 30;
     }
-    location_time = Sec_KJPosREADY_WKJ;                        // 调光用位置信号时间  s
+    location_time = Sec_KJPosREADY_NKJ;                        // 调光用位置信号时间  s
     speed_time    = GYCX_pfs * TD_PhotoNum + Sec_KJSpeedREADY; // 速度信号时间 s
 
     struct_KJAgl KJ_Agl_start; // 赋值用框架起始角
@@ -572,15 +663,22 @@ UINT8 comp_GY_Dis_ZB_JTG() {
 
     cover_wide = tan(fabs(TDAgl_bigger_t)) * planTar_high - tan(fabs(TDAgl_smaller_t)) * planTar_high; // 垂直航向覆盖宽度
 
-    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
-    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
-
     // 依据姿态给出指向控制角
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
+    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
+    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_start_pi);
+
     KJ_omiga_pi.WKJ = img_move_omiga_y_pi; // 框架方位扫描速度指令°/s
     KJ_omiga_pi.NKJ = GYCX_NKJ_omiga;      // 框架俯仰扫描速度指令 °/s
+
+    if (1 == TD_PhotoNum) {
+        KJ_omiga_pi.WKJ = 0;
+        KJ_omiga_pi.NKJ = 0;
+        location_time   = Sec_KJPosREADY_NKJ;
+        speed_time      = TD_Time - location_time; // 速度信号时间 s
+    }
 
     if (1 == TD_PhotoNum) {
         KJ_omiga_pi.WKJ = 0;
@@ -602,12 +700,16 @@ UINT8 comp_GY_Dis_ZB_JTG() {
 // 7.准备中调光使用——广域成像——方位优先
 // 返回值为是否超限
 UINT8 comp_GY_Az_ZB_JTG() {
-    int   overPara_flag_t = 0; // 参数超限标识
-    float TDAgl_bigger_t;      // 条带较大角
-    float TDAgl_smaller_t;     // 条带较小角
-    float temp_dis = 0;
+    int    overPara_flag_t = 0; // 参数超限标识
+    double TDAgl_bigger_t;      // 条带较大角
+    double TDAgl_smaller_t;     // 条带较小角
+    double temp_dis = 0;
     //	float temp_agl = 0;//临时近界角
-    ProcessInPram();              // 处理接收数据
+    ProcessInPram(); // 处理接收数据
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();  // 处理姿态角
     Process_KJAgl_ParaComputer(); // 处理框架角
     // 计算相对高度
@@ -651,14 +753,21 @@ UINT8 comp_GY_Az_ZB_JTG() {
         cover_wide = fabs(tan(fabs(TDAgl_bigger_t)) * temp_dis - tan(fabs(TDAgl_smaller_t)) * temp_dis); // 垂直航向覆盖宽度
     }
 
-    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
-    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_Agl_start);
     // 依据姿态给出指向控制角
     GYCX_GetKJPos_simple(&KJ_start_pi, AttitudeAC_pi, KJ_Agl_start, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
     GYCX_GetKJPos_simple(&KJ_end_pi, AttitudeAC_pi, KJ_Agl_end, GYCX_YawAgl_pi, GYCX_PitchAgl_pi);
 
+    // 给定外框架和内框架角，计算得到目标在ECEF中坐标,成像前准备用
+    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_start_pi);
+
     KJ_omiga_pi.WKJ = GYCX_WKJ_omiga;      // 框架方位扫描速度指令°/s
     KJ_omiga_pi.NKJ = img_move_omiga_x_pi; // 框架俯仰扫描速度指令 °/s
+    if (1 == TD_PhotoNum) {
+        KJ_omiga_pi.WKJ = 0;
+        KJ_omiga_pi.NKJ = 0;
+        location_time   = Sec_KJPosREADY_WKJ;
+        speed_time      = TD_Time - location_time; // 速度信号时间 s
+    }
 
     param_Compute_Output.A818_Beside_tgt_cover = GYCX_P_y; // 旁向重叠率
     param_Compute_Output.A818_Couse_tgt_cover  = GYCX_P_x; // 前向重叠率
@@ -683,7 +792,11 @@ UINT8 comp_QY_Photo_ZB_JTG() {
     struct_KJAgl       cal_agl_kj_t;   // 计算框架角
     struct_LSB_float64 hope_ned_lsb_t; // 理想视轴在NED中指向
 
-    ProcessInPram();              // 输入参数处理
+    ProcessInPram(); // 输入参数处理
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();  // 处理姿态角
     Process_KJAgl_ParaComputer(); // 处理框架角
     // 计算相对高度
@@ -755,10 +868,14 @@ UINT8 comp_QY_Photo_ZB_JTJ() {
     float              Tar_Lon;
     float              Tar_lat;
     float              Tar_alt;
-    struct_KJAgl       hope_agl_kj_t;                                                   // 理想框架角
-    struct_KJAgl       cal_agl_kj_t;                                                    // 计算框架角
-    struct_LSB_float64 hope_ned_lsb_t;                                                  // 理想视轴在NED中指向
-    ProcessInPram();                                                                    // 处理接收数据
+    struct_KJAgl       hope_agl_kj_t;  // 理想框架角
+    struct_KJAgl       cal_agl_kj_t;   // 计算框架角
+    struct_LSB_float64 hope_ned_lsb_t; // 理想视轴在NED中指向
+    ProcessInPram();                   // 处理接收数据
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();                                                        // 处理姿态角
     Process_KJAgl_ParaComputer();                                                       // 处理框架角
     tar_high     = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.D_area_altitude; // 计算相对高度
@@ -826,7 +943,11 @@ UINT8 comp_QY_Photo_Normal() {
     int                temp_int        = 0;
     struct_GPS_float64 GPS_Tar;
     float              Tar_Range;
-    ProcessInPram();                                                            // 处理接收数据
+    ProcessInPram(); // 处理接收数据
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();                                                // 处理姿态角
     Process_KJAgl_ParaComputer();                                               // 处理框架角
     tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // 计算相对高度
@@ -878,6 +999,10 @@ UINT8 comp_QY_Photo_Normal() {
 
         KJ_omiga_pi.WKJ = QYCX_WKJ_omiga + img_move_omiga_y_pi; // 框架方位扫描速度指令°/s
         KJ_omiga_pi.NKJ = img_move_omiga_x_pi;                  // 框架俯仰扫描速度指令 °/s
+        if (1 == TD_PhotoNum) {
+            KJ_omiga_pi.WKJ = 0;
+            KJ_omiga_pi.NKJ = 0;
+        }
 
     } else if ((1 == param_Compute_Input_Fromfpga.flag_Speed_OR_Locate) && (0 == QYCX_Over_flag)) // 未正在执行一个区域,走位置,未完成全部扫描
     {
@@ -954,6 +1079,10 @@ UINT8 comp_QY_Photo_Normal() {
             KJ_omiga_pi.NKJ = img_move_omiga_x_pi;                  // 框架俯仰扫描速度指令 °/s
 
             cover_wide = Tar_Range; // 覆盖范围
+            if (1 == TD_PhotoNum) {
+                KJ_omiga_pi.WKJ = 0;
+                KJ_omiga_pi.NKJ = 0;
+            }
         }
     }
 
@@ -981,7 +1110,11 @@ UINT8 comp_QY_over(UINT8 QY_num) {
     int                overPara_flag_t = 0; // 参数超限标识
     struct_GPS_float64 GPS_Tar;
     float              Tar_Range;
-    ProcessInPram();                                                            // 处理接收数据
+    ProcessInPram(); // 处理接收数据
+    // 除区域监视时不加指向修正
+    fly_prm_WKJ = 0; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ = 0; // 内框架飞行修订参数 弧度
+
     Process_Atti_ParaComputer();                                                // 处理姿态角
     Process_KJAgl_ParaComputer();                                               // 处理框架角
     tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude; // 计算相对高度
@@ -1170,7 +1303,7 @@ UINT8 comp_QY_Video_ZB() {
     Process_Atti_ParaComputer();  // 处理姿态角
     Process_KJAgl_ParaComputer(); // 处理框架角
     // 计算相对高度
-    tar_high     = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
+    // tar_high = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
     planTar_high = AC_Position_pi.Alt - tar_high;
     if (planTar_high < 0) {
         planTar_high = -planTar_high;
@@ -1237,6 +1370,9 @@ UINT8 comp_QY_Video_Normal() {
     Tar_alt         = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude;
     overPara_flag_t = GeoTrack_ParaComputer(Tar_Lon, Tar_lat, Tar_alt);
 
+    // 给定外框架和内框架角，计算得到目标在ECEF中坐标
+    GetTarECEFbyKJAgl_ParaComputer(&ZB_ecef_Tar, &KJ_start_pi); // 20251213增加
+
     param_Compute_Output.frames_Num           = 1;    // 条带张数
     param_Compute_Output.toFPGA_time_speed    = 0;    // 速度信号时间LSB=0.1ms
     param_Compute_Output.toFPGA_time_location = 50.6; // 位置信号时间LSB=0.1ms
@@ -1260,9 +1396,9 @@ UINT8 comp_QY_Video_Normal() {
     Out_JS();      // 监视返回数
 
     // todo 正式版本删除 为了通过测试
-    param_Compute_Output.real_area_monitor_paras.altitude  = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude - rand() * 0.01 / RAND_MAX;
-    param_Compute_Output.real_area_monitor_paras.latitude  = (cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._latitude - rand() * 0.00001 / RAND_MAX) / 100000;
-    param_Compute_Output.real_area_monitor_paras.longitude = (cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._longitude - rand() * 0.00001 / RAND_MAX) / 100000;
+    //	param_Compute_Output.real_area_monitor_paras.altitude = param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude - rand()*0.01/RAND_MAX;
+    //	param_Compute_Output.real_area_monitor_paras.latitude = (cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._latitude - rand()*0.00001/RAND_MAX)/100000;
+    //	param_Compute_Output.real_area_monitor_paras.longitude = (cmd_From_FC.irst_cmd_param_area_monitor_paras.center_point_pos._longitude - rand()*0.00001/RAND_MAX)/100000;
 
     if (1 == overPara_flag_t) {
         param_Compute_Output.real_area_monitor_paras.IR_IMG_FLAG = V_IR_IMG_FLAG_OVER_BONDS;
@@ -1326,20 +1462,20 @@ void Process_Atti_ParaComputer(void) {
 //  返回参数：NED_ECEF_t 转换矩阵
 //  说明：无
 // ---------------------------------------------------------------------------//
-void NEDToECEF(float NED_ECEF_t[3][4], struct Struct_GPS_float64 GPS_t) {
-    float sin_Lon = sin(GPS_t.Lon);
-    float cos_Lon = cos(GPS_t.Lon);
-    float sin_Lat = sin(GPS_t.Lat);
-    float cos_Lat = cos(GPS_t.Lat);
+void NEDToECEF(double NED_ECEF_t[3][4], struct Struct_GPS_float64 GPS_t) {
+    double sin_Lon = sin(GPS_t.Lon);
+    double cos_Lon = cos(GPS_t.Lon);
+    double sin_Lat = sin(GPS_t.Lat);
+    double cos_Lat = cos(GPS_t.Lat);
 
-    float RnAC;
-    float temp_1;
-    temp_1          = sqrt(1 - (0.00669447819799 * sin_Lat * sin_Lat));
-    RnAC            = 6378137 / temp_1;
-    float NED_ECEF1 = 0;
-    NED_ECEF1       = -RnAC * sin_Lat * 0.00669447819799;
-    float NED_ECEF4 = 0;
-    NED_ECEF4       = -(RnAC + GPS_t.Alt);
+    double RnAC;
+    double temp_1;
+    temp_1           = sqrt(1 - (0.00669447819799 * sin_Lat * sin_Lat));
+    RnAC             = 6378137 / temp_1;
+    double NED_ECEF1 = 0;
+    NED_ECEF1        = -RnAC * sin_Lat * 0.00669447819799;
+    double NED_ECEF4 = 0;
+    NED_ECEF4        = -(RnAC + GPS_t.Alt);
 
     NED_ECEF_t[0][0] = cos_Lon * (-1) * sin_Lat;
     NED_ECEF_t[0][1] = (-1) * sin_Lon;
@@ -1382,7 +1518,7 @@ void Process_KJAgl_ParaComputer(void) {
 //  说明：无
 // ---------------------------------------------------------------------------//
 void Process_Dis_ParaComputer() {
-    float LOS_NedZ_t; // NED坐标下的视轴Z方向
+    double LOS_NedZ_t; // NED坐标下的视轴Z方向
     LOS_NedZ_t = (-sin_AttiAgl.Pitch * cos_KJAgl.WKJ * sin_KJAgl.NKJ) + (cos_AttiAgl.Pitch * sin_AttiAgl.Roll * sin_KJAgl.WKJ * sin_KJAgl.NKJ) + (cos_AttiAgl.Pitch * cos_AttiAgl.Roll * cos_KJAgl.NKJ);
     if (LOS_NedZ_t < 0) {
         LOS_NedZ_t = -LOS_NedZ_t;
@@ -1411,19 +1547,19 @@ void Process_Dis_ParaComputer() {
 //  返回参数：更新参数float* SGB_t 速高比,float* XOmiga_t X方向像移补偿速度 °/s,float* YOmiga_t Y方向像移补偿速度°/s
 //  说明：无
 // ---------------------------------------------------------------------------//
-void Process_Speed_ParaComputer(float *SGB_t, float *XOmiga_t, float *YOmiga_t) {
-    float AcV_LL_t[3]; // ACLL航向坐标系中飞机速度
+void Process_Speed_ParaComputer(double *SGB_t, double *XOmiga_t, double *YOmiga_t) {
+    double AcV_LL_t[3]; // ACLL航向坐标系中飞机速度
     AcV_LL_t[0] = cos_AttiAgl.Yaw * param_Compute_Input_Fromfpga.north_speed + sin_AttiAgl.Yaw * param_Compute_Input_Fromfpga.east_speed;
     AcV_LL_t[1] = -1 * sin_AttiAgl.Yaw * param_Compute_Input_Fromfpga.north_speed + cos_AttiAgl.Yaw * param_Compute_Input_Fromfpga.east_speed;
     ;
     AcV_LL_t[2] = param_Compute_Input_Fromfpga.ground_speed;
 
-    float AcV_t[3]; // AC坐标系下飞机速度
+    double AcV_t[3]; // AC坐标系下飞机速度
     AcV_t[0] = cos_AttiAgl.Pitch * AcV_LL_t[0] - sin_AttiAgl.Pitch * AcV_LL_t[2];
     AcV_t[1] = sin_AttiAgl.Roll * sin_AttiAgl.Pitch * AcV_LL_t[0] + cos_AttiAgl.Roll * AcV_LL_t[1] + sin_AttiAgl.Roll * cos_AttiAgl.Pitch * AcV_LL_t[2];
     AcV_t[2] = cos_AttiAgl.Roll * sin_AttiAgl.Pitch * AcV_LL_t[0] - sin_AttiAgl.Roll * AcV_LL_t[1] + cos_AttiAgl.Roll * cos_AttiAgl.Pitch * AcV_LL_t[2];
 
-    float SOmiga_t[3];  // S坐标系下角速度
+    double SOmiga_t[3]; // S坐标系下角速度
     if (photo_Dis == 0) // 除零判断
     {
         photo_Dis = 1;
@@ -1457,9 +1593,9 @@ void GetScanTarYaw(void) {
     {
         GYCX_PitchAgl_pi = AttitudeAC_pi.Pitch;
     }
-    float YawAgl_last = 0;
-    float yaw_sin     = 0;
-    float yaw_cos     = 0;
+    double YawAgl_last = 0;
+    double yaw_sin     = 0;
+    double yaw_cos     = 0;
 
     GYCX_Tar_YawAgl_last_sin[LL_yaw_i] = sin_AttiAgl.Yaw; // 记录当前航向角sin
     GYCX_Tar_YawAgl_last_cos[LL_yaw_i] = cos_AttiAgl.Yaw; // 记录当前航向角cos
@@ -1468,19 +1604,29 @@ void GetScanTarYaw(void) {
     yaw_cos = (GYCX_Tar_YawAgl_last_cos[0] + GYCX_Tar_YawAgl_last_cos[1] + GYCX_Tar_YawAgl_last_cos[2] + GYCX_Tar_YawAgl_last_cos[3]) / 4;
 
     if (0 == yaw_cos) {
-        YawAgl_last = 1.570796;
+        YawAgl_last = AttitudeAC_pi.Yaw;
     } else {
         YawAgl_last = atan2(yaw_sin, yaw_cos);
     }
 
-    if (fabs(YawAgl_last - AttitudeAC_pi.Yaw) > 0.0139) // 角度大于0.8°，更新扫描航向角
+    if (fabs(YawAgl_last - AttitudeAC_pi.Yaw) > 0.0278) // 角度大于1.6°，更新扫描航向角
     {
-        GYCX_YawAgl_pi = AttitudeAC_pi.Yaw;
-    } else {
+        YawAgl_last = AttitudeAC_pi.Yaw;
+    }
+
+    if (fabs(YawAgl_last - GYCX_YawAgl_pi) > 0.0139) // 角度大于0.8°，更新扫描航向角
+    {
         GYCX_YawAgl_pi = YawAgl_last;
     }
+
     // 计数更新
     LL_yaw_i = (LL_yaw_i + 1) % 4;
+
+    //	logMsg("gycxyaw: %d    yaw: %d \n     yawlast: %d \n",
+    //			GYCX_YawAgl_pi *57.2957795*100,
+    //			AttitudeAC_pi.Yaw*57.2957795*100,
+    //			YawAgl_last*57.2957795*100,
+    //		4,5,6);
 }
 // ------------------------------计算广域距离优先模式下的内框架远/近角-------------------------------//
 //  Process_TarAgl_GY_Dis_ParaComputer()
@@ -1490,12 +1636,12 @@ void GetScanTarYaw(void) {
 //  说明：无
 // ---------------------------------------------------------------------------//
 void Process_TarAgl_GY_Dis_ParaComputer(void) {
-    float temp_agl_low = 0; // 临时近界角
-    float temp_agl_up  = 0; // 临时远界角
-    float temp_float1  = 0;
-    float temp_dis_low = 0;
-    float temp_dis_up  = 0;
-    float temp_agl_mid = 0; // 临时目标角
+    double temp_agl_low = 0; // 临时近界角
+    double temp_agl_up  = 0; // 临时远界角
+    double temp_float1  = 0;
+    double temp_dis_low = 0;
+    double temp_dis_up  = 0;
+    double temp_agl_mid = 0; // 临时目标角
 
     // 近端地距
     temp_dis_low = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_range_lowline * 1000;
@@ -1524,50 +1670,50 @@ void Process_TarAgl_GY_Dis_ParaComputer(void) {
     GYCX_TarAgl_far_pi  = temp_agl_up;
 }
 // ------------------------------计算广域成像条带帧数-------------------------------//
-//  函数名称:   GYCX_Dis_GetTDPhotoNum()
-//  功能:      计算广域成像条带帧数
-//  输入参数:   AC_speed飞行速度,PlanTar_high相对高,GYCX_TarAgl目标倾斜角
-//  返回参数:   更新  条带周期GYCX_TD_Time；条带帧数GYCX_TD_PhotoNum；条带近端角GYCX_TDAgl_near；条带起始角GYCX_TDAgl_start；条带结束角GYCX_TDAgl_end
-//  说明:      无
+//  函数名称：GYCX_Dis_GetTDPhotoNum()
+//  功能： 计算广域成像条带帧数
+//  输入参数： AC_speed飞行速度,PlanTar_high相对高,GYCX_TarAgl目标倾斜角
+//  返回参数：更新  条带周期GYCX_TD_Time；条带帧数GYCX_TD_PhotoNum；条带近端角GYCX_TDAgl_near；条带起始角GYCX_TDAgl_start；条带结束角GYCX_TDAgl_end
+//  说明：无
 // ---------------------------------------------------------------------------//
-void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *GY_TarAglOver) {
-    float foc     = tocal_foclen_KJ * 0.001; // 焦距
-    float pic_sec = GYCX_pfs;                // 成像周期
-    float P_x_t;                             // x方向重叠率
-    float P_y_t;                             // y方向重叠率
+void GYCX_Dis_GetTDPhotoNum(double *TDAgl_bigger_t, double *TDAgl_smaller_t, int *GY_TarAglOver) {
+    double foc     = tocal_foclen_KJ * 0.001; // 焦距
+    double pic_sec = GYCX_pfs;                // 成像周期
+    double P_x_t;                             // x方向重叠率
     P_x_t = GYCX_P_x;
+    double P_y_t; // y方向重叠率
     P_y_t = GYCX_P_y;
 
-    float picAngle_x_pi;                                                         // X摆扫向视场角
+    double picAngle_x_pi;                                                        // X摆扫向视场角
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                 // 去掉重叠率
+    double picAngle_x_overlap_pi;                                                // 去掉重叠率
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
-    float k               = GYCX_Near_K;                           // 广域成像近地点系数
-    float Tloc            = Sec_KJPosREADY_NKJ + Sec_KJSpeedREADY; // 框架到位时间
+    double k              = GYCX_Near_K;                           // 广域成像近地点系数
+    double Tloc           = Sec_KJPosREADY_NKJ + Sec_KJSpeedREADY; // 框架到位时间
 
-    float Max_TDNum_t = Max_TDNum;                       // 最大条带数
-    GYCX_NKJ_omiga    = picAngle_x_overlap_pi / pic_sec; // 广域成像内框架角速度
-    float temp1;                                         // 飞行方向 Ny*b*(1-px)=Ny*4.5*10^-6*(1-px)
+    double Max_TDNum_t = Max_TDNum;                       // 最大条带数
+    GYCX_NKJ_omiga     = picAngle_x_overlap_pi / pic_sec; // 广域成像内框架角速度
+    double temp1;                                         // 飞行方向 Ny*b*(1-px)=Ny*4.5*10^-6*(1-px)
     temp1 = (KJ_pixnum_Y * tocal_pixsize_KJ * 0.000001) * (1 - P_y_t);
-    float temp2; // k*omega_*Nx*b*(1-px)
+    double temp2; // k*omega_*Nx*b*(1-px)
     temp2 = k * GYCX_NKJ_omiga * temp1;
 
-    float A_far    = 0; // 远角
-    float A_near   = 0; // 近角
-    float A        = 0;
-    float B        = 0;
-    float C        = 0;
-    float D        = k * GYCX_NKJ_omiga * Tloc; // k*omega_*Tloc
-    float a        = 0.1 * Agl_PI;
-    float a_       = 0;
-    float derta    = 1;
-    float fan      = 0;
-    float f_an     = 0;
-    float T_gd     = 0;
-    float Angl_sm  = 0;        // 扫描角
-    float compTime = 0;        // 计算次数
-    float max_GYTD_waveagl_pi; // 最大摆扫角范围
-    float temp_speed_hight;    // 计算用速高比
+    double A_far    = 0; // 远角
+    double A_near   = 0; // 近角
+    double A        = 0;
+    double B        = 0;
+    double C        = 0;
+    double D        = k * GYCX_NKJ_omiga * Tloc; // k*omega_*Tloc
+    double a        = 0.1 * Agl_PI;
+    double a_       = 0;
+    double derta    = 1;
+    double fan      = 0;
+    double f_an     = 0;
+    double T_gd     = 0;
+    double Angl_sm  = 0;        // 扫描角
+    double compTime = 0;        // 计算次数
+    double max_GYTD_waveagl_pi; // 最大摆扫角范围
+    double temp_speed_hight;    // 计算用速高比
     if (speed_hight < 0.001) {
         temp_speed_hight = 0.001;
     } else {
@@ -1588,7 +1734,7 @@ void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *
     }
     T_gd = (temp1 / foc * cos(A_near) * temp_speed_hight); // 计算摆扫周期
 
-    float temp_maxtime; // 最大条带时间
+    double temp_maxtime; // 最大条带时间
     temp_maxtime = Max_TDNum * pic_sec + Tloc;
 
     if (temp_maxtime > T_gd) // 时间超限，不能使用最大帧
@@ -1647,9 +1793,9 @@ void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *
     }
 
     TD_PhotoNum = floor((*TDAgl_bigger_t - *TDAgl_smaller_t) / picAngle_x_overlap_pi); // 条带拍照张数
-    if (TD_PhotoNum < 1)                                                               // 如果小于1张，按一张拍摄
+    if (TD_PhotoNum < 2)                                                               // 如果小于1张，按一张拍摄  当条带张数小于2时等于2  20251224
     {
-        TD_PhotoNum = 1;
+        TD_PhotoNum = 2;
     }
     *TDAgl_bigger_t  = GYCX_TarAgl_pi + (1 - k) * (picAngle_x_overlap_pi * (TD_PhotoNum - 1)); // 0.097974;
     *TDAgl_smaller_t = GYCX_TarAgl_pi - k * (picAngle_x_overlap_pi * (TD_PhotoNum - 1));
@@ -1667,28 +1813,35 @@ void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *
 //  返回参数：ECEF_t 地球坐标
 //  说明：无
 // ---------------------------------------------------------------------------//
-void GYCX_GetKJPos_simple(struct_KJAgl *KJ_Agl_t, struct_AttiAgl AttitudeAC_t, struct_KJAgl Hope_KJ_Agl_t, float Tar_YawAgl_t, float Tar_PitchAgl_t) {
+void GYCX_GetKJPos_simple(struct_KJAgl *KJ_Agl_t, struct_AttiAgl AttitudeAC_t, struct_KJAgl Hope_KJ_Agl_t, double Tar_YawAgl_t, double Tar_PitchAgl_t) {
     struct_LSB_float64 Losac_HopPhoto; // 相机坐标系下视轴
 
-    float cos_dertaYaw = cos(AttitudeAC_t.Yaw - Tar_YawAgl_t);
-    float sin_dertaYaw = sin(AttitudeAC_t.Yaw - Tar_YawAgl_t);
+    double cos_dertaYaw = cos(AttitudeAC_t.Yaw - Tar_YawAgl_t);
+    double sin_dertaYaw = sin(AttitudeAC_t.Yaw - Tar_YawAgl_t);
+
+    //	logMsg("derta_yaw: %d  ",
+    //			(AttitudeAC_t.Yaw-Tar_YawAgl_t)*100,
+    //			2,
+    //			3,
+    //		4,5,6);
+
     // float cos_dertaPitch = cos(AttitudeAC_t.Pitch);//-Tar_PitchAgl_t
     // float sin_dertaPitch = sin(AttitudeAC_t.Pitch);//-Tar_PitchAgl_t
 
-    float sin_Wkj = sin(Hope_KJ_Agl_t.WKJ);
-    float sin_Nkj = sin(Hope_KJ_Agl_t.NKJ);
-    float cos_Wkj = cos(Hope_KJ_Agl_t.WKJ);
-    float cos_Nkj = cos(Hope_KJ_Agl_t.NKJ);
+    double sin_Wkj = sin(Hope_KJ_Agl_t.WKJ);
+    double sin_Nkj = sin(Hope_KJ_Agl_t.NKJ);
+    double cos_Wkj = cos(Hope_KJ_Agl_t.WKJ);
+    double cos_Nkj = cos(Hope_KJ_Agl_t.NKJ);
 
-    float temp_X1;
-    float temp_X2;
-    float temp_X3;
-    float temp_Y1;
-    float temp_Y2;
-    float temp_Y3;
-    float temp_Z1;
-    float temp_Z2;
-    float temp_Z3;
+    double temp_X1;
+    double temp_X2;
+    double temp_X3;
+    double temp_Y1;
+    double temp_Y2;
+    double temp_Y3;
+    double temp_Z1;
+    double temp_Z2;
+    double temp_Z3;
     //  temp_X1 = cos_dertaYaw*cos_dertaPitch*cos_Wkj*sin_Nkj;
     //  temp_X2 = (-sin_dertaYaw*cos_AttiAgl.Roll+cos_dertaYaw*sin_dertaPitch*sin_AttiAgl.Roll)*sin_Wkj*sin_Nkj;
     //  temp_X3 = (sin_dertaYaw*sin_AttiAgl.Roll+cos_dertaYaw*sin_dertaPitch*cos_AttiAgl.Roll)*cos_Nkj;
@@ -1730,9 +1883,9 @@ void GYCX_GetKJPos_simple(struct_KJAgl *KJ_Agl_t, struct_AttiAgl AttitudeAC_t, s
 //  说明：无
 // ---------------------------------------------------------------------------//
 void Process_TarAgl_GY_AZ_ParaComputer(void) {
-    float temp_float1 = 0;
-    float temp_dis    = 0;
-    float temp_agl    = 0;
+    double temp_float1 = 0;
+    double temp_dis    = 0;
+    double temp_agl    = 0;
 
     // 方位优先广域成像 俯仰角大角 弧度
     // GYCX_TarAgl_FYAgl_pi = acos(planTar_high/(param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_IMAGE_RANGE*1000));
@@ -1751,8 +1904,8 @@ void Process_TarAgl_GY_AZ_ParaComputer(void) {
     }
     GYCX_TarAgl_FYAgl_pi = temp_agl;
 
-    float temp_min = 0; // 最小
-    float temp_max = 0; // 最大
+    double temp_min = 0; // 最小
+    double temp_max = 0; // 最大
 
     temp_min = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_scan_start_angle / 1000;
     temp_max = param_Compute_Input_Fromfc.comp_IR_wide_image_paras.IR_scan_end_angle / 1000;
@@ -1776,30 +1929,30 @@ void Process_TarAgl_GY_AZ_ParaComputer(void) {
 //  返回参数：更新  条带周期GYCX_TD_Time；条带帧数GYCX_TD_PhotoNum；条带近端角GYCX_TDAgl_near；条带起始角GYCX_TDAgl_start；条带结束角GYCX_TDAgl_end
 //  说明：无
 // ---------------------------------------------------------------------------//
-void GYCX_AZ_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *GY_TarAglOver) {
-    float foc     = (float)tocal_foclen_KJ * 0.001; // 焦距
-    float pic_sec = GYCX_pfs;                       // 成像周期
-    float P_x_t;                                    // x方向重叠率
+void GYCX_AZ_GetTDPhotoNum(double *TDAgl_bigger_t, double *TDAgl_smaller_t, int *GY_TarAglOver) {
+    double foc     = (double)tocal_foclen_KJ * 0.001; // 焦距
+    double pic_sec = GYCX_pfs;                        // 成像周期
+    double P_x_t;                                     // x方向重叠率
     P_x_t = GYCX_P_x;
-    float P_y_t; // y方向重叠率
+    double P_y_t; // y方向重叠率
     P_y_t = GYCX_P_y;
 
-    float picAngle_x_pi;                                                               // X摆扫向视场角
+    double picAngle_x_pi;                                                              // X摆扫向视场角
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                       // 去掉重叠率
+    double picAngle_x_overlap_pi;                                                      // 去掉重叠率
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
-    float picAngle_y_pi;                                                               // Y摆扫向视场角
+    double picAngle_y_pi;                                                              // Y摆扫向视场角
     picAngle_y_pi = 2 * atan((KJ_pixnum_Y * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_y_overlap_pi;                                                       // 去掉重叠率
+    double picAngle_y_overlap_pi;                                                      // 去掉重叠率
     picAngle_y_overlap_pi = picAngle_y_pi * (1 - P_y_t);
-    float k               = GYCX_Near_K;                           // 广域成像近地点系数
-    float Tloc            = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // 框架到位时间
+    double k              = GYCX_Near_K;                           // 广域成像近地点系数
+    double Tloc           = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // 框架到位时间
     //    float Max_TDNum_t = Max_TDNum;//最大条带数
     GYCX_WKJ_omiga = picAngle_y_overlap_pi / pic_sec; // 广域成像外框架角速度
 
-    float temp1;
-    float temp2;
-    float temp3;
+    double temp1;
+    double temp2;
+    double temp3;
     temp1 = GYCX_TarAgl_FYAgl_pi + picAngle_x_overlap_pi / 2;
     if (temp1 > (89.9 * Agl_PI)) {
         temp1 = 89.9 * Agl_PI;
@@ -1808,22 +1961,29 @@ void GYCX_AZ_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *G
     if (temp2 > (89.9 * Agl_PI)) {
         temp2 = 89.9 * Agl_PI;
     }
-    temp3        = (tan(temp1) - tan(temp2)) * planTar_high;
-    float T_gd   = 0;
-    T_gd         = temp3 / AC_speed; // 时间
-    float T_num1 = 0;
-    T_num1       = floor((T_gd - Tloc) / pic_sec); // 计算条带帧数
-    if (T_num1 < 1) {
-        T_num1 = 1;
+    temp3         = (tan(temp1) - tan(temp2)) * planTar_high;
+    double T_gd   = 0;
+    T_gd          = temp3 / AC_speed; // 时间
+    double T_num1 = 0;
+    T_num1        = floor((T_gd - Tloc) / pic_sec); // 计算条带帧数
+    if (T_num1 < 2)                                 // 20251224 条带张数小于2，就置为2
+    {
+        T_num1 = 2;
     }
+    // liuyu 方位优先去掉条带张数限制 20251230
 
-    float agl_sum;
+    //    else if(T_num1>Max_TDNum)//限制条带帧数
+    //    {
+    //    	T_num1 = Max_TDNum;
+    //    }
+
+    double agl_sum;
     if ((GYCX_TarAgl_max_pi * GYCX_TarAgl_min_pi) < 0) {
         agl_sum = fabs(GYCX_TarAgl_max_pi) + fabs(GYCX_TarAgl_min_pi);
     } else {
         agl_sum = GYCX_TarAgl_max_pi - GYCX_TarAgl_min_pi;
     }
-    float T_num    = 0;
+    double T_num   = 0;
     T_num          = floor(agl_sum / picAngle_y_overlap_pi) + 2; // 给定条带帧数
     *GY_TarAglOver = 0;                                          // 广域成像给定目标起始结束角超限  0-不超限，1-超限
     if (T_num > T_num1) {
@@ -1849,7 +2009,7 @@ void GYCX_AZ_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *G
 //  返回参数：返回超限标识
 //  说明：更新参数计算有关的全局变量
 // ---------------------------------------------------------------------------//
-int GeoTrack_ParaComputer(float Tar_Lon_t, float Tar_Lat_t, float Tar_Alt_t) {
+int GeoTrack_ParaComputer(double Tar_Lon_t, double Tar_Lat_t, double Tar_Alt_t) {
     tar_high                           = Tar_Alt_t; // 赋值目标高度
     int                overPara_flag_t = 0;         // 参数超限标识
     struct_KJAgl       cal_agl_kj_t;                // 计算框架角
@@ -1888,16 +2048,20 @@ int GeoTrack_ParaComputer(float Tar_Lon_t, float Tar_Lat_t, float Tar_Alt_t) {
 //  返回参数：更新  struct_Position_float64* Tar_ecef_t,目标在ECEF坐标
 //  说明：无
 // ---------------------------------------------------------------------------//
-void GPSToECEF(struct_Position_float64 *Tar_ecef_t, float Tar_Lon_t, float Tar_Lat_t, float Tar_Alt_t) {
-    float sin_Lon = sin(Tar_Lon_t);
-    float cos_Lon = cos(Tar_Lon_t);
-    float sin_Lat = sin(Tar_Lat_t);
-    float cos_Lat = cos(Tar_Lat_t);
+void GPSToECEF(struct_Position_float64 *Tar_ecef_t, double Tar_Lon_t, double Tar_Lat_t, double Tar_Alt_t) {
+    double sin_Lon = sin(Tar_Lon_t);
+    double cos_Lon = cos(Tar_Lon_t);
+    double sin_Lat = sin(Tar_Lat_t);
+    double cos_Lat = cos(Tar_Lat_t);
 
     double RnAC;
     double temp_1;
-    temp_1           = sqrt(1 - (0.00669447819799 * sin_Lat * sin_Lat));
-    RnAC             = 6378137 / temp_1;
+    temp_1 = sqrt(1 - (0.00669447819799 * sin_Lat * sin_Lat));
+    if (temp_1 != 0) {
+        RnAC = 6378137 / temp_1;
+    } else {
+        RnAC = 6378137;
+    }
     double NED_ECEF1 = 0;
     NED_ECEF1        = -RnAC * sin_Lat * 0.00669447819799;
     double NED_ECEF4 = 0;
@@ -1915,16 +2079,19 @@ void GPSToECEF(struct_Position_float64 *Tar_ecef_t, float Tar_Lon_t, float Tar_L
 //  说明：无
 // ---------------------------------------------------------------------------//
 void ECEFToNED(double ECEF_NED_t[3][4], struct_GPS_float64 GPS_t) {
-    float RnAC;
-    float cos_lon = cos(GPS_t.Lon);
-    float sin_lon = sin(GPS_t.Lon);
-    float cos_lat = cos(GPS_t.Lat);
-    float sin_lat = sin(GPS_t.Lat);
+    double RnAC;
+    double cos_lon = cos(GPS_t.Lon);
+    double sin_lon = sin(GPS_t.Lon);
+    double cos_lat = cos(GPS_t.Lat);
+    double sin_lat = sin(GPS_t.Lat);
 
     double temp_1;
     temp_1 = sqrt(1 - (0.00669447819799 * sin_lat * sin_lat));
-    RnAC   = 6378137 / temp_1;
-
+    if (temp_1 != 0) {
+        RnAC = 6378137 / temp_1;
+    } else {
+        RnAC = 6378137;
+    }
     double ECEF_NED1 = 0;
     ECEF_NED1        = RnAC * sin_lat * 0.00669447819799;
 
@@ -2008,10 +2175,10 @@ void GetKJAglbyLSB_ParaComputer(struct_KJAgl *kj_Agl_t, const struct_LSB_float64
 void GetTarECEFbyKJAgl_ParaComputer(struct_Position_float64 *ecef_Tar_t, const struct_KJAgl *hope_agl_kj_t) {
     double       ECEFTarget_t[3]; // ECEF坐标系下目标
     double       k[3], b[3];
-    float        B_STar[3];
+    double       B_STar[3];
     struct_KJAgl sin_KJAgl_t;
     struct_KJAgl cos_KJAgl_t;
-    float        foc = 0.001 * tocal_foclen_KJ;
+    double       foc = -0.001 * tocal_foclen_KJ;
 
     sin_KJAgl_t.NKJ = sin(hope_agl_kj_t->NKJ);
     sin_KJAgl_t.WKJ = sin(hope_agl_kj_t->WKJ);
@@ -2045,7 +2212,7 @@ void GetTarECEFbyKJAgl_ParaComputer(struct_Position_float64 *ecef_Tar_t, const s
 //  返回参数：float ECEFTarget_t[3] ECEF中目标位置
 //  说明：无
 // ---------------------------------------------------------------------------//
-void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], float GeodeticHeightTarget_t) {
+void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], double GeodeticHeightTarget_t) {
     double bTarget;
     double b[3];
 
@@ -2062,7 +2229,7 @@ void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], float Ge
     double temp_2 = temp_1 * temp_1;
     double temp_3 = k_t[1] / k_t[2];
     double temp_4 = temp_3 * temp_3;
-    double temp_5 = (6356752 + GeodeticHeightTarget_t) * (6356752 + GeodeticHeightTarget_t);
+    double temp_5 = (6378137 + GeodeticHeightTarget_t) * (6378137 + GeodeticHeightTarget_t);
 
     aa = ((temp_2 + temp_4) / temp_5) + (1 / bTarget);
     bb = (2 * temp_1 * b[0] - 2 * temp_2 * b[2] + 2 * temp_3 * b[1] - 2 * temp_4 * b[2]) / temp_5;
@@ -2145,24 +2312,24 @@ void ECEFToGPS(double GPS_t[3], double ECEF_t[3]) {
 //  返回参数：更新  条带周期GYCX_TD_Time；条带帧数GYCX_TD_PhotoNum；条带近端角GYCX_TDAgl_near
 //  说明：无
 // ---------------------------------------------------------------------------//
-UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
+UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, double Tar_Range) {
     int                overPara_flag_t = 0; // 参数超限标识
     struct_LSB_float64 ned_lsb_t;
-    struct_KJAgl       cal_agl_kj_t;                         // 计算框架角
-    float              foc = (float)tocal_foclen_KJ * 0.001; // 焦距
-    float              P_x_t;                                // x方向重叠率
+    struct_KJAgl       cal_agl_kj_t;                          // 计算框架角
+    double             foc = (double)tocal_foclen_KJ * 0.001; // 焦距
+    double             P_x_t;                                 // x方向重叠率
     P_x_t = QYCX_P_x;
-    float P_y_t; // y方向重叠率
+    double P_y_t; // y方向重叠率
     P_y_t = QYCX_P_y;
-    float picAngle_x_pi;                                                               // X摆扫向视场角
+    double picAngle_x_pi;                                                              // X摆扫向视场角
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                       // 去掉重叠率
+    double picAngle_x_overlap_pi;                                                      // 去掉重叠率
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
-    float picAngle_y_pi;                                                               // Y摆扫向视场角
+    double picAngle_y_pi;                                                              // Y摆扫向视场角
     picAngle_y_pi = 2 * atan((KJ_pixnum_Y * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_y_overlap_pi;                                                       // 去掉重叠率
+    double picAngle_y_overlap_pi;                                                      // 去掉重叠率
     picAngle_y_overlap_pi = picAngle_y_pi * (1 - P_y_t);
-    float pic_sec         = QYCX_pfs;                        // 成像周期
+    double pic_sec        = QYCX_pfs;                        // 成像周期
     QYCX_WKJ_omiga        = picAngle_y_overlap_pi / pic_sec; // 广域成像外框架角速度
 
     // 计算中心点方向
@@ -2176,12 +2343,12 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     GetOneLSBbyTarECEF_ParaComputer(&hope_ned_lsb_t, &GeoTrack_ecef_Tar);
 
     //----------------依据飞行速度判断超限------------------------------//
-    float Tloc = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // 框架到位时间
-    float lsb_fy;                                       // 视轴在NED下俯仰角
+    double Tloc = Sec_KJPosREADY_WKJ + Sec_KJSpeedREADY; // 框架到位时间
+    double lsb_fy;                                       // 视轴在NED下俯仰角
     lsb_fy = acos(hope_ned_lsb_t.Z);
-    float temp1;
-    float temp2;
-    float temp3;
+    double temp1;
+    double temp2;
+    double temp3;
     temp1 = lsb_fy + picAngle_y_overlap_pi / 2;
     if (temp1 > (89.9 * Agl_PI)) {
         temp1 = 89.9 * Agl_PI;
@@ -2190,12 +2357,12 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     if (temp2 > (89.9 * Agl_PI)) {
         temp2 = 89.9 * Agl_PI;
     }
-    temp3        = (tan(temp1) - tan(temp2)) * planTar_high;
-    float T_gd   = 0;
-    T_gd         = temp3 / AC_speed; // 时间
-    float T_num1 = 0;
-    T_num1       = floor((T_gd - Tloc) / pic_sec); // 计算条带帧数
-    float temp_range;                              // 预计摆扫范围
+    temp3         = (tan(temp1) - tan(temp2)) * planTar_high;
+    double T_gd   = 0;
+    T_gd          = temp3 / AC_speed; // 时间
+    double T_num1 = 0;
+    T_num1        = floor((T_gd - Tloc) / pic_sec); // 计算条带帧数
+    double temp_range;                              // 预计摆扫范围
     temp_range = temp3 * T_num1 * 0.5;
     //    float temp_lesscent;//缩小比例
     if (temp_range < Tar_Range) // 如果超限
@@ -2205,34 +2372,34 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     }
     //-----------依据飞行判断超限  结束--------------------------
 
-    float lsb_yaw; // 视轴在NED下方位角
+    double lsb_yaw; // 视轴在NED下方位角
     lsb_yaw = atan2(hope_ned_lsb_t.Y, hope_ned_lsb_t.X);
 
-    float NED_ECEF_Tar[4][4]; // NED到目标坐标系转换矩阵
+    double NED_ECEF_Tar[4][4]; // NED到目标坐标系转换矩阵
 
-    float KJ_PI_A[2]; // A点视轴指向
-    float KJ_PI_B[2]; // B点视轴指向
-    float KJ_PI_C[2]; // C点视轴指向
+    double KJ_PI_A[2]; // A点视轴指向
+    double KJ_PI_B[2]; // B点视轴指向
+    double KJ_PI_C[2]; // C点视轴指向
     //	float KJ_PI_D[2];//D点视轴指向
 
     // 在LL坐标系下目标四角点
-    float LL_TarArea_A[2];
-    float LL_TarArea_B[2];
-    float LL_TarArea_C[2];
-    float LL_TarArea_D[2];
+    double LL_TarArea_A[2];
+    double LL_TarArea_B[2];
+    double LL_TarArea_C[2];
+    double LL_TarArea_D[2];
 
     //  ^	C	D
     // 目标区域的四个角            |   A   B
-    float TarArea_A[2];
-    float TarArea_B[2];
-    float TarArea_C[2];
-    float TarArea_D[2];
-    float temp_float = 0;
+    double TarArea_A[2];
+    double TarArea_B[2];
+    double TarArea_C[2];
+    double TarArea_D[2];
+    double temp_float = 0;
 
-    float sin_Lon = sin(GPS_Tar.Lon);
-    float cos_Lon = cos(GPS_Tar.Lon);
-    float sin_Lat = sin(GPS_Tar.Lat);
-    float cos_Lat = cos(GPS_Tar.Lat);
+    double sin_Lon = sin(GPS_Tar.Lon);
+    double cos_Lon = cos(GPS_Tar.Lon);
+    double sin_Lat = sin(GPS_Tar.Lat);
+    double cos_Lat = cos(GPS_Tar.Lat);
 
     double RnAC;
     double temp_1;
@@ -2274,8 +2441,8 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     LL_TarArea_C[1] = -1 * temp_float;
     LL_TarArea_D[1] = temp_float;
 
-    float cos_Yaw = cos(lsb_yaw);
-    float sin_Yaw = sin(lsb_yaw);
+    double cos_Yaw = cos(lsb_yaw);
+    double sin_Yaw = sin(lsb_yaw);
 
     TarArea_A[0] = cos_Yaw * LL_TarArea_A[0] - sin_Yaw * LL_TarArea_A[1];
     TarArea_A[1] = sin_Yaw * LL_TarArea_A[0] + cos_Yaw * LL_TarArea_A[1];
@@ -2300,17 +2467,17 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     NEDAC_TarA[2] = ECEF_NED_Plan[2][0] * ECEF_TarA[0] + ECEF_NED_Plan[2][1] * ECEF_TarA[1] + ECEF_NED_Plan[2][2] * ECEF_TarA[2] + ECEF_NED_Plan[2][3];
 
     // 视轴到A点单位向量
-    float temp_A[3];
+    double temp_A[3];
     temp_A[0] = NEDAC_TarA[0];
     temp_A[1] = NEDAC_TarA[1];
     temp_A[2] = NEDAC_TarA[2];
-    float norm_A;
+    double norm_A;
     norm_A = sqrt(fabs(temp_A[0] * temp_A[0] + temp_A[1] * temp_A[1] + temp_A[2] * temp_A[2]));
     // 被除数不为零
     if (norm_A == 0) {
         norm_A = 1;
     }
-    float one_A[3]; // 单位向量
+    double one_A[3]; // 单位向量
     one_A[0] = temp_A[0] / norm_A;
     one_A[1] = temp_A[1] / norm_A;
     one_A[2] = temp_A[2] / norm_A;
@@ -2322,23 +2489,23 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     ECEF_TarB[2] = NED_ECEF_Tar[2][0] * TarArea_B[0] + NED_ECEF_Tar[2][1] * TarArea_B[1] + NED_ECEF_Tar[2][3];
 
     // 目标 在飞机为中心NED坐标
-    float NEDAC_TarB[3];
+    double NEDAC_TarB[3];
     NEDAC_TarB[0] = ECEF_NED_Plan[0][0] * ECEF_TarB[0] + ECEF_NED_Plan[0][1] * ECEF_TarB[1] + ECEF_NED_Plan[0][2] * ECEF_TarB[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarB[1] = ECEF_NED_Plan[1][0] * ECEF_TarB[0] + ECEF_NED_Plan[1][1] * ECEF_TarB[1] + ECEF_NED_Plan[1][2] * ECEF_TarB[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarB[2] = ECEF_NED_Plan[2][0] * ECEF_TarB[0] + ECEF_NED_Plan[2][1] * ECEF_TarB[1] + ECEF_NED_Plan[2][2] * ECEF_TarB[2] + ECEF_NED_Plan[2][3];
 
     // 视轴到B点单位向量
-    float temp_B[3];
+    double temp_B[3];
     temp_B[0] = NEDAC_TarB[0];
     temp_B[1] = NEDAC_TarB[1];
     temp_B[2] = NEDAC_TarB[2];
-    float norm_B;
+    double norm_B;
     norm_B = sqrt(temp_B[0] * temp_B[0] + temp_B[1] * temp_B[1] + temp_B[2] * temp_B[2]);
     // 被除数不为零
     if (norm_B == 0) {
         norm_B = 1;
     }
-    float one_B[3]; // 单位向量
+    double one_B[3]; // 单位向量
     one_B[0] = temp_B[0] / norm_B;
     one_B[1] = temp_B[1] / norm_B;
     one_B[2] = temp_B[2] / norm_B;
@@ -2348,25 +2515,25 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     ECEF_TarC[2] = NED_ECEF_Tar[2][0] * TarArea_C[0] + NED_ECEF_Tar[2][1] * TarArea_C[1] + NED_ECEF_Tar[2][3];
 
     // 目标 在飞机为中心NED坐标
-    float NEDAC_TarC[3];
+    double NEDAC_TarC[3];
     NEDAC_TarC[0] = ECEF_NED_Plan[0][0] * ECEF_TarC[0] + ECEF_NED_Plan[0][1] * ECEF_TarC[1] + ECEF_NED_Plan[0][2] * ECEF_TarC[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarC[1] = ECEF_NED_Plan[1][0] * ECEF_TarC[0] + ECEF_NED_Plan[1][1] * ECEF_TarC[1] + ECEF_NED_Plan[1][2] * ECEF_TarC[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarC[2] = ECEF_NED_Plan[2][0] * ECEF_TarC[0] + ECEF_NED_Plan[2][1] * ECEF_TarC[1] + ECEF_NED_Plan[2][2] * ECEF_TarC[2] + ECEF_NED_Plan[2][3];
 
     // 视轴到C点单位向量
-    float temp_C[3];
+    double temp_C[3];
     temp_C[0] = NEDAC_TarC[0];
     temp_C[1] = NEDAC_TarC[1];
     temp_C[2] = NEDAC_TarC[2];
 
-    float norm_C;
+    double norm_C;
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
     // 被除数不为零
     if (norm_C == 0) {
         norm_C = 1;
     }
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
-    float one_C[3]; // 单位向量
+    double one_C[3]; // 单位向量
     one_C[0] = temp_C[0] / norm_C;
     one_C[1] = temp_C[1] / norm_C;
     one_C[2] = temp_C[2] / norm_C;
@@ -2378,23 +2545,23 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     ECEF_TarD[2] = NED_ECEF_Tar[2][0] * TarArea_D[0] + NED_ECEF_Tar[2][1] * TarArea_D[1] + NED_ECEF_Tar[2][3];
 
     // 目标 在飞机为中心NED坐标
-    float NEDAC_TarD[3];
+    double NEDAC_TarD[3];
     NEDAC_TarD[0] = ECEF_NED_Plan[0][0] * ECEF_TarD[0] + ECEF_NED_Plan[0][1] * ECEF_TarD[1] + ECEF_NED_Plan[0][2] * ECEF_TarD[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarD[1] = ECEF_NED_Plan[1][0] * ECEF_TarD[0] + ECEF_NED_Plan[1][1] * ECEF_TarD[1] + ECEF_NED_Plan[1][2] * ECEF_TarD[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarD[2] = ECEF_NED_Plan[2][0] * ECEF_TarD[0] + ECEF_NED_Plan[2][1] * ECEF_TarD[1] + ECEF_NED_Plan[2][2] * ECEF_TarD[2] + ECEF_NED_Plan[2][3];
 
     // 视轴到D点单位向量
-    float temp_D[3];
+    double temp_D[3];
     temp_D[0] = NEDAC_TarD[0];
     temp_D[1] = NEDAC_TarD[1];
     temp_D[2] = NEDAC_TarD[2];
-    float norm_D;
+    double norm_D;
     norm_D = sqrt(temp_D[0] * temp_D[0] + temp_D[1] * temp_D[1] + temp_D[2] * temp_D[2]);
     // 被除数不为零
     if (norm_D == 0) {
         norm_D = 1;
     }
-    float one_D[3]; // 单位向量
+    double one_D[3]; // 单位向量
     one_D[0] = temp_D[0] / norm_D;
     one_D[1] = temp_D[1] / norm_D;
     one_D[2] = temp_D[2] / norm_D;
@@ -2523,10 +2690,10 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     // 内框架俯仰角
     // 	KJ_PI_D[1] = cal_agl_kj_t.NKJ;
 
-    float derta_agl_nkj;                                               // 内框架差值
+    double derta_agl_nkj;                                              // 内框架差值
     derta_agl_nkj  = fabs(KJ_PI_A[1] - KJ_PI_C[1]);                    // 内框架差值
     QYCX_NeedTDNum = (int)(derta_agl_nkj / picAngle_x_overlap_pi) + 3; // 条带数
-    float derta_agl_wkj;                                               // 外框架差值
+    double derta_agl_wkj;                                              // 外框架差值
     if ((KJ_PI_A[0] * KJ_PI_B[0]) > 0)                                 // 在一侧
     {
         derta_agl_wkj = fabs(KJ_PI_A[0] - KJ_PI_B[0]);                    // 外框架差值
@@ -2534,6 +2701,11 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
     } else {
         derta_agl_wkj = fabs(KJ_PI_A[0]) + fabs(KJ_PI_B[0]);              // 外框架差值
         TD_PhotoNum   = (int)(derta_agl_wkj / picAngle_y_overlap_pi) + 3; // 条带帧数
+    }
+
+    if (TD_PhotoNum > Max_TDNum) // 条带帧数限制
+    {
+        TD_PhotoNum = Max_TDNum;
     }
 
     QYCX_TDAgl_WKJ_first = KJ_PI_A[0]; // 外框架
@@ -2555,61 +2727,61 @@ UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range) {
 void QYCX_GetTDstart() {
     //	int overPara_flag_t = 0;//参数超限标识
     struct_LSB_float64 ned_lsb_t;
-    struct_KJAgl       cal_agl_kj_t;                         // 计算框架角
-    float              KJ_PI_A[2];                           // A点视轴指向
-    float              KJ_PI_C[2];                           // C点视轴指向
-    float              foc = (float)tocal_foclen_KJ * 0.001; // 焦距
-    float              P_x_t;                                // x方向重叠率
+    struct_KJAgl       cal_agl_kj_t;                          // 计算框架角
+    double             KJ_PI_A[2];                            // A点视轴指向
+    double             KJ_PI_C[2];                            // C点视轴指向
+    double             foc = (double)tocal_foclen_KJ * 0.001; // 焦距
+    double             P_x_t;                                 // x方向重叠率
     P_x_t = QYCX_P_x;
-    float picAngle_x_pi;                                                               // X摆扫向视场角
+    double picAngle_x_pi;                                                              // X摆扫向视场角
     picAngle_x_pi = 2 * atan((KJ_pixnum_X * tocal_pixsize_KJ * 0.000001) / (foc * 2)); // Ny*b=2134*4.5*10^-6/((foc*2))
-    float picAngle_x_overlap_pi;                                                       // 去掉重叠率
+    double picAngle_x_overlap_pi;                                                      // 去掉重叠率
     picAngle_x_overlap_pi = picAngle_x_pi * (1 - P_x_t);
     // 将ECEF坐标系转到以目标中心为原点 转换矩阵
     ECEFToNED(ECEF_NED_Plan, AC_Position_pi);
 
     // 目标 在飞机为中心NED坐标
-    float NEDAC_TarA[3];
+    double NEDAC_TarA[3];
     NEDAC_TarA[0] = ECEF_NED_Plan[0][0] * ECEF_TarA[0] + ECEF_NED_Plan[0][1] * ECEF_TarA[1] + ECEF_NED_Plan[0][2] * ECEF_TarA[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarA[1] = ECEF_NED_Plan[1][0] * ECEF_TarA[0] + ECEF_NED_Plan[1][1] * ECEF_TarA[1] + ECEF_NED_Plan[1][2] * ECEF_TarA[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarA[2] = ECEF_NED_Plan[2][0] * ECEF_TarA[0] + ECEF_NED_Plan[2][1] * ECEF_TarA[1] + ECEF_NED_Plan[2][2] * ECEF_TarA[2] + ECEF_NED_Plan[2][3];
 
     // 视轴到A点单位向量
-    float temp_A[3];
+    double temp_A[3];
     temp_A[0] = NEDAC_TarA[0];
     temp_A[1] = NEDAC_TarA[1];
     temp_A[2] = NEDAC_TarA[2];
-    float norm_A;
+    double norm_A;
     norm_A = sqrt(fabs(temp_A[0] * temp_A[0] + temp_A[1] * temp_A[1] + temp_A[2] * temp_A[2]));
     // 被除数不为零
     if (norm_A == 0) {
         norm_A = 1;
     }
-    float one_A[3]; // 单位向量
+    double one_A[3]; // 单位向量
     one_A[0] = temp_A[0] / norm_A;
     one_A[1] = temp_A[1] / norm_A;
     one_A[2] = temp_A[2] / norm_A;
 
     // 目标 在飞机为中心NED坐标
-    float NEDAC_TarC[3];
+    double NEDAC_TarC[3];
     NEDAC_TarC[0] = ECEF_NED_Plan[0][0] * ECEF_TarC[0] + ECEF_NED_Plan[0][1] * ECEF_TarC[1] + ECEF_NED_Plan[0][2] * ECEF_TarC[2] + ECEF_NED_Plan[0][3];
     NEDAC_TarC[1] = ECEF_NED_Plan[1][0] * ECEF_TarC[0] + ECEF_NED_Plan[1][1] * ECEF_TarC[1] + ECEF_NED_Plan[1][2] * ECEF_TarC[2] + ECEF_NED_Plan[1][3];
     NEDAC_TarC[2] = ECEF_NED_Plan[2][0] * ECEF_TarC[0] + ECEF_NED_Plan[2][1] * ECEF_TarC[1] + ECEF_NED_Plan[2][2] * ECEF_TarC[2] + ECEF_NED_Plan[2][3];
 
     // 视轴到C点单位向量
-    float temp_C[3];
+    double temp_C[3];
     temp_C[0] = NEDAC_TarC[0];
     temp_C[1] = NEDAC_TarC[1];
     temp_C[2] = NEDAC_TarC[2];
 
-    float norm_C;
+    double norm_C;
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
     // 被除数不为零
     if (norm_C == 0) {
         norm_C = 1;
     }
     norm_C = sqrt(temp_C[0] * temp_C[0] + temp_C[1] * temp_C[1] + temp_C[2] * temp_C[2]);
-    float one_C[3]; // 单位向量
+    double one_C[3]; // 单位向量
     one_C[0] = temp_C[0] / norm_C;
     one_C[1] = temp_C[1] / norm_C;
     one_C[2] = temp_C[2] / norm_C;
@@ -2676,7 +2848,7 @@ void QYCX_GetTDstart() {
     // 内框架俯仰角
     KJ_PI_C[1] = cal_agl_kj_t.NKJ;
 
-    float derta_agl_nkj;                                               // 内框架差值
+    double derta_agl_nkj;                                              // 内框架差值
     derta_agl_nkj  = fabs(KJ_PI_A[1] - KJ_PI_C[1]);                    // 内框架差值
     QYCX_NeedTDNum = (int)(derta_agl_nkj / picAngle_x_overlap_pi) + 3; // 条带数
 
@@ -2701,123 +2873,78 @@ void QYCX_GetTDstart() {
 //  说明：无
 // ---------------------------------------------------------------------------//
 void Geolocation() {
-    // float              x; //
-    // float              y; //
-    // struct_GPS_float64 Tar_gps;
-    // //==============右上点================
-    // x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
-    // y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
+    double             x; //
+    double             y; //
+    struct_GPS_float64 Tar_gps;
+    //==============右上点================
+    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
+    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
 
-    // ComptGps(x, y, &Tar_gps);
+    ComptGps(x, y, &Tar_gps);
 
-    // param_Compute_Output.imaging_right_up_latitude  = Tar_gps.Lat;
-    // param_Compute_Output.imaging_right_up_longitude = Tar_gps.Lon;
+    param_Compute_Output.imaging_right_up_latitude  = Tar_gps.Lat;
+    param_Compute_Output.imaging_right_up_longitude = Tar_gps.Lon;
 
-    // //==============右下点================
-    // x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2;      // 飞行方向
-    // y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
+    //==============右下点================
+    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2;      // 飞行方向
+    y = -1 * KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
 
-    // ComptGps(x, y, &Tar_gps);
+    ComptGps(x, y, &Tar_gps);
 
-    // param_Compute_Output.imaging_right_down_latitude  = Tar_gps.Lat;
-    // param_Compute_Output.imaging_right_down_longitude = Tar_gps.Lon;
+    param_Compute_Output.imaging_right_down_latitude  = Tar_gps.Lat;
+    param_Compute_Output.imaging_right_down_longitude = Tar_gps.Lon;
 
-    // //==============左上点================
-    // x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
-    // y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2;      // 扫描方向
+    //==============左上点================
+    x = -1 * KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
+    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2;      // 扫描方向
 
-    // ComptGps(x, y, &Tar_gps);
+    ComptGps(x, y, &Tar_gps);
 
-    // param_Compute_Output.imaging_left_up_latitude  = Tar_gps.Lat;
-    // param_Compute_Output.imaging_left_up_longitude = Tar_gps.Lon;
+    param_Compute_Output.imaging_left_up_latitude  = Tar_gps.Lat;
+    param_Compute_Output.imaging_left_up_longitude = Tar_gps.Lon;
 
-    // //==============左下点================
-    // x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
-    // y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
+    //==============左下点================
+    x = KJ_pixnum_X * pixsize_KJ * 0.000001 / 2; // 飞行方向
+    y = KJ_pixnum_Y * pixsize_KJ * 0.000001 / 2; // 扫描方向
 
-    // ComptGps(x, y, &Tar_gps);
+    ComptGps(x, y, &Tar_gps);
 
-    // param_Compute_Output.imaging_left_down_latitude  = Tar_gps.Lat;
-    // param_Compute_Output.imaging_left_down_longitude = Tar_gps.Lon;
+    param_Compute_Output.imaging_left_down_latitude  = Tar_gps.Lat;
+    param_Compute_Output.imaging_left_down_longitude = Tar_gps.Lon;
 
-    // //==============中心点================
-    // x = 0; // 飞行方向
-    // y = 0; // 扫描方向
+    //==============中心点================
+    x = 0; // 飞行方向
+    y = 0; // 扫描方向
 
-    // ComptGps(x, y, &Tar_gps);
+    ComptGps(x, y, &Tar_gps);
 
-    // param_Compute_Output.image_center_latitude  = Tar_gps.Lat;
-    // param_Compute_Output.image_center_longitude = Tar_gps.Lon;
-    // param_Compute_Output.A818_ImageCenterHeight = (int)Tar_gps.Alt;
-
-    // Note: lcy BEGIN -----------------------------------------
-    constexpr double fx = 1960e-3;
-    constexpr double fy = 1960e-3;
-    constexpr double cx = (5120 - 1) / 2.0;
-    constexpr double cy = (4096 - 1) / 2.0;
-
-    Eigen::Vector3d body_lla{AC_Position_pi.Lat * PI_Agl, AC_Position_pi.Lon * PI_Agl, AC_Position_pi.Alt};
-    double          yaw        = AttitudeAC_pi.Yaw;   // 航向角
-    double          pitch      = AttitudeAC_pi.Pitch; // 俯仰角
-    double          roll       = AttitudeAC_pi.Roll;  // 横滚角
-    double          depression = (param_Compute_Input_Fromfpga.rtime_pitch_frame + 90) * Agl_PI;
-    double          azimuth    = (param_Compute_Input_Fromfpga.rtime_direction_frame + 90) * Agl_PI;
-
-    Eigen::Vector3d rvec = rot::calcRotationVector(yaw, pitch, roll, depression, azimuth, true);
-
-    GeolocatorLOS geolocator(body_lla, fx, fy, cx, cy, rvec);
-
-    // 中心 左上 右上 左下 右下
-    Eigen::Vector2d px_center, px_lefttop, px_righttop, px_leftdown, px_rightdown;
-    px_center    = Eigen::Vector2d(cx, cy);
-    px_lefttop   = Eigen::Vector2d(0, 0);
-    px_righttop  = Eigen::Vector2d(5120 - 1, 0);
-    px_leftdown  = Eigen::Vector2d(0, 4096 - 1);
-    px_rightdown = Eigen::Vector2d(5120 - 1, 4096 - 1);
-
-    Eigen::Vector3d lla_center, lla_lefttop, lla_righttop, lla_leftdown, lla_rightdown;
-    lla_center   = geolocator.get_target_lla(px_center, tar_high);
-    lla_lefttop  = geolocator.get_target_lla(px_lefttop, tar_high);
-    lla_righttop = geolocator.get_target_lla(px_righttop, tar_high);
-    lla_leftdown = geolocator.get_target_lla(px_leftdown, tar_high);
-
-    param_Compute_Output.image_center_latitude        = lla_center[0];
-    param_Compute_Output.image_center_longitude       = lla_center[1];
-    param_Compute_Output.A818_ImageCenterHeight       = std::round(lla_center[2]);
-    param_Compute_Output.imaging_left_up_latitude     = lla_lefttop[0];
-    param_Compute_Output.imaging_left_up_longitude    = lla_lefttop[1];
-    param_Compute_Output.imaging_right_up_latitude    = lla_righttop[0];
-    param_Compute_Output.imaging_right_up_longitude   = lla_righttop[1];
-    param_Compute_Output.imaging_left_down_latitude   = lla_leftdown[0];
-    param_Compute_Output.imaging_left_down_longitude  = lla_leftdown[1];
-    param_Compute_Output.imaging_right_down_latitude  = lla_rightdown[0];
-    param_Compute_Output.imaging_right_down_longitude = lla_rightdown[1];
-
-    // Note: lcy END -------------------------------------------
+    param_Compute_Output.image_center_latitude  = Tar_gps.Lat;
+    param_Compute_Output.image_center_longitude = Tar_gps.Lon;
+    param_Compute_Output.A818_ImageCenterHeight = std::round(Tar_gps.Alt);
 
     param_Compute_Output.view_fov_center_azimuth   = (KJAgl_exp_pi.WKJ + KFKZAgl_exp_pi.WKJ + geo_WKJ_ParaErro) * PI_Agl;
     param_Compute_Output.view_fov_center_elevation = (KJAgl_exp_pi.NKJ + KFKZAgl_exp_pi.NKJ + geo_NKJ_ParaErro) * PI_Agl;
 }
 // 目标地理定位
-void ComptGps(float x, float y, struct_GPS_float64 *Tar_gps) {
+void ComptGps(double x, double y, struct_GPS_float64 *Tar_gps) {
     double GPSTarget[3];
     double b[3]; // 地球坐标系下坐标相机原点
     b[0] = NED_ECEF[0][3];
     b[1] = NED_ECEF[1][3];
     b[2] = NED_ECEF[2][3];
 
-    float sin_WKJ;
-    float sin_NKJ;
-    float cos_WKJ;
-    float cos_NKJ;
+    double sin_WKJ;
+    double sin_NKJ;
+    double cos_WKJ;
+    double cos_NKJ;
     cos_WKJ = cos(KJAgl_exp_pi.WKJ + KFKZAgl_exp_pi.WKJ / 2.5 + geo_WKJ_ParaErro);
     cos_NKJ = cos(KJAgl_exp_pi.NKJ + KFKZAgl_exp_pi.NKJ / 2.5 + geo_NKJ_ParaErro);
     sin_WKJ = sin(KJAgl_exp_pi.WKJ + KFKZAgl_exp_pi.WKJ / 2.5 + geo_WKJ_ParaErro);
     sin_NKJ = sin(KJAgl_exp_pi.NKJ + KFKZAgl_exp_pi.NKJ / 2.5 + geo_NKJ_ParaErro);
     // 长焦2.5，短焦0.5
 
-    float  z = -tocal_foclen_KJ * 0.001; //
-    float  B_STar[3];
+    double z = -0.001 * tocal_foclen_KJ; //
+    double B_STar[3];
     double k[3];
 
     B_STar[0] = cos_WKJ * cos_NKJ * x - sin_WKJ * y + cos_WKJ * sin_NKJ * z;
@@ -2899,16 +3026,16 @@ void ComptLos() {
     KJAgl_AC_pi.NKJ = KJAgl_pi.NKJ; // AC坐标系下内框架角
     KJAgl_AC_pi.WKJ = KJAgl_pi.WKJ; // AC坐标系下外框架角
 
-    float sin_WKJ;
-    float sin_NKJ;
-    float cos_WKJ;
-    float cos_NKJ;
+    double sin_WKJ;
+    double sin_NKJ;
+    double cos_WKJ;
+    double cos_NKJ;
     cos_WKJ = cos(KJAgl_pi.WKJ); // + geo_WKJ_ParaErro
     cos_NKJ = cos(KJAgl_pi.NKJ); //+ geo_NKJ_ParaErro
     sin_WKJ = sin(KJAgl_pi.WKJ); // + geo_WKJ_ParaErro
     sin_NKJ = sin(KJAgl_pi.NKJ); //+ geo_NKJ_ParaErro
 
-    float                   los_ac[3];
+    double                  los_ac[3];
     struct_Position_float64 los_ned;
 
     los_ac[0] = cos_WKJ * sin_NKJ;
@@ -2931,11 +3058,11 @@ void ComptRange() {
     struct_KJAgl            temp_startAgl;
     struct_KJAgl            temp_endAgl;
     struct_KJAgl            temp_KJAgl_NED;
-    float                   sin_WKJ;
-    float                   sin_NKJ;
-    float                   cos_WKJ;
-    float                   cos_NKJ;
-    float                   los_ac[3];
+    double                  sin_WKJ;
+    double                  sin_NKJ;
+    double                  cos_WKJ;
+    double                  cos_NKJ;
+    double                  los_ac[3];
     struct_Position_float64 los_ned;
 
     if (NKJ_Max_PI < KJ_start_pi.NKJ) // 内框架超最高NKJ_Max_PI
@@ -3028,7 +3155,7 @@ void ComptRange() {
 //  说明：无
 // ---------------------------------------------------------------------------//
 void ProcessInPram() {
-    AC_Position_pi.Lat  = param_Compute_Input_Fromfpga.latitude;     // 载机纬度 (弧度)
+    AC_Position_pi.Lat  = param_Compute_Input_Fromfpga.latitude;     // 载机纬度
     AC_Position_pi.Lon  = param_Compute_Input_Fromfpga.longitude;    // 载机经度
     AC_Position_pi.Alt  = param_Compute_Input_Fromfpga.altitude;     // 载机高度
     AttitudeAC_pi.Yaw   = param_Compute_Input_Fromfpga.true_heading; // 航向角
@@ -3043,7 +3170,7 @@ void ProcessInPram() {
     KFKZAgl_exp_pi.WKJ = param_Compute_Input_Fromfpga.kfbgskfwbcwz * Agl_PI; // 曝光时刻快反角
     KFKZAgl_exp_pi.NKJ = param_Compute_Input_Fromfpga.kfbgskfybcwz * Agl_PI; // 曝光时刻快反角
 
-    if (1 == param_Compute_Input_Fromfpga.flag_view_State) // 小视场
+    if (1 == param_Compute_Input_Fromfpga.flag_view_State) // 大视场
     {
         tocal_foclen_KJ = param_Compute_Input_Fromfpga.jj_Big_KJ; // 可见大视场-短焦
         if (tocal_foclen_KJ > 492 || tocal_foclen_KJ < 292) {
@@ -3057,6 +3184,9 @@ void ProcessInPram() {
     }
 
     tocal_pixsize_KJ = 4.5; // 像元尺寸4.5
+
+    // 计算修正参数
+    GetRevise();
 }
 // ------------------------------输出参数处理-------------------------------//
 //  函数名称：ProcessOutPram
@@ -3080,6 +3210,11 @@ void ProcessOutPram() {
     if (param_Compute_Output.toKJ_pitch_speed < -20) {
         param_Compute_Output.toKJ_pitch_speed = -20;
     }
+
+    KJ_start_pi.WKJ = KJ_start_pi.WKJ + fly_prm_WKJ; // 外框架加修正
+    KJ_end_pi.WKJ   = KJ_end_pi.WKJ + fly_prm_WKJ;   // 外框架加修正
+    KJ_start_pi.NKJ = KJ_start_pi.NKJ + fly_prm_NKJ; // 内框架加修正
+    KJ_end_pi.NKJ   = KJ_end_pi.NKJ + fly_prm_NKJ;   // 内框架加修正
 
     if (WKJ_Max_PI < KJ_start_pi.WKJ) // 内框架超最高NKJ_Max_PI
     {
@@ -3150,4 +3285,57 @@ void ProcessOutPram() {
     //	logMsg("NK_start:%d,NK_end:%d\r\n",(KJ_start_pi.NKJ*57.2957795*1000),(KJ_end_pi.NKJ*57.2957795*1000),3,4,5,6);
     //	logMsg("dis:%d,TD_num:%d,speed_time:%d,dis_time:%d\r\n",(photo_Dis),(TD_PhotoNum),(speed_time*1000),(location_time*1000),5,6);
     //	logMsg("qx_move:%d,hx_move:%d\r\n",( img_move_omiga_x_pi*57.2957795*1000),(img_move_omiga_y_pi*57.2957795*1000),3,4,5,6);
+}
+
+// 计算修正参数
+void GetRevise() {
+    double       re_WKJ_EXP;
+    double       re_NKJ_EXP;
+    double       re_WKJ_ING;
+    double       re_NKJ_ING;
+    struct_KJAgl KJAgl_pi_temp;     // 框架角
+    struct_KJAgl KJAgl_exp_pi_temp; // 曝光时刻框架角
+
+    if (KJAgl_exp_pi.NKJ < 1.221730) // 小于70度未测不 使用
+    {
+        KJAgl_exp_pi_temp.NKJ = 1.221730;
+        KJAgl_exp_pi_temp.WKJ = KJAgl_exp_pi.WKJ;
+    } else {
+        KJAgl_exp_pi_temp.NKJ = KJAgl_exp_pi.NKJ;
+        KJAgl_exp_pi_temp.WKJ = KJAgl_exp_pi.WKJ;
+    }
+    if (KJAgl_pi.NKJ < 1.221730) // 小于70度未测不 使用
+    {
+        KJAgl_pi_temp.NKJ = 1.221730;
+        KJAgl_pi_temp.WKJ = KJAgl_pi.WKJ;
+    } else {
+        KJAgl_pi_temp.NKJ = KJAgl_pi.NKJ;
+        KJAgl_pi_temp.WKJ = KJAgl_pi.WKJ;
+    }
+
+    if (1 == param_Compute_Input_Fromfpga.flag_view_State) // 大视场短焦
+    {
+        // 中框架修指角成像时刻
+        re_WKJ_EXP = rewkj1_short * KJAgl_exp_pi_temp.WKJ + rewkj2_short * KJAgl_exp_pi_temp.NKJ + rewkj3_short;
+        // 内框架修指角成像时刻
+        re_NKJ_EXP = renkj1_short * KJAgl_exp_pi_temp.WKJ + renkj2_short * KJAgl_exp_pi_temp.NKJ + renkj3_short;
+        // 中框架修指角实时
+        re_WKJ_ING = rewkj1_short * KJAgl_pi_temp.WKJ + rewkj2_short * KJAgl_pi_temp.NKJ + rewkj3_short;
+        // 内框架修指角实时
+        re_NKJ_ING = renkj1_short * KJAgl_pi_temp.WKJ + renkj2_short * KJAgl_pi_temp.NKJ + renkj3_short;
+    } else {
+        // 中框架修指角成像时刻
+        re_WKJ_EXP = rewkj1_long * KJAgl_exp_pi_temp.WKJ + rewkj2_long * KJAgl_exp_pi_temp.NKJ + rewkj3_long;
+        // 内框架修指角成像时刻
+        re_NKJ_EXP = renkj1_long * KJAgl_exp_pi_temp.WKJ + renkj2_long * KJAgl_exp_pi_temp.NKJ + renkj3_long;
+        // 中框架修指角实时
+        re_WKJ_ING = rewkj1_long * KJAgl_pi_temp.WKJ + rewkj2_long * KJAgl_pi_temp.NKJ + rewkj3_long;
+        // 内框架修指角实时
+        re_NKJ_ING = renkj1_long * KJAgl_pi_temp.WKJ + renkj2_long * KJAgl_pi_temp.NKJ + renkj3_long;
+    }
+
+    fly_prm_WKJ      = -re_WKJ_ING * Agl_PI; // 中框架飞行修订参数 弧度
+    fly_prm_NKJ      = -re_NKJ_ING * Agl_PI; // 内框架飞行修订参数 弧度
+    geo_WKJ_ParaErro = re_WKJ_EXP * Agl_PI;  // 外框架定位计算角
+    geo_NKJ_ParaErro = re_NKJ_EXP * Agl_PI;  // 内框架定位计算角
 }

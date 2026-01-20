@@ -17,32 +17,6 @@ extern "C" {
 #include "ICDB_TOPIC_STRUCT_IRRM.H"
 #include "math.h"
 #include "sysTypes.h"
-
-#define Sec_KJPosREADY_NKJ 0.8 // 内框架位置好时间s
-#define Sec_KJPosREADY_WKJ 1.2 // 外框架位置好时间s
-#define Sec_KJSpeedREADY 0.2   // 框架速度好时间s
-
-#define GYCX_Near_K 0.5; // 广域成像近地点系数
-#define Max_TDNum 40     // 最大条带数
-// 框架角极限值
-#define NKJ_Max_PI 1.658063 // 弧度95度
-#define NKJ_Min_PI 0.785398 // 弧度45度
-#define WKJ_Max_PI 1.88495  // 弧度108度
-#define WKJ_Min_PI -1.88495 // 弧度-108度
-
-#define GYCX_P_x 0.15 // 广域成像x重叠率
-#define GYCX_P_y 0.12 // 广域成像y重叠率
-
-#define QYCX_P_x 0.15 // 区域成像x重叠率
-#define QYCX_P_y 0.15 // 区域成像y重叠率
-
-#define GYCX_pfs 0.0667 // 广域成像帧频（15HZ）
-#define QYCX_pfs 0.0667 // 0.0417//区域成像帧频（15HZ）//（24HZ）
-
-#define KJ_pixnum_X 5120 // 可见X方向像素
-#define KJ_pixnum_Y 4096 // 可见Y方向像素
-#define pixsize_KJ 4.5   // 可见像素尺寸
-
 #pragma pack(1)
 
 typedef struct
@@ -386,22 +360,22 @@ typedef struct Struct_Compute_Output {
 //---------------------------计算用-----------------------------------------
 // 框架角  结构体
 typedef struct Struct_KJAgl {
-    float WKJ;
-    float NKJ;
+    double WKJ;
+    double NKJ;
 } struct_KJAgl;
 
 // 向量  结构体
 typedef struct Struct_LSB_float64 {
-    float X;
-    float Y;
-    float Z;
+    double X;
+    double Y;
+    double Z;
 } struct_LSB_float64;
 
 // 姿态  结构体
 typedef struct Struct_AttiAgl {
-    float Yaw;
-    float Pitch;
-    float Roll;
+    double Yaw;
+    double Pitch;
+    double Roll;
 } struct_AttiAgl;
 // 坐标 结构体
 typedef struct Struct_Position_float64 {
@@ -477,30 +451,30 @@ UINT8 comp_QY_Video_Normal();
 // 处理姿态角
 void Process_Atti_ParaComputer(void);
 // 地理坐标系转地球坐标系（得到从地理坐标系向地球坐标系转换的矩阵NED_ECEF）
-void NEDToECEF(float NED_ECEF_t[3][4], struct Struct_GPS_float64 GPS_t);
+void NEDToECEF(double NED_ECEF_t[3][4], struct Struct_GPS_float64 GPS_t);
 // 处理框架角有关参数计算
 void Process_KJAgl_ParaComputer(void);
 // 处理距离有关参数计算
 void Process_Dis_ParaComputer();
 // 处理速度有关参数计算
-void Process_Speed_ParaComputer(float *SGB_t, float *XOmiga_t, float *YOmiga_t);
+void Process_Speed_ParaComputer(double *SGB_t, double *XOmiga_t, double *YOmiga_t);
 // 计算获得扫描航向角
 void GetScanTarYaw(void);
 // 计算广域距离优先模式下的内框架远/近角
 void Process_TarAgl_GY_Dis_ParaComputer(void);
 // 计算广域成像条带帧数
-void GYCX_Dis_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *GY_TarAglOver);
+void GYCX_Dis_GetTDPhotoNum(double *TDAgl_bigger_t, double *TDAgl_smaller_t, int *GY_TarAglOver);
 // 广域成像条带起始角计算（保持条带航向角和俯仰角）
-void GYCX_GetKJPos_simple(struct_KJAgl *KJ_Agl_t, struct_AttiAgl AttitudeAC_t, struct_KJAgl Hope_KJ_Agl_t, float Tar_YawAgl_t, float Tar_PitchAgl_t);
+void GYCX_GetKJPos_simple(struct_KJAgl *KJ_Agl_t, struct_AttiAgl AttitudeAC_t, struct_KJAgl Hope_KJ_Agl_t, double Tar_YawAgl_t, double Tar_PitchAgl_t);
 // 计算广域方位优先模式下的外框架远/近角
 void Process_TarAgl_GY_AZ_ParaComputer(void);
 // 计算广域成像条带帧数-方位优先
-void GYCX_AZ_GetTDPhotoNum(float *TDAgl_bigger_t, float *TDAgl_smaller_t, int *GY_TarAglOver);
+void GYCX_AZ_GetTDPhotoNum(double *TDAgl_bigger_t, double *TDAgl_smaller_t, int *GY_TarAglOver);
 
 // 地理跟踪，根据目标经纬高，计算需要的所有参数
-int GeoTrack_ParaComputer(float Tar_Lon_t, float Tar_Lat_t, float Tar_Alt_t);
+int GeoTrack_ParaComputer(double Tar_Lon_t, double Tar_Lat_t, double Tar_Alt_t);
 // 经纬度坐标转ECEF坐标
-void GPSToECEF(struct_Position_float64 *Tar_ecef_t, float Tar_Lon_t, float Tar_Lat_t, float Tar_Alt_t);
+void GPSToECEF(struct_Position_float64 *Tar_ecef_t, double Tar_Lon_t, double Tar_Lat_t, double Tar_Alt_t);
 // ECEF坐标系到NED坐标系转换矩阵
 void ECEFToNED(double ECEF_NED_t[3][4], struct_GPS_float64 GPS_t);
 // 依据目标在ECEF中坐标，给出视轴单位向量
@@ -510,17 +484,17 @@ void GetKJAglbyLSB_ParaComputer(struct_KJAgl *kj_Agl_t, const struct_LSB_float64
 // 给定外框架和内框架角，计算得到目标在ECEF中坐标
 void GetTarECEFbyKJAgl_ParaComputer(struct_Position_float64 *ecef_Tar_t, const struct_KJAgl *hope_agl_kj_t);
 // 用目标投影在地球坐标求目标在地球坐标系坐标
-void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], float GeodeticHeightTarget_t);
+void ECEFGeolocat(double ECEFTarget_t[3], double k_t[3], double b_t[3], double GeodeticHeightTarget_t);
 // 地球坐标系下坐标转GPS，得到GPSTarget
 void ECEFToGPS(double GPS_t[3], double ECEF_t[3]);
 // 区域成像计算条带数、条带帧数和起始角
-UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, float Tar_Range);
+UINT8 QYCX_GetTDPhotoNum(struct_GPS_float64 GPS_Tar, double Tar_Range);
 // 区域成像计算条带起始角
 void QYCX_GetTDstart();
 // 目标地理定位
 void Geolocation();
 // 目标地理定位
-void ComptGps(float x, float y, struct_GPS_float64 *Tar_gps);
+void ComptGps(double x, double y, struct_GPS_float64 *Tar_gps);
 // 距离优先广域返回参数
 void Out_GY_Dis();
 // 方位优先广域返回参数
@@ -537,6 +511,8 @@ void ComptRange();
 void ProcessInPram();
 // 输出参数处理
 void ProcessOutPram();
+// 计算修正参数
+void GetRevise();
 
 //=========================内部调用函数==END=========================================
 
