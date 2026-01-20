@@ -119,11 +119,11 @@ void usrmode_init() {
     // 调试时设置周期发送间隔
     cam_sim->setPeriodicInterval(2000);
 
-    // // Note: 测试 时 直接上电
-    // cam_sim->powerOn(5);
-
     // Note: 测试直接执行拍照模式
     cam_sim->testPhotoing();
+
+    // 启动任务线程等
+    cam_sim->start();
 
     return;
 }
@@ -150,8 +150,8 @@ void step_calculate() {
                &(shm_input.m_FacilitiesPowerSupplyStatusParasMsg), 0);
     topic_read("SecSimulatorControlMsg",
                &(shm_input.m_SecSimulatorControlMsg), 0);
-    topic_read("SecTgtPositionParaMsg",
-               &(shm_input.m_SecTgtPositionParaMsg), 0);
+    // topic_read("SecTgtPositionParaMsg",
+    //            &(shm_input.m_SecTgtPositionParaMsg), 0);
     // 继续添加...
 
     /* 2. 添加模型单步运行逻辑 */

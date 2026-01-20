@@ -19,26 +19,23 @@ static int                         port_local;
 static std::string                 ip_dst;
 static int                         port_dst;
 
+static std::once_flag udp_init_flag;
+static bool           udp_init_ok = false;
+
 bool udpTransInit(int local_port, const char *dst_ip, int dst_port_) {
 
-    // 已初始化则直接返回
-    if (udp0) {
-        return true;
-    }
+    std::call_once(udp_init_flag, [&]() {
+        port_local = local_port;
+        ip_dst     = dst_ip;
+        port_dst   = dst_port_;
 
-    port_local = local_port;
-    ip_dst     = std::string(dst_ip);
-    port_dst   = dst_port_;
+        udp0 = std::make_unique<UdpConnect>(
+            "0.0.0.0", port_local, -1, udpEventRecv);
 
-    // udp0.reset(new UdpConnect("0.0.0.0", port_local, -1, recv_cb));
-    // udp0 = std::make_unique<UdpConnect>("0.0.0.0", port_local, -1, recv_cb);
-    udp0 = std::make_unique<UdpConnect>("0.0.0.0", port_local, -1, udpEventRecv);
+        udp_init_ok = udp0->Init();
+    });
 
-    if (!udp0) {
-        return false;
-    }
-
-    if (udp0->Init()) {
+    if (udp_init_ok) {
         log_info("udp初始化成功 监听端口%d", port_local);
         return true;
     } else {
@@ -49,7 +46,7 @@ bool udpTransInit(int local_port, const char *dst_ip, int dst_port_) {
 
 void udpEventRecv(char *data, int size) {
     // // 如果没有上电 则不处理
-    // if (power_status_ != POWER_ON)
+    // if (status_ != STATUS_RUNNING)
     //     return;
 
     // 检查数据大小
@@ -68,12 +65,12 @@ void udpEventRecv(char *data, int size) {
     switch (topic_id) {
         // 如果是IRST_ACT_REQ消息
     case V_TOPIC_IRST_ACT_REQ:
-        sq::sq_IRST_act_req.push(std::move(ptr_packet));
+        sim::queue_IRST_act_req.push(std::move(ptr_packet));
         break;
         // 如果是需要处理和回复的消息
     case V_TOPIC_SYMM_SYM_OPERATIONAL_PARAS:
     case V_TOPIC_SYMD_DATA_LOAD_MSG_IRRM:
-        sq::sq_others.push(std::move(ptr_packet));
+        sim::queue_others.push(std::move(ptr_packet));
         break;
         // 如果是参数信息，只需要保存，不需要回复和处理的信息,缓存下来
         // 系统管理时间信息报告

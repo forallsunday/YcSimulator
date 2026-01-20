@@ -58,10 +58,20 @@ void photoing_Control(UINT8 *toTxcl_zzxx_valid, UINT8 fcSend_Flag, UINT8 numup_F
 void clean_cmd_From_FC();       // 重置指令缓存
 void clean_cmd_ImageInfo_Num(); // 重置图像序号
 
-// lcy:
+// Note:lcy 增加
 extern bool running_main_ctrl;
 extern bool running_other_process;
 extern bool running_periodic_send;
+extern bool freeze_all_process; // 冻结使while循环中的所有sleep
+
+// 子系统工作模式切换函数 可由外部调用(读取共享内存后切换)
+void switchSubsysOperMode(SUBSYS_MAIN_OPER_MODE mode);
+
+// 子系统是否处于正常工作状态
+bool ycAlreadyNormal();
+
+// 子系统是否处于初始化中
+bool ycInitializing();
 
 // #ifdef __cplusplus
 // }

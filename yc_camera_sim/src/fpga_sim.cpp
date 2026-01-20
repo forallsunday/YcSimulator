@@ -161,6 +161,7 @@ void FpgaSimulator::simulatingMotionKJ() {
 
     constexpr float interval = 5e-3f; // 5ms
 
+    // todo: 加随机数
     // 框架实时俯仰角（LSB = 0.0001°)
     mess_From_KJ.rtime_pitch_frame = 1e4 * (pitch_start + count * interval * pitch_speed);
     mess_From_KJ.rtime_pitch_frame = std::min(mess_From_KJ.rtime_pitch_frame, (int32_t)(1e4 * pitch_start));

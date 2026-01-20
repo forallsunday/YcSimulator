@@ -118,21 +118,49 @@ int main() {
 
     cam_sim.init();
 
+    cam_sim.start();
+
     // Note: 测试直接拍照
     cam_sim.testPhotoing();
 
     SharedMemoryInput  shm_input;
     SharedMemoryOutput shm_output;
 
-    shm_input.m_FacilitiesPowerSupplyStatusParasMsg
-        .St_FacilitiesPowerSupplyStatusData
-        .ArrU1_FacilitiesPowerSupplyStatus[5] = 2; // 快速上电
+    auto *power_supply_status = &shm_input.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData.ArrU1_FacilitiesPowerSupplyStatus[5];
 
     using namespace std::chrono_literals;
-    // 保持程序运行，持续拍照
+
+    int count = 0;
     while (true) {
+        *power_supply_status = 2; // 快速上电
         cam_sim.step(&shm_input, &shm_output);
         std::this_thread::sleep_for(10ms);
+        count++;
+        if (count >= 1000) {
+            count = 0;
+            break;
+        }
+    }
+    while (true) {
+        *power_supply_status = 4; // 下电
+        cam_sim.step(&shm_input, &shm_output);
+        std::this_thread::sleep_for(10ms);
+        count++;
+        if (count >= 200) {
+            count = 0;
+            break;
+        }
+    }
+    // todo: 这里再次上电后，相机无法拍照，怀疑是状态没有复位
+    while (true) {
+        *power_supply_status = 2; // 快速上电
+        cam_sim.step(&shm_input, &shm_output);
+        std::this_thread::sleep_for(10ms);
+        count++;
+        if (count >= 30000000) {
+            count = 0;
+            break;
+        }
     }
 
     return 0;

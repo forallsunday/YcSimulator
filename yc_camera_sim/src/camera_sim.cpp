@@ -14,18 +14,22 @@
 #include <log.h>
 #include <udp_trans.h>
 
+using namespace std::chrono;
+
 CameraSimulator::CameraSimulator(int port, std::string ip_control, int port_dst)
     : port_(port), ip_contrl_(ip_control), port_dst_(port_dst),
       running_hearbit(false),
-      running_subsystem_timer_(false),
-      power_status_(POWER_UNKNOWN) {}
+      status_(STATUS_UNKNOWN) {}
 
 void CameraSimulator::init() {
 
     if (!already_initialized) {
 
+        // 设置模拟器标志
+        sim::is_simulating = true;
+
         // 设置周期性发送间隔
-        ps::periodic_interval = PERIOD_TASK_TIME;
+        sim::periodic_interval = PERIOD_TASK_TIME;
 
         // UDP线程
         startUdpConnect();
@@ -35,13 +39,41 @@ void CameraSimulator::init() {
         // FPGA 模拟器 初始化
         fpga_sim_.init();
 
+        // running flags 初始化
+        running_main_ctrl     = false;
+        running_other_process = false;
+        running_periodic_send = false;
+
         this->already_initialized = true;
     }
 }
 
+void CameraSimulator::start() {
+
+    // 避免重复
+    if (status_ == STATUS_RUNNING) {
+        return;
+    }
+
+    // 队列 初始化
+    sim::queue_IRST_act_req.clearAndNotify();
+    sim::queue_others.clearAndNotify();
+
+    // 设备中的初始化参数
+    param_Init();
+
+    // fpga 启动
+    fpga_sim_.start();
+
+    // !!!启动任务线程
+    this->startTaskThreads();
+
+    this->status_ = STATUS_RUNNING;
+
+    log_info("[CameraSimulator] Start.");
+}
+
 void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output) {
-    // 是否需要上锁
-    // std::lock_guard<std::mutex> lock(this->mtx_shm_);
 
     if (!already_initialized) {
         log_error("[CameraSimulator] Not initialized yet!");
@@ -65,16 +97,16 @@ void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutpu
     case 0:
         break;
     case 1:
-        this->powerOn(30); // 上电 50s
+        this->setSubsysNormal(30); // 上电
         break;
     case 2:
-        this->powerOn(2); // 快速上电 10s
+        this->setSubsysNormal(3); // 快速上电
         break;
     case 3:
         // 降级
         break;
     case 4:
-        this->powerOff();
+        this->setSubsysStop(); // 下电
         break;
     default:
         break;
@@ -119,7 +151,6 @@ void CameraSimulator::updateSharedMemoryInput() {
 }
 
 void CameraSimulator::updateSharedMemoryOutput() {
-    std::lock_guard<std::mutex> lock(mutex_shm);
 
     static SM_MessageHeader St_MessageHeader;
     St_MessageHeader.U4_Heartbeat       = this->heartbit_;
@@ -127,6 +158,7 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_MessageHeader.St_GenerateTime    = getCurrentTimestamp();
     St_MessageHeader.St_PubTime         = getCurrentTimestamp();
 
+    // todo: 功能单元状态填充规则确认
     // FunctionalUnitStatusMsg 功能单元状态
     shm_output_.m_FunctionalUnitStatusMsg.St_MessageHeader                       = St_MessageHeader;
     shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.ArrI1_UnitID[0]      = 6;
@@ -161,60 +193,60 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageState.U1_Channel   = 1;                                       // todo: 确认通道填充规则
 
     // 指针以减少代码字数
-    auto *image_paras_transit = &mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit; // 图像参数_下传
-    auto *ac_ins_info         = &mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info;         // 飞机惯导信息
+    auto image_paras_transit = mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit; // 图像参数_下传
+    auto ac_ins_info         = mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info;         // 飞机惯导信息
 
     // === EOImageShowArea 显示区域参数 ===
-    St_EOImageShowArea.F4_AZLOS_deg_BODY      = image_paras_transit->fov_center_azimuth * 0.01f; // 视线方位角(deg)
-    St_EOImageShowArea.F4_ELLOS_deg_BODY      = image_paras_transit->fov_center_el * 0.01f;      // 视线俯仰角(deg)
-    St_EOImageShowArea.F4_horizontalCover_deg = image_paras_transit->fov_transverse * 0.01f;     // 水平范围(deg)
-    St_EOImageShowArea.F4_verticalCover_deg   = image_paras_transit->fov_vertical * 0.01f;       // 垂直范围(deg)
+    St_EOImageShowArea.F4_AZLOS_deg_BODY      = image_paras_transit.fov_center_azimuth * 0.01f; // 视线方位角(deg)
+    St_EOImageShowArea.F4_ELLOS_deg_BODY      = image_paras_transit.fov_center_el * 0.01f;      // 视线俯仰角(deg)
+    St_EOImageShowArea.F4_horizontalCover_deg = image_paras_transit.fov_transverse * 0.01f;     // 水平范围(deg)
+    St_EOImageShowArea.F4_verticalCover_deg   = image_paras_transit.fov_vertical * 0.01f;       // 垂直范围(deg)
     // === EOImageShowArea 显示区域参数 === End
 
     // === EOImageParasIS 图像注释信息 ===
-    St_EOImageParasIS.St_ImageTime.U1_Year        = image_paras_transit->IMAGE_date_year;
-    St_EOImageParasIS.St_ImageTime.U1_Month       = image_paras_transit->IMAGE_date_mounth;
-    St_EOImageParasIS.St_ImageTime.U1_Day         = image_paras_transit->IMAGE_date_day;
-    St_EOImageParasIS.St_ImageTime.U1_Hour        = image_paras_transit->IMAGE_time_hour;
-    St_EOImageParasIS.St_ImageTime.U1_Minute      = image_paras_transit->IMAGE_time_minute;
-    St_EOImageParasIS.St_ImageTime.U1_Second      = image_paras_transit->IMAGE_time_second;
-    St_EOImageParasIS.St_ImageTime.U2_Millisecond = image_paras_transit->IMAGE_time_ms;
-    St_EOImageParasIS.U4_ImgId                    = image_paras_transit->IMG_ID;                 // 图像帧编号
-    St_EOImageParasIS.U2_EOCycleNo                = image_paras_transit->A818_CycleNo;           // 成像周期内序号
-    St_EOImageParasIS.U2_LineNo                   = image_paras_transit->A818_LineNo;            // 条带序号
-    St_EOImageParasIS.U2_EO_LineNo                = image_paras_transit->A818_EO_LineNo;         // 条带内序号
-    St_EOImageParasIS.U4_WideCover                = image_paras_transit->A818_WideCover;         // 收容宽度(m)
-    St_EOImageParasIS.F4_ELLOS_deg_BODY           = St_EOImageShowArea.F4_ELLOS_deg_BODY;        // 视场中心俯仰角(deg)
-    St_EOImageParasIS.F4_AZLOS_deg_BODY           = St_EOImageShowArea.F4_AZLOS_deg_BODY;        // 视场中心方位角(deg)
-    St_EOImageParasIS.F4_verticalCover_deg        = St_EOImageShowArea.F4_verticalCover_deg;     // 视场大小俯仰(deg)
-    St_EOImageParasIS.F4_horizontalCover_deg      = St_EOImageShowArea.F4_horizontalCover_deg;   // 视场大小方位(deg)
-    St_EOImageParasIS.U1_CouseTgtCover            = image_paras_transit->A818_Couse_tgt_cover;   // 航向重叠率 默认20%
-    St_EOImageParasIS.U1_BesideTgtCover           = image_paras_transit->A818_Beside_tgt_cover;  // 傍向重叠率 默认20%
-    St_EOImageParasIS.U2_CurResolution            = image_paras_transit->A818_CUR_RESOLUTION;    // 像元分辨率(m, LSB=0.01)
-    St_EOImageParasIS.U2_GroundResolution         = image_paras_transit->A818_GROUND_RESOLUTION; // 地面摄影分辨率(m, LSB=0.01)
+    St_EOImageParasIS.St_ImageTime.U1_Year        = image_paras_transit.IMAGE_date_year;
+    St_EOImageParasIS.St_ImageTime.U1_Month       = image_paras_transit.IMAGE_date_mounth;
+    St_EOImageParasIS.St_ImageTime.U1_Day         = image_paras_transit.IMAGE_date_day;
+    St_EOImageParasIS.St_ImageTime.U1_Hour        = image_paras_transit.IMAGE_time_hour;
+    St_EOImageParasIS.St_ImageTime.U1_Minute      = image_paras_transit.IMAGE_time_minute;
+    St_EOImageParasIS.St_ImageTime.U1_Second      = image_paras_transit.IMAGE_time_second;
+    St_EOImageParasIS.St_ImageTime.U2_Millisecond = image_paras_transit.IMAGE_time_ms;
+    St_EOImageParasIS.U4_ImgId                    = image_paras_transit.IMG_ID;                 // 图像帧编号
+    St_EOImageParasIS.U2_EOCycleNo                = image_paras_transit.A818_CycleNo;           // 成像周期内序号
+    St_EOImageParasIS.U2_LineNo                   = image_paras_transit.A818_LineNo;            // 条带序号
+    St_EOImageParasIS.U2_EO_LineNo                = image_paras_transit.A818_EO_LineNo;         // 条带内序号
+    St_EOImageParasIS.U4_WideCover                = image_paras_transit.A818_WideCover;         // 收容宽度(m)
+    St_EOImageParasIS.F4_ELLOS_deg_BODY           = St_EOImageShowArea.F4_ELLOS_deg_BODY;       // 视场中心俯仰角(deg)
+    St_EOImageParasIS.F4_AZLOS_deg_BODY           = St_EOImageShowArea.F4_AZLOS_deg_BODY;       // 视场中心方位角(deg)
+    St_EOImageParasIS.F4_verticalCover_deg        = St_EOImageShowArea.F4_verticalCover_deg;    // 视场大小俯仰(deg)
+    St_EOImageParasIS.F4_horizontalCover_deg      = St_EOImageShowArea.F4_horizontalCover_deg;  // 视场大小方位(deg)
+    St_EOImageParasIS.U1_CouseTgtCover            = image_paras_transit.A818_Couse_tgt_cover;   // 航向重叠率 默认20%
+    St_EOImageParasIS.U1_BesideTgtCover           = image_paras_transit.A818_Beside_tgt_cover;  // 傍向重叠率 默认20%
+    St_EOImageParasIS.U2_CurResolution            = image_paras_transit.A818_CUR_RESOLUTION;    // 像元分辨率(m, LSB=0.01)
+    St_EOImageParasIS.U2_GroundResolution         = image_paras_transit.A818_GROUND_RESOLUTION; // 地面摄影分辨率(m, LSB=0.01)
     // 图像中心经纬高 - 从注释信息获取
     // todo: 确认单位
-    St_EOImageParasIS.St_ImgCenterPosition.D8_Longitude_deg_CGCS = image_paras_transit->image_center_longitude._longitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgCenterPosition.D8_Latitude_deg_CGCS  = image_paras_transit->image_center_latitude._latitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgCenterPosition.F4_AltitudeAsl_m_CGCS = image_paras_transit->A818_ImageCenterHeight;
+    St_EOImageParasIS.St_ImgCenterPosition.D8_Longitude_deg_CGCS = image_paras_transit.image_center_longitude._longitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgCenterPosition.D8_Latitude_deg_CGCS  = image_paras_transit.image_center_latitude._latitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgCenterPosition.F4_AltitudeAsl_m_CGCS = image_paras_transit.A818_ImageCenterHeight;
     // 图像四角经纬度 - 从注释信息获取
-    St_EOImageParasIS.St_ImgLeftUp.D8_Longitude_deg_CGCS    = image_paras_transit->upleft_longitude._longitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgLeftUp.D8_Latitude_deg_CGCS     = image_paras_transit->upleft_latitude._latitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgLeftDown.D8_Longitude_deg_CGCS  = image_paras_transit->downleft_longitude._longitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgLeftDown.D8_Latitude_deg_CGCS   = image_paras_transit->downleft_latitude._latitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgRightUp.D8_Longitude_deg_CGCS   = image_paras_transit->upright_longitude._longitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgRightUp.D8_Latitude_deg_CGCS    = image_paras_transit->upright_latitude._latitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgRightDown.D8_Longitude_deg_CGCS = image_paras_transit->downright_longitude._longitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgRightDown.D8_Latitude_deg_CGCS  = image_paras_transit->downright_latitude._latitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgLeftUp.D8_Longitude_deg_CGCS    = image_paras_transit.upleft_longitude._longitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgLeftUp.D8_Latitude_deg_CGCS     = image_paras_transit.upleft_latitude._latitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgLeftDown.D8_Longitude_deg_CGCS  = image_paras_transit.downleft_longitude._longitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgLeftDown.D8_Latitude_deg_CGCS   = image_paras_transit.downleft_latitude._latitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgRightUp.D8_Longitude_deg_CGCS   = image_paras_transit.upright_longitude._longitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgRightUp.D8_Latitude_deg_CGCS    = image_paras_transit.upright_latitude._latitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgRightDown.D8_Longitude_deg_CGCS = image_paras_transit.downright_longitude._longitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgRightDown.D8_Latitude_deg_CGCS  = image_paras_transit.downright_latitude._latitude * 0.00001 * mrad_to_deg;
 
-    St_EOImageParasIS.U2_TakeTimes    = image_paras_transit->A818_EO_TakeTimes;    // 照相次数
-    St_EOImageParasIS.U2_FocalLength  = image_paras_transit->A818_EO_FocalLength;  // 相机焦距(mm)
-    St_EOImageParasIS.U2_ExposureTime = image_paras_transit->A818_EO_ExposureTime; // 曝光时间(us)
+    St_EOImageParasIS.U2_TakeTimes    = image_paras_transit.A818_EO_TakeTimes;    // 照相次数
+    St_EOImageParasIS.U2_FocalLength  = image_paras_transit.A818_EO_FocalLength;  // 相机焦距(mm)
+    St_EOImageParasIS.U2_ExposureTime = image_paras_transit.A818_EO_ExposureTime; // 曝光时间(us)
 
     St_EOImageParasIS.U1_ImpotentTag = 2; // 重要目标标识 0-不重要 //todo: 确认填充规则
 
-    St_EOImageParasIS.St_ImgCenter.D8_Longitude_deg_CGCS = image_paras_transit->REGION_CENTER_X._longitude * 0.00001 * mrad_to_deg;
-    St_EOImageParasIS.St_ImgCenter.D8_Latitude_deg_CGCS  = image_paras_transit->REGION_CENTER_Y._latitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgCenter.D8_Longitude_deg_CGCS = image_paras_transit.REGION_CENTER_X._longitude * 0.00001 * mrad_to_deg;
+    St_EOImageParasIS.St_ImgCenter.D8_Latitude_deg_CGCS  = image_paras_transit.REGION_CENTER_Y._latitude * 0.00001 * mrad_to_deg;
 
     // 载机信息
     static Position           St_EntityPosition;          // @ID(0)
@@ -222,22 +254,22 @@ void CameraSimulator::updateSharedMemoryOutput() {
     static LinearAcceleration St_EntityLinearAcceleratio; // @ID(2)
     static Attitude           St_EntityAttitude;          // @ID(3)
     // 载机位置
-    St_EntityPosition.D8_Longitude_deg_CGCS = ac_ins_info->AC_data_start.ac_position_data._longitude * 0.00001 * mrad_to_deg;
-    St_EntityPosition.D8_Latitude_deg_CGCS  = ac_ins_info->AC_data_start.ac_position_data._latitude * 0.00001 * mrad_to_deg;
-    St_EntityPosition.F4_AltitudeAsl_m_CGCS = ac_ins_info->AC_data_start.ac_height._altitude * 0.01;
+    St_EntityPosition.D8_Longitude_deg_CGCS = ac_ins_info.AC_data_start.ac_position_data._longitude * 0.00001 * mrad_to_deg;
+    St_EntityPosition.D8_Latitude_deg_CGCS  = ac_ins_info.AC_data_start.ac_position_data._latitude * 0.00001 * mrad_to_deg;
+    St_EntityPosition.F4_AltitudeAsl_m_CGCS = ac_ins_info.AC_data_start.ac_height._altitude * 0.01;
     // 载机速度
-    St_EntityLinearVelocit.F4_VelocityNorth_mDs_NED = ac_ins_info->AC_data_start.Vel_North._velocity * 0.0001;
-    St_EntityLinearVelocit.F4_VelocityEast_mDs_NED  = ac_ins_info->AC_data_start.Vel_East._velocity * 0.0001;
-    St_EntityLinearVelocit.F4_VelocityUp_mDs_NED    = ac_ins_info->AC_data_start.Vel_Up._velocity * 0.0001;
+    St_EntityLinearVelocit.F4_VelocityNorth_mDs_NED = ac_ins_info.AC_data_start.Vel_North._velocity * 0.0001;
+    St_EntityLinearVelocit.F4_VelocityEast_mDs_NED  = ac_ins_info.AC_data_start.Vel_East._velocity * 0.0001;
+    St_EntityLinearVelocit.F4_VelocityUp_mDs_NED    = ac_ins_info.AC_data_start.Vel_Up._velocity * 0.0001;
     // 载机加速度
-    St_EntityLinearAcceleratio.F4_AccelerationNorth_mDs2_NED = ac_ins_info->AC_data_start.ac_accel_North._acceleration * 0.0001;
-    St_EntityLinearAcceleratio.F4_AccelerationEast_mDs2_NED  = ac_ins_info->AC_data_start.ac_accel_East._acceleration * 0.0001;
-    St_EntityLinearAcceleratio.F4_AccelerationUp_mDs2_NED    = ac_ins_info->AC_data_start.ac_accel_Up._acceleration * 0.0001;
+    St_EntityLinearAcceleratio.F4_AccelerationNorth_mDs2_NED = ac_ins_info.AC_data_start.ac_accel_North._acceleration * 0.0001;
+    St_EntityLinearAcceleratio.F4_AccelerationEast_mDs2_NED  = ac_ins_info.AC_data_start.ac_accel_East._acceleration * 0.0001;
+    St_EntityLinearAcceleratio.F4_AccelerationUp_mDs2_NED    = ac_ins_info.AC_data_start.ac_accel_Up._acceleration * 0.0001;
     // 载机姿态
     // todo:确认 航向、俯仰、横滚 对应共享内存中的哪个变量
-    St_EntityAttitude.F4_Psi_deg   = ac_ins_info->AC_data_start.ac_true_heading._angle_mrad * 0.001 * mrad_to_deg; // 航向角
-    St_EntityAttitude.F4_Theta_deg = ac_ins_info->AC_data_start.ac_pitch._angle_mrad * 0.001 * mrad_to_deg;        // 俯仰角
-    St_EntityAttitude.F4_Phi_deg   = ac_ins_info->AC_data_start.ac_roll._angle_mrad * 0.001 * mrad_to_deg;         // 横滚角
+    St_EntityAttitude.F4_Psi_deg   = ac_ins_info.AC_data_start.ac_true_heading._angle_mrad * 0.001 * mrad_to_deg; // 航向角
+    St_EntityAttitude.F4_Theta_deg = ac_ins_info.AC_data_start.ac_pitch._angle_mrad * 0.001 * mrad_to_deg;        // 俯仰角
+    St_EntityAttitude.F4_Phi_deg   = ac_ins_info.AC_data_start.ac_roll._angle_mrad * 0.001 * mrad_to_deg;         // 横滚角
     // 赋值载机信息
     St_EOImageParasIS.St_AcParas.St_EntityPosition          = St_EntityPosition;
     St_EOImageParasIS.St_AcParas.St_EntityLinearVelocit     = St_EntityLinearVelocit;
@@ -247,6 +279,7 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageParasIS.Seq_Mission.resize(sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
     memcpy(St_EOImageParasIS.Seq_Mission.data(), &mess_To_TXCL_ZSXX.to_Txcl_A818_Image_common_paras,
            sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
+    // log_once("[CameraSimulator] A818_IMAGE_COMMON_PARAS_TYPE_DEF size: %zu bytes.", sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
     // === EOImageParasIS 图像注释信息 === End
 
     // === EOImageModifyPara 光电图像调节参数 ===
@@ -278,13 +311,40 @@ void CameraSimulator::updateSharedMemoryOutput() {
     memcpy(shm_output_.m_SecEOImageDriveMsg.Arr_EOTgtPara, Arr_EOTgtPara, sizeof(Arr_EOTgtPara));
 }
 
+void CameraSimulator::setSubsysNormal(int delay_sec) {
+    bool is_initializing = ycInitializing();
+    bool already_normal  = ycAlreadyNormal();
+    // 必须 不在初始化过程中 且 不在正常模式下 才执行切换
+    if (is_initializing == false && already_normal == false) {
+        // 原子抢占，失败直接返回
+        if (doing_set_normal_.exchange(true, std::memory_order_acq_rel)) {
+            return; // 已经有线程在做了
+        }
+
+        // 临时子线程，避免阻塞主线程
+        std::thread([this, delay_sec]() {
+            // 延时切换，模拟共享内存中上电启动时间
+            if (delay_sec > 0) {
+                std::this_thread::sleep_for(seconds(delay_sec));
+            }
+            log_proc("[CameraSimulator] Setting to NORMAL mode, delay seconds=%d.", delay_sec);
+            switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_NORMAL);
+            std::this_thread::sleep_for(milliseconds(100)); // 确保状态切换完成
+            doing_set_normal_.store(false, std::memory_order_release);
+        }).detach();
+    }
+}
+
+void CameraSimulator::setSubsysStop() {
+    switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_STOP);
+    log_once("[CameraSimulator] Setting to STOP mode.");
+}
+
 void CameraSimulator::startTaskThreads() {
     // 任务线程启动
     startMainControl();
     startOtherProcess();
     startPeriodicSend();
-    startTimer5ms();
-    // startSubsystemTiming();
 }
 
 void CameraSimulator::startHeartbitting() {
@@ -318,9 +378,6 @@ void CameraSimulator::startMainControl() {
     if (running_main_ctrl)
         return;
 
-    // fpga 启动
-    fpga_sim_.start();
-
     running_main_ctrl = true;
     thread_main_ctrl_ = std::thread([this]() {
         main_Control_And_Mess_Process_Act_req_task();
@@ -348,102 +405,35 @@ void CameraSimulator::startPeriodicSend() {
     });
 }
 
-void CameraSimulator::startTimer5ms() {
-    timer_5ms_.init(std::chrono::milliseconds(5), timer_service_func_5ms);
-    timer_5ms_.start();
-}
-
-void CameraSimulator::startSubsystemTiming() {
-}
-
-void CameraSimulator::powerOn(int delay) {
-
-    // 避免重复上电
-    if (power_status_ == POWER_ON || power_status_ == POWER_CHECKING) {
-        return;
-    }
-
-    log_info("[CameraSimulator] Power ON start with (%d s)", delay);
-
-    // 如果还没退出 上电线程退出
-    if (thread_power_on_.joinable())
-        thread_power_on_.join();
-
-    this->thread_power_on_ = std::thread([this, delay]() {
-        using namespace std::chrono;
-        this->remain_time = delay;
-        int  interval     = 1; // 1秒间隔
-        auto time_step    = seconds(interval);
-
-        this->power_status_ = POWER_CHECKING;
-
-        while (remain_time > 0 && power_status_ == POWER_CHECKING) {
-            log_info("[CameraSimulator] Power ON remain %d seconds...", this->remain_time.load());
-            // 上电自检中
-            // msg
-            this->remain_time -= interval;
-
-            std::this_thread::sleep_for(time_step);
-        }
-
-        if (power_status_ == POWER_FREEZE || power_status_ == POWER_OFF) {
-            log_info("[CameraSimulator] Power ON terminated");
-
-        } else {
-            // 上电成功
-            this->remain_time   = 0;
-            this->power_status_ = POWER_ON;
-
-            // 队列 初始化
-            sq::sq_IRST_act_req.clearAndNotify();
-            sq::sq_others.clearAndNotify();
-
-            // 设备中的初始化参数
-            param_Init();
-
-            log_info("[CameraSimulator] Power ON complete");
-
-            // !!!启动任务线程
-            this->startTaskThreads();
-        }
-    });
-}
-
 void CameraSimulator::freeze() {
-    if (power_status_ == POWER_FREEZE) {
+    if (status_ == STATUS_FROZEN) {
         return;
     }
 
-    // 退出除了周期发送以外的其他线程
-    // 先设置退出标志
-    running_main_ctrl     = false;
-    running_other_process = false;
-    running_periodic_send = false;
+    // 先设置暂停标志
+    freeze_all_process = true;
 
     // 再清空并通知，确保等待的线程能醒来并检查到退出标志
-    sq::sq_IRST_act_req.clearAndNotify();
-    sq::sq_others.clearAndNotify();
-
-    // 停止定时器
-    timer_5ms_.stop();
+    sim::queue_IRST_act_req.clearAndNotify();
+    sim::queue_others.clearAndNotify();
 
     // 停止fpga
     fpga_sim_.stop();
 
-    this->power_status_ = POWER_FREEZE;
-
-    // 停止上电线程
-    if (thread_power_on_.joinable())
-        thread_power_on_.join();
+    this->status_ = STATUS_FROZEN;
 }
 
-void CameraSimulator::powerOff() {
-    if (power_status_ == POWER_OFF) {
+void CameraSimulator::close() {
+    if (status_ == STATUS_CLOSED) {
         return;
     }
 
     this->freeze();
 
+    // 退出除了周期发送以外的其他线程
+    running_main_ctrl     = false;
+    running_other_process = false;
+    running_periodic_send = false;
     // 等待线程退出
     if (thread_main_ctrl_.joinable())
         thread_main_ctrl_.join();
@@ -451,21 +441,6 @@ void CameraSimulator::powerOff() {
         thread_other_process_.join();
     if (thread_periodic_send_.joinable())
         thread_periodic_send_.join();
-    if (thread_subsystem_timer_.joinable())
-        thread_subsystem_timer_.join();
-
-    // 更新共享内存状态
-    this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U1_MemberStatus  = 4; // 4=下电?
-    this->shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U4_UnitHeartbeat = this->heartbit_;
-    // this->shm_output_.m_FunctionalUnitStatusMsg.St_MessageHeader.St_PubTime        = getCurrentTimestamp();
-
-    this->power_status_ = POWER_OFF;
-
-    log_info("[CameraSimulator] Power OFF complete");
-}
-
-void CameraSimulator::close() {
-    this->powerOff();
 
     // 停止心跳
     running_hearbit = false;
@@ -478,11 +453,15 @@ void CameraSimulator::close() {
     if (thread_photoing_test_.joinable())
         thread_photoing_test_.join();
 
+    // 处理共享内存
+
     udpTransClose();
 
     this->already_initialized = false;
 
-    log_info("[CameraSimulator] All threads stopped");
+    this->status_ = STATUS_CLOSED;
+
+    log_info("[CameraSimulator] Closed and all threads stopped.");
 }
 
 CameraSimulator::~CameraSimulator() {
@@ -500,7 +479,7 @@ void CameraSimulator::testPhotoing() {
 
         // 测试模式选择：广域成像=1, 区域成像=2, 区域监视=3
         // const int test_mode = 1;
-        const int test_mode = 3;
+        const int test_mode = 1;
 
         // 通用导航数据设置函数
         auto setNavData = [this]() {

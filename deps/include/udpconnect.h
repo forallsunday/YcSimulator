@@ -1,7 +1,7 @@
 #ifndef UDPCONNECT_H
 #define UDPCONNECT_H
 
-//todo: 修改以适应windows能收发
+// todo: 修改以适应windows能收发
 
 #include "SocketWrapper.h"
 
@@ -43,6 +43,8 @@ class UdpConnect {
 
     void Close(); // 关闭链接
 
+    bool isRunning() const { return running.load(); }
+
   private:
     std::string ip_;
 
@@ -51,7 +53,7 @@ class UdpConnect {
 
     DataHandlFunc dataHandlFunc_; // 数据处理
 
-    std::atomic<bool> start_receive{false}; // 是否开启接收数据
+    std::atomic<bool> running{false}; // 是否开启接收数据
 
     int            epfd_ = -1;
     std::thread    recv_thread_;

@@ -46,6 +46,10 @@ bool running_main_ctrl;
 bool running_other_process;
 bool running_periodic_send;
 
+bool freeze_all_process = false;
+
+using namespace std::chrono_literals;
+
 // act_req消息处理及主流程控制
 void main_Control_And_Mess_Process_Act_req_task() {
     //	static UINT64 time_start = 0;
@@ -53,15 +57,18 @@ void main_Control_And_Mess_Process_Act_req_task() {
 
     PtrUdpPacket p_packet;
     while (running_main_ctrl) {
-        if (sq::sq_IRST_act_req.tryPop(p_packet)) {
+        if (freeze_all_process) {
+            std::this_thread::sleep_for(5ms);
+            continue;
+        }
+
+        if (sim::queue_IRST_act_req.tryPop(p_packet)) {
             localUpdate(cmd_From_FC.current_IRST_ACT_REQ, p_packet.get());
             // 发送消息——回复响应ECHO
             send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_ECHO, V_ACT_REFUSED_REASON_NA);
             act_req_mess_Process(); // 活动请求指令判断
         }
 
-        // // 测试发送工作参数
-        // testSendToYcControl();
         // sleep_ms(2000);
 
         // 如果收到FPGA中断，或者5ms时间到，正常流程，每5ms处理主控工作流程、计算
@@ -126,7 +133,12 @@ void fc_Mess_Process_Others_task() {
     auto         timeout = std::chrono::milliseconds(5);
 
     while (running_other_process) {
-        if (sq::sq_IRST_act_req.waitForAndPop(p_packet, timeout)) {
+        if (freeze_all_process) {
+            std::this_thread::sleep_for(5ms);
+            continue;
+        }
+
+        if (sim::queue_IRST_act_req.waitForAndPop(p_packet, timeout)) {
             // 判断消息类型，此处处理所有其他类型消息，逐一在case中添加
             // switch (p_MESS_NODE->mess_typeId) {
             switch (p_packet->topicId) {
@@ -247,9 +259,13 @@ void fc_Mess_Send_Period_task() {
     static int upload_pack_num = 1; // 当前上报的第几包
 
     while (running_periodic_send) {
+        if (freeze_all_process) {
+            std::this_thread::sleep_for(5ms);
+            continue;
+        }
         // 当前时间
         auto next = clock::now();
-        next += milliseconds(ps::periodic_interval);
+        next += milliseconds(sim::periodic_interval);
 
         // {
         //     // !!! 20251230 测试时直接上报
@@ -312,8 +328,8 @@ void fc_Mess_Send_Period_task() {
 
         // ACoreOs_periodtask_wait_period(); // 周期任务必要函数，不可删除！！！释放
 
-        // Note: 模拟器持续发送 WORK_STATE_REPORT 消息 发送的bit百分比为一个较大值 这样自检率不会更新
-        send_Mess_WORK_STATE_REPORT(0, 1e6); // 工作状态报告,参数为bit百分比
+        // Note: 模拟器持续发送 WORK_STATE_REPORT 消息 发送的为一个较大值 这样启动剩余时间和自检率不会更新
+        send_Mess_WORK_STATE_REPORT(1e7, 1e7); // 工作状态报告,参数为bit百分比
 
         std::this_thread::sleep_until(next);
     }
@@ -424,23 +440,33 @@ void act_req_mess_Process() {
                 cmd_From_FC.subsys_main_oper_mode = V_SUBSYS_MAIN_OPER_MODE_STBY;
             }
         }
+
+        // Note: lcy 正常模式和STOP在共享内存中判断
         // 正常
         else if (V_SUBSYS_MAIN_OPER_MODE_NORMAL == cmd_From_FC.current_IRST_ACT_REQ.general_act_req_paras.subsys_main_oper_mode) {
-            update_Work_State(V_SUBSYS_WORK_STATE_NORMAL); // 更新相机工作状态
-            update_Main_Mode(V_SUBSYS_MAIN_MODE_NORMAL);   // 任何模式都可切入正常模式，直接切即可
-            make_Mess_IRST_OPERATIONAL_PARAS();            // 上报工作参数
-            send_Mess_IRST_OPERATIONAL_PARAS();            // IRST工作参数报告-发送
-            // 回复执行完成
-            send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_COMPLETED, V_ACT_REFUSED_REASON_NA);
+            // 非仿真状态下, 执行设备逻辑
+            if (!sim::is_simulating) {
+                update_Work_State(V_SUBSYS_WORK_STATE_NORMAL); // 更新相机工作状态
+                update_Main_Mode(V_SUBSYS_MAIN_MODE_NORMAL);   // 任何模式都可切入正常模式，直接切即可
+                make_Mess_IRST_OPERATIONAL_PARAS();            // 上报工作参数
+                send_Mess_IRST_OPERATIONAL_PARAS();            // IRST工作参数报告-发送
+                // 回复执行完成
+                send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_COMPLETED, V_ACT_REFUSED_REASON_NA);
+            }
 
         }
         // 停止/可关机模式——-下电——回到NA，所有模式可响应，在所有模式中判断该怎样进入关机
         else if (V_SUBSYS_MAIN_OPER_MODE_STOP == cmd_From_FC.current_IRST_ACT_REQ.general_act_req_paras.subsys_main_oper_mode) {
-            clean_cmd_From_FC();                     // 清除指令记录
-            cmd_From_FC.general_cmd_MODE_SWITCH = 1; // 可以执行的指令置为1
-            // 记录参数
-            cmd_From_FC.subsys_main_oper_mode = V_SUBSYS_MAIN_OPER_MODE_STOP;
+            // 非仿真状态下, 执行设备逻辑
+            if (!sim::is_simulating) {
+                clean_cmd_From_FC();                     // 清除指令记录
+                cmd_From_FC.general_cmd_MODE_SWITCH = 1; // 可以执行的指令置为1
+                // 记录参数
+                cmd_From_FC.subsys_main_oper_mode = V_SUBSYS_MAIN_OPER_MODE_STOP;
+            }
         }
+        // Note: lcy ---------END---------------
+
         // 如果是测试模式（维护测试）,只切模式，不进行自检操作
         else if (V_SUBSYS_MAIN_OPER_MODE_TEST == cmd_From_FC.current_IRST_ACT_REQ.general_act_req_paras.subsys_main_oper_mode) {
             // 如果不在地面，回复fc无法响应
@@ -1573,20 +1599,44 @@ void init_Model_WorkControl() {
     //     make_Mess_IRST_OPERATIONAL_PARAS();
     // }
 
-    // 上报工作进度，每1s上报一次，总共50s
+    // ! 没有意义 init 置位 一瞬间就好
+    // // Note: lcy 上报工作进度，每1s上报一次, 按照上电时间重新计算
+    // float beta = sim::init_time / INIT_TIME;
+    // if (cnt_wait % 200 == 0) {
+    //     percent = (cnt_wait * 10000.0) / ((1000 / MAIN_PERIOD_TIME) * INIT_TIME) / beta;
+
+    //     if (cnt_wait < 2000 * beta)
+    //         main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_DIM_ING;
+
+    //     if (cnt_wait > 2000 * beta)
+    //         main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_SUCCESS;
+
+    //     if (cnt_wait > 2000 * beta && cnt_wait < 4000 * beta)
+    //         main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_ING; // 校正中
+
+    //     if (cnt_wait > 4000 * beta)
+    //         main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_COMPLETED; // 校正完成
+
+    //     if (cnt_wait > 4000 * beta && cnt_wait < 6000 * beta)
+    //         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_FOCUSING;
+
+    //     if (cnt_wait > 6000 * beta)
+    //         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_SUCCESS;
+
+    //     uint32_t remain_time = std::max(0, sim::init_time - cnt_wait / 200);
+    //     send_Mess_WORK_STATE_REPORT(remain_time, percent); // 上报工作状态更新，自检进度更新
+    //     make_Mess_IRST_OPERATIONAL_PARAS();
+    // }
+
     // Note: 模拟器中直接将状态置位完成
     if (cnt_wait % 200 == 0) {
-        percent = 100 / 0.01;
 
-        main_Control_State_Param.tg_state = V_PREPARE_STATE_DIM_SUCCESS;
-
+        main_Control_State_Param.tg_state        = V_PREPARE_STATE_DIM_SUCCESS;
         main_Control_State_Param.jiaozheng_state = V_INFRARED_CORRECT_STATE_COMPLETED; // 校正完成
+        main_Control_State_Param.tj_state        = V_PREPARE_STATE_FOCUS_SUCCESS;
 
-        main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_SUCCESS;
-
-        send_Mess_WORK_STATE_REPORT(0, percent); // 上报工作状态更新，自检进度更新
+        send_Mess_WORK_STATE_REPORT(0, 10000); // 上报工作状态更新，自检进度更新
         make_Mess_IRST_OPERATIONAL_PARAS();
-        int breakpoint = 0;
     }
 
     switch (step) {
@@ -1595,7 +1645,6 @@ void init_Model_WorkControl() {
         make_Mess_To_DY(3, 1, 1, 1, 1); // 电源分系统通信，打开所有电源
         // 如果电源返回上电成功
         {
-            // std::lock_guard<std::mutex> lock(mutex_fpga);
             if ((mess_From_DY.state_szgd == 1 && mess_From_DY.state_glgd == 1 && mess_From_DY.state_rkbjgd == 1 && mess_From_DY.state_rkgcgd == 1) || cnt_wait > 4) {
                 step = 1; // 进入下一步
             }
@@ -1636,7 +1685,7 @@ void init_Model_WorkControl() {
         }
         // 如果超时，进入下一步
         // if (cnt_wait > (1000 / MAIN_PERIOD_TIME) * INIT_TIME) // 超时判定：12min出状态，进入待机——最终版本12分钟，调试过程中为50s
-        // 模拟器超时判定3s
+        // Note: 模拟器超时判定3s
         if (cnt_wait > 3 * 1000 / MAIN_PERIOD_TIME) {
             step = 4;
         }
@@ -3958,4 +4007,36 @@ void clean_cmd_ImageInfo_Num() {
     // 名  称:条带内序号
     //        表示一次摆扫左到右或右到左）过程每张图片的编号（从1开始），区域监视使用固定值01
     main_Control_State_Param.in_lineNo = 0;
+}
+
+void switchSubsysOperMode(SUBSYS_MAIN_OPER_MODE mode) {
+    // Note: lcy 正常模式和STOP在共享内存中判断
+    // 正常
+    if (V_SUBSYS_MAIN_OPER_MODE_NORMAL == mode) {
+        update_Work_State(V_SUBSYS_WORK_STATE_NORMAL); // 更新相机工作状态
+        update_Main_Mode(V_SUBSYS_MAIN_MODE_NORMAL);   // 任何模式都可切入正常模式，直接切即可
+        make_Mess_IRST_OPERATIONAL_PARAS();            // 上报工作参数
+        send_Mess_IRST_OPERATIONAL_PARAS();            // IRST工作参数报告-发送
+        // 回复执行完成
+        send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_COMPLETED, V_ACT_REFUSED_REASON_NA);
+    }
+    // 停止/可关机模式——-下电——回到NA，所有模式可响应，在所有模式中判断该怎样进入关机
+    else if (V_SUBSYS_MAIN_OPER_MODE_STOP == mode) {
+        clean_cmd_From_FC();                     // 清除指令记录
+        cmd_From_FC.general_cmd_MODE_SWITCH = 1; // 可以执行的指令置为1
+        // 记录参数
+        cmd_From_FC.subsys_main_oper_mode = V_SUBSYS_MAIN_OPER_MODE_STOP;
+    }
+    // Note: lcy ---------END---------------
+}
+
+bool ycAlreadyNormal() {
+    return (main_Control_State_Param.work_state == V_SUBSYS_WORK_STATE_NORMAL &&
+            main_Control_State_Param.main_mode == V_SUBSYS_MAIN_MODE_NORMAL);
+}
+
+bool ycInitializing() {
+    // 如果这两个有一个还是init状态，就认为还在初始化
+    return (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_INIT ||
+            main_Control_State_Param.main_mode == V_SUBSYS_MAIN_MODE_INI);
 }

@@ -14,3 +14,18 @@
     修改后 使用lcy的定位代码 可以正常定位
 
 commit -m '1.原主控代码定位不对,添加lcy的定位代码替代 2.完善共享内存的读写 3.周期性发送work_state_report且不改变bitpercent 4.getRTC改为距离今天0点的纳秒' 
+
+
+上电流程梳理
+1. 创建线程
+2. 工作流程初始化(50s) 期间会发送work_state_report, remaintime逐渐减少 bitpercent逐渐增加
+3. 初始化完成后直接变成normal
+
+共享内存上下电切换
+直接置位normal或stop, 是瞬发的, 不会重新经过初始化流程
+
+现在
+模拟器上电50s 快速上电5s
+
+
+部分共享内存的定义还需要确认

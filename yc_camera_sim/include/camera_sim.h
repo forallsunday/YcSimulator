@@ -26,90 +26,56 @@ class CameraSimulator {
     // 初始化 建立与ControlSimulator的udp连接
     void init();
 
+    // 启动模型
+    void start();
+
     // 单步计算
     void step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output);
 
     // 冻结
     void freeze();
 
-    //
+    // 关闭
     void close();
 
-    // 上电 delay: 上电延迟时间 单位: s
-    void powerOn(int delay);
-    // 下电
-    void powerOff();
-
     // 设置周期性间隔
-    void setPeriodicInterval(int ms) { ps::periodic_interval = ms; };
-    void startTimer5ms();
-    void startSubsystemTiming();
+    void setPeriodicInterval(int ms) { sim::periodic_interval = ms; };
 
+    // 拍照测试
     void testPhotoing();
+
+    // 设置与检测仪连接 (udp进行工作模式请求判断)
+    void setConnectToJCY(bool to_jcy) { sim::is_simulating = false; };
 
   private:
     // 已经初始化了
     bool already_initialized = false;
-
-    // 上电状态
-    enum PowerStatus {
-        POWER_UNKNOWN,
-        POWER_ON,
-        POWER_CHECKING,
-        POWER_FREEZE,
-        POWER_OFF,
-    };
-    std::atomic<PowerStatus> power_status_;
-
-    // 上电参数
-    std::thread      thread_power_on_;
-    std::atomic<int> remain_time;
-
-    // 锁
-    std::mutex mtx_shm_;  // 共享内存锁
-    std::mutex mtx_send_; // 发送锁
-
-    // 共享内存
-    SharedMemoryInput  shm_input_;
-    SharedMemoryOutput shm_output_;
-
-    // 共享内存输入参数映射对应的主要变量
-    char    facility_power_supply_status_ = 0; // 设备供电状态参数 - 设备供电状态
-    uint8_t operation_mode_               = 0; // 模拟器运行控制 - 控制模式
-    struct TargetPixelCoordinates {
-        uint16_t up_left_x;    // 左上角像素横坐标
-        uint16_t up_left_y;    // 左上角像素纵坐标
-        uint16_t down_right_x; // 右下角像素横坐标
-        uint16_t down_right_y; // 右下角像素纵坐标
-    } target_pixel_coor;       // 目标像素坐标
-
-    // 更新共享内存输入
-    void updateSharedMemoryInput();
-
-    // 更新共享内存输出
-    void updateSharedMemoryOutput();
-
-    // UDP
-    int         port_;      // udp 监听端口
-    std::string ip_contrl_; // udp 机载主控模拟器ip
-    int         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
-
-    // 运行状态
-    std::atomic<bool> running_subsystem_timer_;
-
-    // 定时器
-    TimerPeriod timer_5ms_;
-
-    std::thread thread_main_ctrl_;       // 子线程2
-    std::thread thread_other_process_;   // 子线程3
-    std::thread thread_periodic_send_;   // 子线程4
-    std::thread thread_subsystem_timer_; // 子线程5
 
     // 心跳计数
     std::atomic<uint64_t> heartbit_{0};
     std::atomic<bool>     running_hearbit;
     std::thread           thread_heartbit_;
 
+    // 模型状态
+    enum ModelStatus {
+        STATUS_UNKNOWN,
+        STATUS_RUNNING,
+        STATUS_FROZEN,
+        STATUS_CLOSED,
+    };
+    std::atomic<ModelStatus> status_; // 模型状态
+
+    // UDP
+    int         port_;      // udp 监听端口
+    std::string ip_contrl_; // udp 机载主控模拟器ip
+    int         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
+
+    // 运行线程
+    std::thread thread_main_ctrl_;     // 子线程2
+    std::thread thread_other_process_; // 子线程3
+    std::thread thread_periodic_send_; // 子线程4
+
+    // =============线程启动函数==============
     // 心跳线程
     void startHeartbitting();
     // 子线程1 udp连接: 数据接收函数 udpEventRecv 线程一直运行 与类的生命周期一致
@@ -120,25 +86,50 @@ class CameraSimulator {
     void startOtherProcess();
     // 子线程4 任务线程 运行函数 : 周期发送
     void startPeriodicSend();
-    // 子线程5 任务线程 运行函数 : 5ms计时器 有啥用？
-    // void startTimer5ms();
-    // // 子线程6? 任务线程 运行函数 : 分系统计时器
-    // void startSubsystemTiming();
+    // ===============END===================
 
-    // 开始所有任务线程 (不包括 udp线程、心跳线程)
+    // 开始任务线程 (不包括 udp线程、心跳线程)
     void startTaskThreads();
 
-    // fpga
+    // fpga 仿真
     FpgaSimulator fpga_sim_;
 
-    // 超时时间 (子线程阻塞时间)
-    std::chrono::milliseconds timeout = std::chrono::milliseconds(10);
-
-    // 系数
+    // 计算系数
     const double rad_to_deg  = 180.0 / PI;        // 弧度转度
     const double mrad_to_deg = 1e-3 * 180.0 / PI; // 毫弧度转度
     const double deg_to_rad  = PI / 180.0;        // 度转弧度
     const double deg_to_mrad = 1e3 * PI / 180.0;  // 度转毫弧度
+
+    // ======================共享内存输入输出======================
+    SharedMemoryInput  shm_input_;
+    SharedMemoryOutput shm_output_;
+
+    // 共享内存输入参数对应的主要变量
+    char    facility_power_supply_status_ = 0; // 设备供电状态参数 - 设备供电状态
+    uint8_t operation_mode_               = 0; // 模拟器运行控制 - 控制模式
+
+    struct TargetPixelCoordinates {
+        uint16_t up_left_x;    // 左上角像素横坐标
+        uint16_t up_left_y;    // 左上角像素纵坐标
+        uint16_t down_right_x; // 右下角像素横坐标
+        uint16_t down_right_y; // 右下角像素纵坐标
+    };
+    TargetPixelCoordinates target_pixel_coor; // 目标像素坐标参数 - 目标像素坐标
+
+    int member_status_ = 0; // 成员状态参数 - 成员状态 FunctionalUnitStatusMsg.St_UnitStatusData.U1_MemberStatus
+
+    // 更新共享内存输入
+    void updateSharedMemoryInput();
+    // 更新共享内存输出
+    void updateSharedMemoryOutput();
+
+    std::atomic<bool> doing_set_normal_{false}; // 是否正在执行设置为Normal操作
+
+    // 从共享内存中读取上电 设置模拟器为Normal
+    void setSubsysNormal(int delay_sec);
+    // 从共享内存中读取下电 设置模拟器为Stop
+    void setSubsysStop();
+    // =========================END==============================
 
     // 拍照测试
     std::atomic<bool> running_photoing_test{false};

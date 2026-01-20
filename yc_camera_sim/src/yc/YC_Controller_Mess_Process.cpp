@@ -69,7 +69,10 @@ void send_Mess_WORK_STATE_REPORT(UINT32 start_remain_time, UINT32 bitpercent) {
     mess_ToFC_WORK_STATE_REPORT.msg_publisher_ID.subdomain_ID = V_NODE_IRRM;
     // 标识符:start_remain_time
     // 名  称:时间_启动倒计时
-    mess_ToFC_WORK_STATE_REPORT.start_remain_time = start_remain_time;
+    if (start_remain_time <= 65535) {
+        // Note: lcy start_remain_time范围0~65535表示0~65535秒, 如果超过65535则不赋值，为了应对模拟器的需求周期性发送, 保持上次值不变。
+        mess_ToFC_WORK_STATE_REPORT.start_remain_time = start_remain_time;
+    }
     // 标识符:subsys_work_state
     // 名  称:工作状态
     mess_ToFC_WORK_STATE_REPORT.subsys_work_state = main_Control_State_Param.work_state;
@@ -1238,7 +1241,6 @@ void make_Mess_To_TG(UINT8 cmd, UINT8 jg_mode) {
 
 // 图像处理注释信息消息
 void make_Mess_To_TXCL_ZSXX() {
-    std::lock_guard<std::mutex> lock(mutex_shm);
     // 任务信息
     // 名  称:任务代号
     mess_To_TXCL_ZSXX.to_Txcl_A818_Image_common_paras.A818_MissionCode = temp_mess_FromFc_MISSION_EVENT_REPORT.ms_event_update_counter;
@@ -1466,7 +1468,6 @@ void make_Mess_To_TXCL_ZSXX() {
 
 // 图像处理注释信息消息-时间信息、pos信息获取
 void make_Mess_To_TXCL_ZSXX_Time_Pos() {
-    std::lock_guard<std::mutex> lock(mutex_shm);
     // 系统时间设置-----------------------------------------------
     const UINT64 NS_PER_MS     = 1000000ULL;
     const UINT64 NS_PER_SECOND = 1000000000ULL;

@@ -3,17 +3,18 @@
 
 #include <mutex>
 
+namespace sim {
+// 模拟器标志位
+std::atomic<bool> is_simulating{false};
 // thread safe queue
-namespace sq {
-ThreadSafeQueue<PtrUdpPacket> sq_IRST_act_req; // 主控消息队列
-ThreadSafeQueue<PtrUdpPacket> sq_others;       // 其他消息队列
-} // namespace sq
-
+ThreadSafeQueue<PtrUdpPacket> queue_IRST_act_req; // 主控消息队列
+ThreadSafeQueue<PtrUdpPacket> queue_others;       // 其他消息队列
 // periodic send
-namespace ps {
-int periodic_interval;
-}
+int periodic_interval; // 周期性发送间隔 ms
+
+int init_time = 30; // 初始化时间 s
 
 // 锁
 std::mutex mutex_fpga;
 std::mutex mutex_shm; // 共享内存锁
+} // namespace sim

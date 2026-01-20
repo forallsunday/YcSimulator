@@ -69,7 +69,7 @@ UdpConnect::UdpConnect(std::string ip, int port, int port_send, DataHandlFunc da
     : ip_(ip),
       port_(port),
       port_send(port_send),
-      start_receive(false),
+      running(false),
       dataHandlFunc_(std::move(dataFunc)),
       pSocketWrapper_(nullptr),
       socketWrapperHandle_(nullptr),
@@ -88,24 +88,21 @@ bool UdpConnect::Init() {
         return bResult;
     }
 
+    // 绑定接收端口
     int nRes = this->pSocketWrapper_->bind(this->socketWrapperHandle_, inet_addr(ip_.c_str()), port_);
     if (nRes < 0) {
         printf("UDP Recv Bind Failed\n");
         return bResult;
     }
 
+    // 创建发送 socket
     this->socketWrapperHandle_send = this->pSocketWrapper_->socket(SOCKETWRAPPER_SOCK_DGRAM);
     if (nullptr == this->socketWrapperHandle_send) {
         printf("UDP Send Bind Failed\n");
         return bResult;
     }
 
-    // nRes = this->pSocketWrapper_->bind(this->socketWrapperHandle_send, inet_addr(ip_.c_str()), port_send);
-    // if (nRes < 0) {
-    //     return bResult;
-    // }
-
-    // ✅ 若 port_send_ > 0，则绑定固定端口；否则不绑定（使用系统分配的随机端口）
+    // 若 port_send_ > 0，则绑定固定端口；否则不绑定（使用系统分配的随机端口）
     if (port_send > 0) {
         nRes = this->pSocketWrapper_->bind(this->socketWrapperHandle_send, inet_addr(ip_.c_str()), port_send);
         if (nRes < 0) {
@@ -116,7 +113,7 @@ bool UdpConnect::Init() {
         printf("UDP Send using system-assigned port (no bind)\n");
     }
 
-    this->start_receive = true;
+    this->running = true;
 
     // 1) 创建 epoll
     epfd_ = epoll_create1(0);
@@ -149,7 +146,7 @@ bool UdpConnect::Init() {
 
         log_info("recv thread started, fd=%d", (int)(long)this->socketWrapperHandle_);
 
-        while (this->start_receive) {
+        while (this->running) {
 
             int numEvents = epoll_wait(this->epfd_, events, MAX_EVENTS, 1000);
 
@@ -226,10 +223,10 @@ int UdpConnect::SendData(const char *buf, size_t size, const char *ip_dst, int p
 
 void UdpConnect::Close() {
     // 1. 停止循环
-    if (!start_receive)
+    if (!running)
         return;
 
-    start_receive = false;
+    running = false;
 
     // 2. 移除 epoll fd
     if (epfd_ != -1 && socketWrapperHandle_) {
