@@ -123,7 +123,14 @@ class CameraSimulator {
     // 更新共享内存输出
     void updateSharedMemoryOutput();
 
-    std::atomic<bool> doing_set_normal_{false}; // 是否正在执行设置为Normal操作
+    enum SubsysStatus {
+        SUBSYS_STATUS_UNKNOWN,
+        SUBSYS_STATUS_NORMAL,
+        SUBSYS_STATUS_STOP,
+    };
+
+    // 子系统状态
+    std::atomic<SubsysStatus> subsys_status_{SUBSYS_STATUS_UNKNOWN};
 
     // 从共享内存中读取上电 设置模拟器为Normal
     void setSubsysNormal(int delay_sec);

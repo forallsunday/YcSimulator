@@ -312,32 +312,48 @@ void CameraSimulator::updateSharedMemoryOutput() {
 }
 
 void CameraSimulator::setSubsysNormal(int delay_sec) {
+    static std::atomic<bool> doing_set_normal_{false};
+
     bool is_initializing = ycInitializing();
     bool already_normal  = ycAlreadyNormal();
-    // 必须 不在初始化过程中 且 不在正常模式下 才执行切换
-    if (is_initializing == false && already_normal == false) {
-        // 原子抢占，失败直接返回
-        if (doing_set_normal_.exchange(true, std::memory_order_acq_rel)) {
-            return; // 已经有线程在做了
+    // 必须 不在初始化过程中
+    if (is_initializing == false) {
+        // // 避免重复切换 如果正在切换至normal 或者已经是 normal的话 就直接返回
+        // if (doing_set_normal_.load(std::memory_order_acquire) ||
+        //     this->subsys_status_.load(std::memory_order_acquire) == SUBSYS_STATUS_NORMAL) {
+        //     return;
+        // }
+
+        if (already_normal) {
+            // log_proc("[CameraSimulator] already_normal == true.");
+            return;
         }
 
-        // 临时子线程，避免阻塞主线程
-        std::thread([this, delay_sec]() {
+        // 设置正在切换标志
+        doing_set_normal_.store(true, std::memory_order_release);
+
+        // 如果还不是正常模式 说明是第一次切换
+        if (this->subsys_status_.load(std::memory_order_acquire) != SUBSYS_STATUS_NORMAL) {
+            log_proc("[CameraSimulator] Setting to NORMAL mode, delay seconds=%d.", delay_sec);
             // 延时切换，模拟共享内存中上电启动时间
             if (delay_sec > 0) {
                 std::this_thread::sleep_for(seconds(delay_sec));
             }
-            log_proc("[CameraSimulator] Setting to NORMAL mode, delay seconds=%d.", delay_sec);
-            switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_NORMAL);
-            std::this_thread::sleep_for(milliseconds(100)); // 确保状态切换完成
-            doing_set_normal_.store(false, std::memory_order_release);
-        }).detach();
+        }
+
+        switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_NORMAL);
+
+        this->subsys_status_.store(SUBSYS_STATUS_NORMAL, std::memory_order_release);
+
+        // 清除正在切换标志
+        doing_set_normal_.store(false, std::memory_order_release);
     }
 }
 
 void CameraSimulator::setSubsysStop() {
-    switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_STOP);
     log_once("[CameraSimulator] Setting to STOP mode.");
+    switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_STOP);
+    this->subsys_status_.store(SUBSYS_STATUS_STOP, std::memory_order_release);
 }
 
 void CameraSimulator::startTaskThreads() {
@@ -601,8 +617,8 @@ void CameraSimulator::testPhotoing() {
             setNavData();
         };
 
-        // 准备
-        log_once("[CameraSimulator] 设置准备");
+        // 根据当前状态执行对应流程
+        log_once("[CameraSimulator] 开始拍照测试流程");
         while (running_photoing_test) {
             // 根据测试模式设置参数
             switch (test_mode) {
@@ -614,39 +630,51 @@ void CameraSimulator::testPhotoing() {
                 break;
             }
 
-            // act_req_IRST_Process();
-            cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_PREPARE;
-            if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_PREPARE) {
-                cmd_From_FC.irst_cmd_STATE_SET = 0;
-            } else {
-                cmd_From_FC.irst_cmd_STATE_SET = 1;
-            }
-            if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_STBY) {
-                break;
-            }
-            sleep_for(10ms);
-        }
+            // 获取当前IRST工作状态
+            auto current_state = main_Control_State_Param.irst_work_state;
 
-        log_once("[CameraSimulator] 开始拍照");
-        while (running_photoing_test) {
-            // 根据测试模式设置参数
-            switch (test_mode) {
-            case 1:
-                setParamsWideImage();
+            switch (current_state) {
+            case V_IRST_WORK_STATE_INIT:
+                // 初始化中，等待完成
                 break;
-            case 3:
-                setParamsAreaMonitor();
+
+            case V_IRST_WORK_STATE_COLLECT:
+                // 收藏状态，发送准备命令
+                log_once("[CameraSimulator] 收藏状态 -> 发送准备命令");
+                cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_PREPARE;
+                cmd_From_FC.irst_cmd_STATE_SET             = 1;
+                break;
+
+            case V_IRST_WORK_STATE_PREPARE:
+                // 准备中，等待进入待机
+                cmd_From_FC.irst_cmd_STATE_SET = 0;
+                break;
+
+            case V_IRST_WORK_STATE_STBY:
+                // 待机状态，发送拍照命令
+                log_once("[CameraSimulator] 待机状态 -> 发送拍照命令");
+                cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_TAKE_PIC;
+                cmd_From_FC.irst_cmd_STATE_SET             = 1;
+                break;
+
+            case V_IRST_WORK_STATE_TAKE_PIC:
+                // 正在拍照，保持状态
+                cmd_From_FC.irst_cmd_STATE_SET = 0;
+                break;
+
+            case V_IRST_WORK_STATE_NA:
+                // 未知状态（可能刚下电），等待上电初始化
+                log_once("[CameraSimulator] NA状态 等待上电...");
+                break;
+
+            default:
+                // 其他状态，尝试切换到准备
+                log_once("[CameraSimulator] 其他状态(%d)，尝试切换到准备", current_state);
+                cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_PREPARE;
+                cmd_From_FC.irst_cmd_STATE_SET             = 1;
                 break;
             }
 
-            // act_req_IRST_Process();
-            cmd_From_FC.irst_cmd_param_irst_work_state = V_IRST_WORK_STATE_TAKE_PIC;
-            if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_TAKE_PIC) {
-                cmd_From_FC.irst_cmd_STATE_SET = 0;
-            } else {
-                cmd_From_FC.irst_cmd_STATE_SET = 1;
-            }
-            // main_Control_State_Param.irst_work_state   = V_IRST_WORK_STATE_TAKE_PIC;
             sleep_for(10ms);
         }
     });

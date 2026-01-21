@@ -1693,9 +1693,11 @@ void init_Model_WorkControl() {
         break;
 
     case 4:
+        log_once("[初始化] step=4: 初始化完成，进入收藏状态");
         // 进入收藏状态
-        step                              = 0;
-        cnt_wait                          = 0;
+        step     = 0;
+        cnt_wait = 0;
+
         main_Control_State_Param.tj_state = V_PREPARE_STATE_FOCUS_SUCCESS; // 调焦完成
         // 进入收藏状态
         update_Work_State(V_SUBSYS_WORK_STATE_NORMAL); // 工作状态置为正常
