@@ -2662,7 +2662,11 @@ void TGCondition() {
     }
 
     mess_From_TG.KJTG_Mode_back = mess_To_TG.KJTG_Mode;
-    mess_From_TG.HWTG_Mode_back = 0;
+    // // 红外调光模式反馈：ICD infrared_dim_mode: 1=自动, 2=手动 -> HWTG_Mode_back: 0=自动, 1=手动
+    // // 仅当 infrared_dim_mode 不为 NA(0) 时才更新，避免其他参数修改时误切换调光模式
+    // if (cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_dim_mode != 0) {
+    //     mess_From_TG.HWTG_Mode_back = (cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_dim_mode == 2) ? 1 : 0;
+    // }
 
     if (mess_To_TG.Control_Cmd == TG_CMD_GYCX) {
         tg_Param.Photo_Mode = JTGMODE_GY;

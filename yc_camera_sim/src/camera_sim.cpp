@@ -301,7 +301,7 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageModifyPara.U1_LightEnhance_Mode   = mess_From_TG.KJImg_EnHance_back == 0 ? 2 : 1;                                   // 可见光增强 0-NA，1-ON，2-OFF
     St_EOImageModifyPara.I1_LightValueInfrared  = static_cast<char>(cmd_From_FC.irst_cmd_param_IR_image_paras_infra.light_value); // 红外调光值
     St_EOImageModifyPara.I1_FocusValueInfrared  = static_cast<char>(cmd_From_FC.irst_cmd_param_IR_image_paras_infra.focus_value); // 红外调焦值
-    St_EOImageModifyPara.U1_VideoPolar          = mess_From_TG.HWImg_Ply_back == 1 ? 1 : 2;                                       // 极性 0-NA，1-白热，2-黑热
+    St_EOImageModifyPara.U1_VideoPolar          = mess_From_TG.HWImg_Ply_back == 1 ? 1 : 2;                                       // 极性 0-NA，1-黑热，2-白热
     St_EOImageModifyPara.U1_InfraredEnhanceMode = mess_From_TG.HWImg_EnHance_back == 0 ? 2 : 1;                                   // 红外增强 0-NA，1-ON，2-OFF
     // === EOImageModifyPara 光电图像调节参数 === END
 

@@ -116,7 +116,10 @@ void make_Mess_IRST_OPERATIONAL_PARAS() {
     // 名  称:任务主模式
     mess_ToFC_IRST_OPERATIONAL_PARAS.mission_main_mode = mess_ToFC_IRST_OPERATIONAL_PARAS.mission_main_mode;
     // 名  称:制冷状态，接收红外探测器返回参数后处理
-    if (mess_From_TG.HW_Coolling_Error == 1)
+    // 修复：制冷机关闭时返回制冷关状态(0)，否则检查制冷错误或正常状态
+    if (mess_From_TG.HWRef_state_back == 0)
+        mess_ToFC_IRST_OPERATIONAL_PARAS.cool_state = 0; // 制冷机关闭 -> V_COOL_STATE_NA
+    else if (mess_From_TG.HW_Coolling_Error == 1)
         mess_ToFC_IRST_OPERATIONAL_PARAS.cool_state = 3;
     else
         mess_ToFC_IRST_OPERATIONAL_PARAS.cool_state = mess_From_TG.Cool_state + 1;
@@ -170,7 +173,8 @@ void make_Mess_IRST_OPERATIONAL_PARAS() {
     // 名  称:非均匀校正状态
     mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.non_uniform_correct_state = main_Control_State_Param.jiaozheng_state;
     // 名  称:红外调光值,调光-暂时写曝光时间
-    //	mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.light_value_infrared = mess_From_TG.HWExpTime_back * 0.1;
+    // todo: 红外手动调光值 无法响应
+    mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.light_value_infrared = cmd_From_FC.irst_cmd_param_IR_image_paras_infra.light_value; // 红外手动调光值
     // 名  称:可见光调光值,调光
     mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.light_value_light = cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_value;
     // 名  称:光电成像参数

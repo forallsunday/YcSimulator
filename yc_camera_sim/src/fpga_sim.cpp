@@ -55,6 +55,7 @@ void FpgaSimulator::onInterrupt() {
     this->simulatingTG();
     this->simulatingTXCL();
     this->simulatingPCS();
+    this->simulatingGCWK(); // 光窗温控模拟
 
     // 仿真曝光时刻flag=1
     this->simulatingExposure();
@@ -438,6 +439,13 @@ void FpgaSimulator::simulatingTJ() {
         mess_From_TJ.state = 0;
         break;
     }
+
+    // 模拟大小视场切换反馈
+    mess_From_TJ.state_bb = mess_To_TJ.control_bb; // 变倍状态跟随控制命令
+
+    // 模拟调焦模式反馈
+    mess_From_TJ.state_tjmode_kj = mess_To_TJ.control_tjmode_kj; // 可见调焦模式
+    mess_From_TJ.state_tjmode_hw = mess_To_TJ.control_tjmode_hw; // 红外调焦模式
 }
 
 void FpgaSimulator::simulatingTG() {
@@ -465,10 +473,22 @@ void FpgaSimulator::simulatingTG() {
     default:
         break;
     }
-    // todo: 模拟 可见光去雾 可见光增强 极化 红外增强
-    mess_From_TG.KJImg_ReMoveMist_back = mess_To_TG.KJImg_ReMoveMist;
+    // 模拟 可见光去雾、可见光增强、红外增强、红外极化
+    // mess_To_TG.KJImg_ReMoveMist: 1=开,2=关 -> mess_From_TG.KJImg_ReMoveMist_back: 1=开,0=关
+    mess_From_TG.KJImg_ReMoveMist_back = mess_To_TG.KJImg_ReMoveMist == 1 ? 1 : 0; // 可见光去雾
+    mess_From_TG.KJImg_EnHance_back    = mess_To_TG.KJImg_EnHance == 1 ? 1 : 0;    // 可见光增强
+    mess_From_TG.HWImg_EnHance_back    = mess_To_TG.HWImg_EnHance == 1 ? 1 : 0;    // 红外增强
+    mess_From_TG.HWImg_Ply_back        = mess_To_TG.HWImg_Ply;                     // 红外极化(黑白热)
+    // 模拟红外手动调光模式反馈
+    // ICD: infrared_dim_mode: 1=自动, 2=手动, 0=NA -> HWTG_Mode_back: 0=自动, 1=手动
+    // 仅当 infrared_dim_mode 不为 NA(0) 时才更新 HWTG_Mode_back，避免其他参数修改时误切换调光模式
+    if (cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_dim_mode != 0) {
+        mess_From_TG.HWTG_Mode_back =
+            cmd_From_FC.irst_cmd_param_IR_image_paras_infra.infrared_dim_mode == 2 ? 1 : 0;
+    }
 
     static uint64_t        cnt_cooling     = 0;
+    static uint8_t         last_ref_switch = 0; // 上一次制冷开关状态
     static IRST_WORK_STATE last_irst_state = V_IRST_WORK_STATE_NA;
     static IRST_WORK_STATE current_irst_state;
 
@@ -479,26 +499,50 @@ void FpgaSimulator::simulatingTG() {
         // 仿真环境直接模拟配置完成 跳过配置流程
         tg_Param.KJTCQ_InitConfig = 1;
         tg_Param.HWTCQ_InitConfig = 1;
+        // 初始化时直接启动制冷
+        mess_To_TG.HWTCQ_Ref_Switch = 1;
     }
 
-    // 检测状态变化: 从其他状态进入初始化状态时重置制冷系数
+    // 检测状态变化: 从其他状态进入初始化状态时重置制冷计数
     if (V_IRST_WORK_STATE_INIT == current_irst_state &&
         V_IRST_WORK_STATE_INIT != last_irst_state) {
         cnt_cooling = 0; // 重新开始制冷计数
     }
     last_irst_state = current_irst_state;
 
-    // 制冷计数累计
-    cnt_cooling++;
+    // 检测制冷开关状态变化: 从关闭变为开启时重置制冷计数
+    uint8_t current_ref_switch = mess_To_TG.HWTCQ_Ref_Switch;
+    if (current_ref_switch == 1 && last_ref_switch == 0) {
+        cnt_cooling = 0; // 制冷机重新开启，重置计数
+    }
+    last_ref_switch = current_ref_switch;
 
     // 模拟红外制冷状态
     // HW_WorkState2 & 0x06: 0x04=正常制冷结束, 0x02=制冷未到位, 0x06=制冷故障
-    mess_From_TG.HWRef_state_back = 1; // 制冷机开启
+    mess_From_TG.HWRef_state_back = current_ref_switch; // 制冷机开关状态跟随命令
 
     constexpr uint64_t time_cooling = 3 * 1000 / 5; // 3s
-    if (cnt_cooling < time_cooling) {
-        mess_From_TG.HW_WorkState2 = 0x02;
+    if (current_ref_switch == 1) {                  // 制冷机开启
+        // 制冷计数累计
+        cnt_cooling++;
+        if (cnt_cooling < time_cooling) {
+            mess_From_TG.HW_WorkState2 = 0x02; // 制冷中
+            mess_From_TG.Cool_state    = 0;    // 0-正在制冷
+        } else {
+            mess_From_TG.HW_WorkState2 = 0x04; // 制冷正常结束
+            mess_From_TG.Cool_state    = 1;    // 1-制冷到温
+        }
     } else {
-        mess_From_TG.HW_WorkState2 = 0x04; // 制冷正常结束
+        // 制冷机关闭时不累计
+        mess_From_TG.HW_WorkState2 = 0x00; // 制冷机关闭
+        mess_From_TG.Cool_state    = 0;    // 未到温
     }
+}
+
+void FpgaSimulator::simulatingGCWK() {
+    // 光窗去雾模拟：回显指令
+    mess_From_GCWK.head      = 0x7E7E;
+    mess_From_GCWK.cmd       = mess_To_GCWK.cmd; // 回显指令状态
+    mess_From_GCWK.temp      = 250;              // 模拟温度 25.0℃
+    mess_From_GCWK.tem_error = 0;                // 温度传感器正常
 }

@@ -32,6 +32,8 @@ class FpgaSimulator {
     void simulatingTG();
     // 模拟PCS
     void simulatingPCS();
+    // 模拟光窗温控
+    void simulatingGCWK();
     // 模拟曝光时刻flag 根据帧频
     void simulatingExposure();
 

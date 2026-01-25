@@ -542,7 +542,7 @@ typedef struct Struct_FROM_TG {
     // 补充调光需要保存的注释信息
     // 调光工作状态字1
     UINT8 KJTG_Mode_back : 1;   // bit0 0-可见自动调光,1-可见手动调光
-    UINT8 HWTG_Mode_back : 1;   // bit1 0-红外自动调光,1-可见手动调光
+    UINT8 HWTG_Mode_back : 1;   // bit1 0-红外自动调光,1-红外手动调光
     UINT8 Cool_state : 1;       // bit2 0-正在制冷，1-制冷到温
     UINT8 HWRef_state_back : 1; // bit3 0-制冷机关闭，1-制冷机开启
     UINT8 HWImg_Ply_back : 1;   // bit4 红外图像极性，0-白热，1-黑热
