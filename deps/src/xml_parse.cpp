@@ -34,7 +34,7 @@ int find_node_d(const char *topic) {
 void printf_all_node() {
     printf("查看所有Node的idx!!!!!!!\n");
     for (auto str_node : g_udp_ndd) {
-        printf("node: %s, idx: %d\n", str_node.first.c_str(), str_node.second);
+        printf("node: %s, idx: %d\n", str_node.first.c_str(), str_node.second.idx);
     }
     printf("查看所有Node的idx!!!!!!!\n");
 }

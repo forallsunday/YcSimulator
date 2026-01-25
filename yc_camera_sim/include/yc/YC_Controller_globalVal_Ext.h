@@ -1,10 +1,10 @@
 ///*
 // * YC_Controller_globalVal_Ext.h
 // *
-// *  Created on: 2025Äê4ÔÂ10ÈÕ
-// *      Author: ÍõäìÒÝ
+// *  Created on: 2025å¹´4æœˆ10æ—¥
+// *      Author: çŽ‹æ½‡é€¸
 // *
-// *      ÃèÊö£ºÔÚ¸ÃÎÄ¼þÖÐ¶¨ÒåËùÓÐÈ«¾Ö±äÁ¿µÄextern
+// *      æè¿°ï¼šåœ¨è¯¥æ–‡ä»¶ä¸­å®šä¹‰æ‰€æœ‰å…¨å±€å˜é‡çš„extern
 // */
 #ifndef YC_CONTROLLER_GLOBALVAL_EXT_H_
 #define YC_CONTROLLER_GLOBALVAL_EXT_H_
@@ -35,116 +35,116 @@
 #include "YC_Controller_TG_Process.h"
 
 #include <atomic>
-//-----------------------------------------Ö÷¿ØÏß¼°¶¨Ê±Æ÷³Ì¿ØÖÆÓÃ²ÎÊý--------------------------------------------
-// // Ïß³Ìid¶¨Òå
-// extern Task_ID YC_FC_Recv;          // ½ÓÊÕFCÏûÏ¢Ïß³Ì£¬·ÅÈëlist»º³åÇø
-// extern Task_ID YC_Main_Control;     // Ö÷Á÷³Ì¿ØÖÆÏß³Ì
-// extern Task_ID YC_Others_Porcess;   // ÆäËûÏûÏ¢´¦ÀíÏß³Ì
-// extern Task_ID YC_Period_Send_Mess; // ÖÜÆÚ·¢ËÍÏß³Ì
-// // ¶¨Ê±Æ÷¶¨Òå
-// extern ACoreOs_id timer_id_5ms; // 5msÖÜÆÚ¶¨Òå
-// // ÏûÏ¢»º³åÇø
-// extern LIST list_Mess_FromFc_IRST_act_req; // FC½ÓÊÕÏûÏ¢»º³åÇø-IRST_ACT_REQ
-// extern LIST list_Mess_FromFc_Others;       // FC½ÓÊÕÏûÏ¢»º³åÇø-ÆäËûÏûÏ¢
-// // ÐÅºÅÁ¿
-// extern ACoreOs_id   bSemId_list_Mess_FromFc_IRST_act_req;   // FC½ÓÊÕÏûÏ¢»º³åÇø»¥³âËøid-IRST_ACT_REQ
-// extern ACoreOs_name bSemName_list_Mess_FromFc_IRST_act_req; // FC½ÓÊÕÏûÏ¢»º³åÇø»¥³âËøname-IRST_ACT_REQ
-// extern ACoreOs_id   bSemId_list_Mess_FromFc_Others;         // FC½ÓÊÕÏûÏ¢»º³åÇø»¥³âËøid-ÆäËûÏûÏ¢
-// extern ACoreOs_name bSemName_list_Mess_FromFc_Others;       // FC½ÓÊÕÏûÏ¢»º³åÇø»¥³âËøname-ÆäËûÏûÏ¢
-// // Ö÷¿ØÓÃ±êÖ¾Î»
-extern UINT8            flag_Fpga_Interrupt;  // fpgaÖÐ¶Ï£¬0ÎªÎ´ÊÕµ½ÖÐ¶Ï£¬1ÎªÒÑÊÕµ½ÖÐ¶Ï
-// extern int              flag_Fpga_down_times; // Í³¼ÆfpgaÎ´´¥·¢´ÎÊý//fpgaµôÏß´ÎÊý
-extern std::atomic<int> flag_Fpga_down_times; // Í³¼ÆfpgaÎ´´¥·¢´ÎÊý//fpgaµôÏß´ÎÊý
-extern UINT8            flag_Fpga_bg;         // ÆØ¹âÐÅºÅµ½´ï
-//-----------------------------------------Ö÷¿ØÏß¼°¶¨Ê±Æ÷³Ì¿ØÖÆÓÃ²ÎÊý------------------END--------------------------
+//-----------------------------------------ä¸»æŽ§çº¿åŠå®šæ—¶å™¨ç¨‹æŽ§åˆ¶ç”¨å‚æ•°--------------------------------------------
+// // çº¿ç¨‹idå®šä¹‰
+// extern Task_ID YC_FC_Recv;          // æŽ¥æ”¶FCæ¶ˆæ¯çº¿ç¨‹ï¼Œæ”¾å…¥listç¼“å†²åŒº
+// extern Task_ID YC_Main_Control;     // ä¸»æµç¨‹æŽ§åˆ¶çº¿ç¨‹
+// extern Task_ID YC_Others_Porcess;   // å…¶ä»–æ¶ˆæ¯å¤„ç†çº¿ç¨‹
+// extern Task_ID YC_Period_Send_Mess; // å‘¨æœŸå‘é€çº¿ç¨‹
+// // å®šæ—¶å™¨å®šä¹‰
+// extern ACoreOs_id timer_id_5ms; // 5mså‘¨æœŸå®šä¹‰
+// // æ¶ˆæ¯ç¼“å†²åŒº
+// extern LIST list_Mess_FromFc_IRST_act_req; // FCæŽ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒº-IRST_ACT_REQ
+// extern LIST list_Mess_FromFc_Others;       // FCæŽ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒº-å…¶ä»–æ¶ˆæ¯
+// // ä¿¡å·é‡
+// extern ACoreOs_id   bSemId_list_Mess_FromFc_IRST_act_req;   // FCæŽ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒºäº’æ–¥é”id-IRST_ACT_REQ
+// extern ACoreOs_name bSemName_list_Mess_FromFc_IRST_act_req; // FCæŽ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒºäº’æ–¥é”name-IRST_ACT_REQ
+// extern ACoreOs_id   bSemId_list_Mess_FromFc_Others;         // FCæŽ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒºäº’æ–¥é”id-å…¶ä»–æ¶ˆæ¯
+// extern ACoreOs_name bSemName_list_Mess_FromFc_Others;       // FCæŽ¥æ”¶æ¶ˆæ¯ç¼“å†²åŒºäº’æ–¥é”name-å…¶ä»–æ¶ˆæ¯
+// // ä¸»æŽ§ç”¨æ ‡å¿—ä½
+extern UINT8            flag_Fpga_Interrupt;  // fpgaä¸­æ–­ï¼Œ0ä¸ºæœªæ”¶åˆ°ä¸­æ–­ï¼Œ1ä¸ºå·²æ”¶åˆ°ä¸­æ–­
+// extern int              flag_Fpga_down_times; // ç»Ÿè®¡fpgaæœªè§¦å‘æ¬¡æ•°//fpgaæŽ‰çº¿æ¬¡æ•°
+extern std::atomic<int> flag_Fpga_down_times; // ç»Ÿè®¡fpgaæœªè§¦å‘æ¬¡æ•°//fpgaæŽ‰çº¿æ¬¡æ•°
+extern UINT8            flag_Fpga_bg;         // æ›å…‰ä¿¡å·åˆ°è¾¾
+//-----------------------------------------ä¸»æŽ§çº¿åŠå®šæ—¶å™¨ç¨‹æŽ§åˆ¶ç”¨å‚æ•°------------------END--------------------------
 
-//-----------------------------------------Ö÷¿Ø×´Ì¬¿ØÖÆ¼°²ÎÊý¼ÆËãÓÃ²ÎÊý--------------------------------------------
-extern MAIN_CONTROL_STATE_PARAM main_Control_State_Param; // Ö÷¿Ø´Ó×´Ì¬¡¢¿ØÖÆÊý¾Ý¼ÇÂ¼µÈ
-// Ö÷¿ØÊÕµ½Ö¸Áî¼Ä´æÆ÷
-extern CMD_FROM_FC cmd_From_FC; // ÓÃÓÚ»º´æ´ÓfcÀ´µÄIRST_ACT_REQÏûÏ¢£¬ºÍÄÜÖ´ÐÐµÄÖ¸Áî
-// Ö÷¿Øflash´æ´¢³Ö¾Ã»¯ÐÅÏ¢
+//-----------------------------------------ä¸»æŽ§çŠ¶æ€æŽ§åˆ¶åŠå‚æ•°è®¡ç®—ç”¨å‚æ•°--------------------------------------------
+extern MAIN_CONTROL_STATE_PARAM main_Control_State_Param; // ä¸»æŽ§ä»ŽçŠ¶æ€ã€æŽ§åˆ¶æ•°æ®è®°å½•ç­‰
+// ä¸»æŽ§æ”¶åˆ°æŒ‡ä»¤å¯„å­˜å™¨
+extern CMD_FROM_FC cmd_From_FC; // ç”¨äºŽç¼“å­˜ä»Žfcæ¥çš„IRST_ACT_REQæ¶ˆæ¯ï¼Œå’Œèƒ½æ‰§è¡Œçš„æŒ‡ä»¤
+// ä¸»æŽ§flashå­˜å‚¨æŒä¹…åŒ–ä¿¡æ¯
 extern MESS_FROMFC_HWINFO_FLASH nbMess_hwInfo_FLASH;
-// ¾²Ì¬³ÉÏñICD
+// é™æ€æˆåƒICD
 extern MESS_FROMFC_JT_PHOTO nbMess_jt_Photo;
-// ¼ÇÂ¼¸÷¹¦ÄÜµ¥ÔªµÄÓ¦ÓÃ×´Ì¬½á¹¹Ìå
+// è®°å½•å„åŠŸèƒ½å•å…ƒçš„åº”ç”¨çŠ¶æ€ç»“æž„ä½“
 extern V_NODE_APP_STATE vnode_APP_STATE;
 
-// Ö÷¿Ø¼ÆËãÓÃ²ÎÊý£¬Ö÷Òª°üº¬Á½Àà£¬£¨Ò»£©¼ÆËãÊäÈë²ÎÊýºÍ£¨¶þ£©¼ÆËãÊä³ö²ÎÊý
-// Ò»¡¢¼ÆËãÊäÈë²ÎÊý°üÀ¨Á½Àà£º
-// 1.À´×ÔFCÉÏ¶Ë½ÓÊÕ£¬ÐèÒª¶¨ÒåÏà¹Ø±äÁ¿½øÐÐ»º´æ,Ö÷Òª°üÀ¨¸÷ÖÖ¹¤×÷Ä£Ê½Ê¹ÓÃµÄ²ÎÊý,ÒÔ¼°ÆäËû¿ØÖÆ²ÎÊý
+// ä¸»æŽ§è®¡ç®—ç”¨å‚æ•°ï¼Œä¸»è¦åŒ…å«ä¸¤ç±»ï¼Œï¼ˆä¸€ï¼‰è®¡ç®—è¾“å…¥å‚æ•°å’Œï¼ˆäºŒï¼‰è®¡ç®—è¾“å‡ºå‚æ•°
+// ä¸€ã€è®¡ç®—è¾“å…¥å‚æ•°åŒ…æ‹¬ä¸¤ç±»ï¼š
+// 1.æ¥è‡ªFCä¸Šç«¯æŽ¥æ”¶ï¼Œéœ€è¦å®šä¹‰ç›¸å…³å˜é‡è¿›è¡Œç¼“å­˜,ä¸»è¦åŒ…æ‹¬å„ç§å·¥ä½œæ¨¡å¼ä½¿ç”¨çš„å‚æ•°,ä»¥åŠå…¶ä»–æŽ§åˆ¶å‚æ•°
 extern PARAM_COMPUTE_INPUT_FROMFC param_Compute_Input_Fromfc;
-// 2.À´×ÔÄÚ²¿fpga¸÷·ÖÏµÍ³,Ò²Òª¶¨ÒåÒ»¸ö½á¹¹Ìå£¬ÓÃmess_From_FpgaÖÐµÄÏà¹Ø²ÎÊý³ËÒÔLSBºó½øÐÐ»º´æ
+// 2.æ¥è‡ªå†…éƒ¨fpgaå„åˆ†ç³»ç»Ÿ,ä¹Ÿè¦å®šä¹‰ä¸€ä¸ªç»“æž„ä½“ï¼Œç”¨mess_From_Fpgaä¸­çš„ç›¸å…³å‚æ•°ä¹˜ä»¥LSBåŽè¿›è¡Œç¼“å­˜
 extern PARAM_COMPUTE_INPUT_FROMFPGA param_Compute_Input_Fromfpga;
-// ¶þ¡¢¼ÆËãÊä³ö²ÎÊý£º
-extern PARAM_COMPUTE_OUTPUT param_Compute_Output; // Ö÷¿Ø¼ÆËãÊä³ö²ÎÊý½á¹¹Ìå
+// äºŒã€è®¡ç®—è¾“å‡ºå‚æ•°ï¼š
+extern PARAM_COMPUTE_OUTPUT param_Compute_Output; // ä¸»æŽ§è®¡ç®—è¾“å‡ºå‚æ•°ç»“æž„ä½“
 
-// µ÷¹âÓÃÏà¹Ø²ÎÊý
-extern TG_PARAM     tg_Param;     // µ÷¹âÓÃ²ÎÊý½á¹¹Ìå
-extern MESS_TO_TG   mess_To_TG;   // Ïòµ÷¹â·¢ËÍ
-extern MESS_FROM_TG mess_From_TG; // ´Óµ÷¹â½ÓÊÕ
-//-----------------------------------------Ö÷¿Ø×´Ì¬¿ØÖÆ¼°²ÎÊý¼ÆËãÓÃ²ÎÊý---------------END-----------------------------
+// è°ƒå…‰ç”¨ç›¸å…³å‚æ•°
+extern TG_PARAM     tg_Param;     // è°ƒå…‰ç”¨å‚æ•°ç»“æž„ä½“
+extern MESS_TO_TG   mess_To_TG;   // å‘è°ƒå…‰å‘é€
+extern MESS_FROM_TG mess_From_TG; // ä»Žè°ƒå…‰æŽ¥æ”¶
+//-----------------------------------------ä¸»æŽ§çŠ¶æ€æŽ§åˆ¶åŠå‚æ•°è®¡ç®—ç”¨å‚æ•°---------------END-----------------------------
 
-//---------------------------------Íâ²¿FCÏûÏ¢¶¨Òå----------------------------------------
-// ´ÓFC½ÓÊÕµÄÏûÏ¢£¬ÐèÒªÊ¹ÓÃÆä²ÎÊý
-extern SYM_OPERATIONAL_PARAS   temp_mess_FromFc_SYM_OPERATIONAL_PARAS;   // ÏµÍ³¹ÜÀí¹¤×÷²ÎÊý±¨¸æ
-extern SYM_TIME_REPORT         temp_mess_FromFc_SYM_TIME_REPORT;         // ÏµÍ³¹ÜÀíÊ±¼äÐÅÏ¢±¨¸æ
-extern INS1_OPERATIONAL_PARAS  temp_mess_FromFc_INS1_OPERATIONAL_PARAS;  // INS1¹¤×÷²ÎÊý±¨¸æ
-extern INS2_OPERATIONAL_PARAS  temp_mess_FromFc_INS2_OPERATIONAL_PARAS;  // INS2¹¤×÷²ÎÊý±¨¸æ
-extern INS3_OPERATIONAL_PARAS  temp_mess_FromFc_INS3_OPERATIONAL_PARAS;  // INS3¹¤×÷²ÎÊý±¨¸æ
-extern INS1_NAV_DATA           temp_mess_FromFc_INS1_NAV_DATA;           // INS1µ¼º½Êý¾Ý
-extern INS2_NAV_DATA           temp_mess_FromFc_INS2_NAV_DATA;           // INS2µ¼º½Êý¾Ý
-extern INS3_NAV_DATA           temp_mess_FromFc_INS3_NAV_DATA;           // INS3µ¼º½Êý¾Ý
-extern ABSOLUTE_NAV_DATA_FUSED temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED; // ¾ø¶Ôµ¼º½ÈÚºÏ·ÉÐÐ²ÎÊý
-extern NAV_PARAS               temp_mess_FromFc_NAV_PARAS;               // µ¼º½²ÎÊý±¨¸æ
-extern MISSION_EVENT_REPORT    temp_mess_FromFc_MISSION_EVENT_REPORT;    // Õ½ÊõÈÎÎñÊÂ¼þ±¨¸æ
-// ÏòFC·¢ËÍµÄÏûÏ¢
-extern IRST_ACT_REQ_REPORT            mess_ToFC_IRST_ACT_REQ_REPORT;            // IRST_»î¶¯ÇëÇóÍ¨¸æ
-extern WORK_STATE_REPORT              mess_ToFC_WORK_STATE_REPORT;              // ¹¤×÷×´Ì¬±¨¸æ
-extern IRST_OPERATIONAL_PARAS         mess_ToFC_IRST_OPERATIONAL_PARAS;         // IRST¹¤×÷²ÎÊý±¨¸æ
-extern IRST_OPERATIONAL_PARAS         temp_mess_ToFC_IRST_OPERATIONAL_PARAS;    // IRST¹¤×÷²ÎÊý±¨¸æ6¡ª¡ªÓÃÓÚ±È½ÏÓëÉÏÒ»´ÎÊÇ·ñÒ»ÖÂ£¬²»Ò»ÖÂÔòÉÏ±¨
-extern HW_CONFIG_INFO_REPORT          mess_ToFC_HW_CONFIG_INFO_REPORT;          // Ó²¼þÅäÖÃÐÅÏ¢±¨¸æ
-extern SW_CONFIG_INFO_REPORT          mess_ToFC_SW_CONFIG_INFO_REPORT;          // Èí¼þÅäÖÃÐÅÏ¢±¨¸æ
-extern PHM_DATA_RAW_IRST              mess_ToFC_PHM_DATA_RAW_IRST;              // ½¡¿µ¹ÜÀí_RawÊý¾Ý_IRST
-extern PHM_DATA_EVENT_MS_SUB          mess_ToFC_PHM_DATA_EVENT_MS_SUB;          // ½¡¿µ¹ÜÀí_EventÊý¾Ý_MS_SUB
-extern PHM_DATA_HMC_MS_SUB            mess_ToFC_PHM_DATA_HMC_MS_SUB;            // ½¡¿µ¹ÜÀí_HMCÊý¾Ý_MS_SUB
-extern DATABASEINFO                   mess_ToFC_DATABASEINFO;                   // Êý¾Ý¿âÐÅÏ¢
-extern IRST_PIXEL_PARAS               mess_ToFC_IRST_PIXEL_PARAS;               // IRSTÏñÔª²ÎÊý10
-extern IRST_LOS                       mess_ToFC_IRST_LOS;                       // ÉÏ±¨losÊý¾Ý
-extern IR_NAV_DATA                    mess_ToFC_IR_NAV_DATA;                    // ¹âµçIMUµ¼º½Êý¾Ý
-extern RECONNAISED_AREA_IR_2GCS_EVENT mess_ToFC_RECONNAISED_AREA_IR_2GCS_EVENT; // Õì²ì¸²¸ÇÇøÓò²ÎÊý_IR,ºìÍâ×¢ÊÍÐÅÏ¢
-extern RECONNAISED_AREA_TV_2GCS_EVENT mess_ToFC_RECONNAISED_AREA_TV_2GCS_EVENT; // Õì²ì¸²¸ÇÇøÓò²ÎÊý_TV,¿É¼û×¢ÊÍÐÅÏ¢
-extern ID_DATA_TRANSMIT_STATE         mess_ToFC_ID_DATA_TRANSMIT_STATE;         // Çé±¨Êý¾Ý´«Êä×´Ì¬
-//---------------------------------Íâ²¿FCÏûÏ¢¶¨Òå------------------END----------------------
+//---------------------------------å¤–éƒ¨FCæ¶ˆæ¯å®šä¹‰----------------------------------------
+// ä»ŽFCæŽ¥æ”¶çš„æ¶ˆæ¯ï¼Œéœ€è¦ä½¿ç”¨å…¶å‚æ•°
+extern SYM_OPERATIONAL_PARAS   temp_mess_FromFc_SYM_OPERATIONAL_PARAS;   // ç³»ç»Ÿç®¡ç†å·¥ä½œå‚æ•°æŠ¥å‘Š
+extern SYM_TIME_REPORT         temp_mess_FromFc_SYM_TIME_REPORT;         // ç³»ç»Ÿç®¡ç†æ—¶é—´ä¿¡æ¯æŠ¥å‘Š
+extern INS1_OPERATIONAL_PARAS  temp_mess_FromFc_INS1_OPERATIONAL_PARAS;  // INS1å·¥ä½œå‚æ•°æŠ¥å‘Š
+extern INS2_OPERATIONAL_PARAS  temp_mess_FromFc_INS2_OPERATIONAL_PARAS;  // INS2å·¥ä½œå‚æ•°æŠ¥å‘Š
+extern INS3_OPERATIONAL_PARAS  temp_mess_FromFc_INS3_OPERATIONAL_PARAS;  // INS3å·¥ä½œå‚æ•°æŠ¥å‘Š
+extern INS1_NAV_DATA           temp_mess_FromFc_INS1_NAV_DATA;           // INS1å¯¼èˆªæ•°æ®
+extern INS2_NAV_DATA           temp_mess_FromFc_INS2_NAV_DATA;           // INS2å¯¼èˆªæ•°æ®
+extern INS3_NAV_DATA           temp_mess_FromFc_INS3_NAV_DATA;           // INS3å¯¼èˆªæ•°æ®
+extern ABSOLUTE_NAV_DATA_FUSED temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED; // ç»å¯¹å¯¼èˆªèžåˆé£žè¡Œå‚æ•°
+extern NAV_PARAS               temp_mess_FromFc_NAV_PARAS;               // å¯¼èˆªå‚æ•°æŠ¥å‘Š
+extern MISSION_EVENT_REPORT    temp_mess_FromFc_MISSION_EVENT_REPORT;    // æˆ˜æœ¯ä»»åŠ¡äº‹ä»¶æŠ¥å‘Š
+// å‘FCå‘é€çš„æ¶ˆæ¯
+extern IRST_ACT_REQ_REPORT            mess_ToFC_IRST_ACT_REQ_REPORT;            // IRST_æ´»åŠ¨è¯·æ±‚é€šå‘Š
+extern WORK_STATE_REPORT              mess_ToFC_WORK_STATE_REPORT;              // å·¥ä½œçŠ¶æ€æŠ¥å‘Š
+extern IRST_OPERATIONAL_PARAS         mess_ToFC_IRST_OPERATIONAL_PARAS;         // IRSTå·¥ä½œå‚æ•°æŠ¥å‘Š
+extern IRST_OPERATIONAL_PARAS         temp_mess_ToFC_IRST_OPERATIONAL_PARAS;    // IRSTå·¥ä½œå‚æ•°æŠ¥å‘Š6â€”â€”ç”¨äºŽæ¯”è¾ƒä¸Žä¸Šä¸€æ¬¡æ˜¯å¦ä¸€è‡´ï¼Œä¸ä¸€è‡´åˆ™ä¸ŠæŠ¥
+extern HW_CONFIG_INFO_REPORT          mess_ToFC_HW_CONFIG_INFO_REPORT;          // ç¡¬ä»¶é…ç½®ä¿¡æ¯æŠ¥å‘Š
+extern SW_CONFIG_INFO_REPORT          mess_ToFC_SW_CONFIG_INFO_REPORT;          // è½¯ä»¶é…ç½®ä¿¡æ¯æŠ¥å‘Š
+extern PHM_DATA_RAW_IRST              mess_ToFC_PHM_DATA_RAW_IRST;              // å¥åº·ç®¡ç†_Rawæ•°æ®_IRST
+extern PHM_DATA_EVENT_MS_SUB          mess_ToFC_PHM_DATA_EVENT_MS_SUB;          // å¥åº·ç®¡ç†_Eventæ•°æ®_MS_SUB
+extern PHM_DATA_HMC_MS_SUB            mess_ToFC_PHM_DATA_HMC_MS_SUB;            // å¥åº·ç®¡ç†_HMCæ•°æ®_MS_SUB
+extern DATABASEINFO                   mess_ToFC_DATABASEINFO;                   // æ•°æ®åº“ä¿¡æ¯
+extern IRST_PIXEL_PARAS               mess_ToFC_IRST_PIXEL_PARAS;               // IRSTåƒå…ƒå‚æ•°10
+extern IRST_LOS                       mess_ToFC_IRST_LOS;                       // ä¸ŠæŠ¥losæ•°æ®
+extern IR_NAV_DATA                    mess_ToFC_IR_NAV_DATA;                    // å…‰ç”µIMUå¯¼èˆªæ•°æ®
+extern RECONNAISED_AREA_IR_2GCS_EVENT mess_ToFC_RECONNAISED_AREA_IR_2GCS_EVENT; // ä¾¦å¯Ÿè¦†ç›–åŒºåŸŸå‚æ•°_IR,çº¢å¤–æ³¨é‡Šä¿¡æ¯
+extern RECONNAISED_AREA_TV_2GCS_EVENT mess_ToFC_RECONNAISED_AREA_TV_2GCS_EVENT; // ä¾¦å¯Ÿè¦†ç›–åŒºåŸŸå‚æ•°_TV,å¯è§æ³¨é‡Šä¿¡æ¯
+extern ID_DATA_TRANSMIT_STATE         mess_ToFC_ID_DATA_TRANSMIT_STATE;         // æƒ…æŠ¥æ•°æ®ä¼ è¾“çŠ¶æ€
+//---------------------------------å¤–éƒ¨FCæ¶ˆæ¯å®šä¹‰------------------END----------------------
 
-//---------------------------------ÄÚ²¿ÏµÍ³¶ÁÐ´Êý¾Ý¶¨Òå----------------------------------------
-// ÏòfpgaÐ´µÄÏûÏ¢Êý¾Ý
-extern Mess_To_TJ         mess_To_TJ;         // Ïòµ÷½¹·¢
-extern Mess_To_KJ         mess_To_KJ;         // Ïò¿ò¼Ü·¢
-extern Mess_To_TXCL_CMD   mess_To_TXCL_CMD;   // ÏòÍ¼Ïñ´¦ÀíÖ¸Áî
-extern Mess_To_TXCL_ZSXX  mess_To_TXCL_ZSXX;  // Í¼Ïñ´¦Àí-×¢ÊÍÐÅÏ¢
-extern Mess_To_DY         mess_To_DY;         // ÏòµçÔ´·¢
-extern MESS_To_GCWK       mess_To_GCWK;       // Ïò¹â´°ÎÂ¿Ø·¢
-extern Mess_TO_PCS_DATA   mess_TO_PCS_DATA;   // Ïò¹ßµ¼·¢Êý¾Ý°ü
-extern MESS_To_PCS_Update mess_To_PCS_Update; // Ïò¹ßµ¼·¢
-extern MESS_To_JLY        mess_To_JLY;        // Ïò¼ÇÂ¼ÒÇ·¢
-extern MESS_To_QNSJ       mess_To_QNSJ;       // ÏòÇòÄÚÊý¾Ý·¢
-extern MESS_To_FPGA       mess_To_FPGA;       // ÏòFPGA·¢
-// ´Ófpga¶ÁµÄÏûÏ¢Êý¾Ý
-extern Mess_From_TJ       mess_From_TJ;        // ´Óµ÷½¹ÊÕ
-extern Mess_From_KJ       mess_From_KJ;        // ´Ó¿ò¼ÜÊÕ
-extern Mess_From_TXCL     mess_From_TXCL;      // ´ÓÍ¼Ïñ´¦ÀíÊÕ
-extern Mess_From_TXCL     temp_mess_From_TXCL; // ´ÓÍ¼Ïñ´¦ÀíÊÕ¡ª¡ª¸øfpga¶µµ×
-extern Mess_From_DY       mess_From_DY;        // ´ÓµçÔ´ÊÕ
-extern Mess_From_PCS_DATA mess_From_PCS_DATA;  // ´ÓPCSÊÕ
-extern MESS_From_GCWK     mess_From_GCWK;      // ´Ó¹â´°ÎÂ¿ØÊÕ
-extern MESS_From_JLY      mess_From_JLY;       // Ïò¼ÇÂ¼ÒÇ·¢
-extern MESS_From_QNSJ     mess_From_QNSJ;      // ÏòÇòÄÚÊý¾Ý·¢
-extern MESS_From_FPGA     mess_From_FPGA;      // ÏòFPGA·¢
-//---------------------------------ÄÚ²¿ÏµÍ³¶ÁÐ´Êý¾Ý¶¨Òå-------------END---------------------------
+//---------------------------------å†…éƒ¨ç³»ç»Ÿè¯»å†™æ•°æ®å®šä¹‰----------------------------------------
+// å‘fpgaå†™çš„æ¶ˆæ¯æ•°æ®
+extern Mess_To_TJ         mess_To_TJ;         // å‘è°ƒç„¦å‘
+extern Mess_To_KJ         mess_To_KJ;         // å‘æ¡†æž¶å‘
+extern Mess_To_TXCL_CMD   mess_To_TXCL_CMD;   // å‘å›¾åƒå¤„ç†æŒ‡ä»¤
+extern Mess_To_TXCL_ZSXX  mess_To_TXCL_ZSXX;  // å›¾åƒå¤„ç†-æ³¨é‡Šä¿¡æ¯
+extern Mess_To_DY         mess_To_DY;         // å‘ç”µæºå‘
+extern MESS_To_GCWK       mess_To_GCWK;       // å‘å…‰çª—æ¸©æŽ§å‘
+extern Mess_TO_PCS_DATA   mess_TO_PCS_DATA;   // å‘æƒ¯å¯¼å‘æ•°æ®åŒ…
+extern MESS_To_PCS_Update mess_To_PCS_Update; // å‘æƒ¯å¯¼å‘
+extern MESS_To_JLY        mess_To_JLY;        // å‘è®°å½•ä»ªå‘
+extern MESS_To_QNSJ       mess_To_QNSJ;       // å‘çƒå†…æ•°æ®å‘
+extern MESS_To_FPGA       mess_To_FPGA;       // å‘FPGAå‘
+// ä»Žfpgaè¯»çš„æ¶ˆæ¯æ•°æ®
+extern Mess_From_TJ       mess_From_TJ;        // ä»Žè°ƒç„¦æ”¶
+extern Mess_From_KJ       mess_From_KJ;        // ä»Žæ¡†æž¶æ”¶
+extern Mess_From_TXCL     mess_From_TXCL;      // ä»Žå›¾åƒå¤„ç†æ”¶
+extern Mess_From_TXCL     temp_mess_From_TXCL; // ä»Žå›¾åƒå¤„ç†æ”¶â€”â€”ç»™fpgaå…œåº•
+extern Mess_From_DY       mess_From_DY;        // ä»Žç”µæºæ”¶
+extern Mess_From_PCS_DATA mess_From_PCS_DATA;  // ä»ŽPCSæ”¶
+extern MESS_From_GCWK     mess_From_GCWK;      // ä»Žå…‰çª—æ¸©æŽ§æ”¶
+extern MESS_From_JLY      mess_From_JLY;       // å‘è®°å½•ä»ªå‘
+extern MESS_From_QNSJ     mess_From_QNSJ;      // å‘çƒå†…æ•°æ®å‘
+extern MESS_From_FPGA     mess_From_FPGA;      // å‘FPGAå‘
+//---------------------------------å†…éƒ¨ç³»ç»Ÿè¯»å†™æ•°æ®å®šä¹‰-------------END---------------------------
 
-// Íâ²¿º¯ÊýÒýÓÃ
-extern STATUS pcieInit(void); // PICE³õÊ¼»¯º¯ÊýÍâ²¿ÒýÓÃ
-// Ð´flash
+// å¤–éƒ¨å‡½æ•°å¼•ç”¨
+extern STATUS pcieInit(void); // PICEåˆå§‹åŒ–å‡½æ•°å¤–éƒ¨å¼•ç”¨
+// å†™flash
 // extern int my_flash_write(ADDRESS flashStart, char *buf, ULONG nbytes);
 
 // #ifdef __cplusplus

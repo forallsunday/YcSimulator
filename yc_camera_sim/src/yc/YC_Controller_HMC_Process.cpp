@@ -1,7 +1,7 @@
 /*
  * YC_Controller_HMC_Process.c
  *
- *  Created on: 2025Äê9ÔÂ8ÈÕ
+ *  Created on: 2025å¹´9æœˆ8æ—¥
  *      Author: wangx
  */
 
@@ -14,623 +14,623 @@
 #include "YC_Controller_Main_Process.h"
 
 HMC_IRST_NB nb_HMC_DATA;
-// ÄÚ²¿HMCÊı¾İ³õÊ¼»¯£¬Ö÷ÒªÊÇ±àºÅ
+// å†…éƒ¨HMCæ•°æ®åˆå§‹åŒ–ï¼Œä¸»è¦æ˜¯ç¼–å·
 void nb_HMC_DATA_INIT() {
     int i = 0;
 
     memset(&nb_HMC_DATA, 0, sizeof(HMC_IRST_NB));
 
     for (i = 0; i < TOTAL_HMC_NUM; i++) {
-        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_LCN   = 0;     // LCNÂë£¬Ôİ¶¨ÎªÈ«0
-        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_HSC   = i + 1; // HSCÂë£¬´Ó1-50
-        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_HASC  = 10;    // HASCÂë£¬ÉÏµç10£¬ÖÜÆÚ30£¬Æô¶¯40£¬Î¬»¤50
-        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_State = 0;     // HMC×´Ì¬£¬·¢Éú1¡¢ÏûÊ§0
+        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_LCN   = 0;     // LCNç ï¼Œæš‚å®šä¸ºå…¨0
+        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_HSC   = i + 1; // HSCç ï¼Œä»1-50
+        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_HASC  = 10;    // HASCç ï¼Œä¸Šç”µ10ï¼Œå‘¨æœŸ30ï¼Œå¯åŠ¨40ï¼Œç»´æŠ¤50
+        nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_State = 0;     // HMCçŠ¶æ€ï¼Œå‘ç”Ÿ1ã€æ¶ˆå¤±0
     }
 
-    // Í¨ĞÅ¹¦ÄÜÒì³£
+    // é€šä¿¡åŠŸèƒ½å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[0].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[0].HMC_HSC = 1;
-    // ²ÎÊı³¬ÏŞ
+    // å‚æ•°è¶…é™
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[1].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[1].HMC_HSC = 2;
-    // ËÅ·ş¹¦ÄÜÒì³£
+    // ä¼ºæœåŠŸèƒ½å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[2].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[2].HMC_HSC = 3;
-    // ¼ì½¹¹¦ÄÜÒì³£
+    // æ£€ç„¦åŠŸèƒ½å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[3].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[3].HMC_HSC = 4;
-    // ¼ìµ÷¹â¹¦ÄÜÒì³£
+    // æ£€è°ƒå…‰åŠŸèƒ½å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[4].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[4].HMC_HSC = 5;
-    // ¿É¼û¹âÍ¼ÏñÍ¨Â·Òì³£
+    // å¯è§å…‰å›¾åƒé€šè·¯å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[5].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[5].HMC_HSC = 6;
-    // ºìÍâÍ¼ÏñÍ¨Â·Òì³£
+    // çº¢å¤–å›¾åƒé€šè·¯å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[6].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[6].HMC_HSC = 7;
-    // ÒşÉí¹â´°È¥ÎíÒì³££¨Êµ¼ÊÊÇ¹â´°RS422Òì³££©
+    // éšèº«å…‰çª—å»é›¾å¼‚å¸¸ï¼ˆå®é™…æ˜¯å…‰çª—RS422å¼‚å¸¸ï¼‰
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[7].HMC_LCN = 398000300;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[7].HMC_HSC = 8;
-    // ¹â»ú×é¼ş¿ØÖÆÆ÷Í¨ĞÅ½Ó¿Ú¹ÊÕÏ
+    // å…‰æœºç»„ä»¶æ§åˆ¶å™¨é€šä¿¡æ¥å£æ•…éšœ
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[8].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[8].HMC_HSC = 1001;
-    // POSÍ¨ĞÅ¹ÊÕÏ
+    // POSé€šä¿¡æ•…éšœ
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[9].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[9].HMC_HSC = 1002;
-    // ¹â»ú×é¼ş-ÊäÈë¸©Ñö½Ç²ÎÊı³¬ÏŞ
+    // å…‰æœºç»„ä»¶-è¾“å…¥ä¿¯ä»°è§’å‚æ•°è¶…é™
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[10].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[10].HMC_HSC = 1003;
-    // ¹â»ú×é¼ş-ËÙ¸ß±È³¬ÏŞ
+    // å…‰æœºç»„ä»¶-é€Ÿé«˜æ¯”è¶…é™
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[11].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[11].HMC_HSC = 1004;
-    // ¹â»ú×é¼ş-ÊäÈëËÙ¶È²ÎÊı³¬ÏŞ£¨ËÙ¶È>100km/h£©
+    // å…‰æœºç»„ä»¶-è¾“å…¥é€Ÿåº¦å‚æ•°è¶…é™ï¼ˆé€Ÿåº¦>100km/hï¼‰
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[12].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[12].HMC_HSC = 1005;
-    // ¹â»ú×é¼ş-ÊäÈë¸ß¶È²ÎÊı³¬ÏŞ£¨¸ß¶È>20000m,<1000m£©
+    // å…‰æœºç»„ä»¶-è¾“å…¥é«˜åº¦å‚æ•°è¶…é™ï¼ˆé«˜åº¦>20000m,<1000mï¼‰
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[13].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[13].HMC_HSC = 1006;
-    // ¹â»ú×é¼ş-ÊäÈëÆ«Á÷½Ç²ÎÊı³¬ÏŞ
+    // å…‰æœºç»„ä»¶-è¾“å…¥åæµè§’å‚æ•°è¶…é™
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[14].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[14].HMC_HSC = 1007;
-    // ¹â»ú×é¼ş-ÊäÈëºá¹ö½Ç²ÎÊı³¬ÏŞ
+    // å…‰æœºç»„ä»¶-è¾“å…¥æ¨ªæ»šè§’å‚æ•°è¶…é™
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[15].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[15].HMC_HSC = 1008;
-    // ¿ò¼Ü¿ØÖÆ·ÖÏµÍ³RS422
+    // æ¡†æ¶æ§åˆ¶åˆ†ç³»ç»ŸRS422
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[16].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[16].HMC_HSC = 1009;
-    // Íâ¿ò¼ÜÍÓÂİÒì³£
+    // å¤–æ¡†æ¶é™€èºå¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[17].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[17].HMC_HSC = 1010;
-    // Íâ¿ò¼Ü±àÂëÆ÷Òì³£
+    // å¤–æ¡†æ¶ç¼–ç å™¨å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[18].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[18].HMC_HSC = 1011;
-    // Íâ¿ò¼ÜÎ»ÖÃ³¬²î
+    // å¤–æ¡†æ¶ä½ç½®è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[19].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[19].HMC_HSC = 1012;
-    // Íâ¿ò¼ÜËÙ¶È³¬²î
+    // å¤–æ¡†æ¶é€Ÿåº¦è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[20].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[20].HMC_HSC = 1013;
-    // ÄÚ¿ò¼ÜÍÓÂİÒì³£
+    // å†…æ¡†æ¶é™€èºå¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[21].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[21].HMC_HSC = 1014;
-    // ÄÚ¿ò¼Ü±àÂëÆ÷Òì³£
+    // å†…æ¡†æ¶ç¼–ç å™¨å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[22].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[22].HMC_HSC = 1015;
-    // ÄÚ¿ò¼ÜÎ»ÖÃ³¬²î
+    // å†…æ¡†æ¶ä½ç½®è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[23].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[23].HMC_HSC = 1016;
-    // ÄÚ¿ò¼ÜËÙ¶È³¬²î
+    // å†…æ¡†æ¶é€Ÿåº¦è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[24].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[24].HMC_HSC = 1017;
-    // ¿ò¼ÜÎ»ÖÃ/ËÙ¶ÈĞÅºÅÒì³£
+    // æ¡†æ¶ä½ç½®/é€Ÿåº¦ä¿¡å·å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[25].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[25].HMC_HSC = 1018;
-    // ¿ò¼Ü½ÓÊÕ¿ì·´Æô¶¯ĞÅºÅÒì³£
+    // æ¡†æ¶æ¥æ”¶å¿«åå¯åŠ¨ä¿¡å·å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[26].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[26].HMC_HSC = 1019;
-    // ²¹³¥¾µRS422
+    // è¡¥å¿é•œRS422
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[27].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[27].HMC_HSC = 1020;
-    // ¿ì·´·½Î»AD²É¼¯Òì³£
+    // å¿«åæ–¹ä½ADé‡‡é›†å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[28].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[28].HMC_HSC = 1021;
-    // ¿ì·´¸©ÑöADÒì³£
+    // å¿«åä¿¯ä»°ADå¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[29].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[29].HMC_HSC = 1022;
-    // ¿ì·´·½Î»µç»ú×´Ì¬Òì³£
+    // å¿«åæ–¹ä½ç”µæœºçŠ¶æ€å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[30].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[30].HMC_HSC = 1023;
-    // ¿ì·´¸©Ñöµç»ú×´Ì¬Òì³£
+    // å¿«åä¿¯ä»°ç”µæœºçŠ¶æ€å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[31].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[31].HMC_HSC = 1024;
-    // ¿ì·´·½Î»Î»ÖÃ³¬²î
+    // å¿«åæ–¹ä½ä½ç½®è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[32].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[32].HMC_HSC = 1025;
-    // ¿ì·´¸©ÑöÎ»ÖÃ³¬²î
+    // å¿«åä¿¯ä»°ä½ç½®è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[33].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[33].HMC_HSC = 1026;
-    // ¼ìµ÷½¹RS422Í¨ĞÅ¹ÊÕÏ
+    // æ£€è°ƒç„¦RS422é€šä¿¡æ•…éšœ
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[34].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[34].HMC_HSC = 1027;
-    // ¿É¼ûµ÷½¹±àÂëÆ÷Òì³£
+    // å¯è§è°ƒç„¦ç¼–ç å™¨å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[35].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[35].HMC_HSC = 1028;
-    // ºìÍâµ÷½¹±àÂëÆ÷Òì³£
+    // çº¢å¤–è°ƒç„¦ç¼–ç å™¨å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[36].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[36].HMC_HSC = 1029;
-    // ¿É¼û¼ìĞ£³¬Ê±
+    // å¯è§æ£€æ ¡è¶…æ—¶
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[37].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[37].HMC_HSC = 1030;
-    // ºìÍâ¼ìĞ£³¬Ê±
+    // çº¢å¤–æ£€æ ¡è¶…æ—¶
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[38].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[38].HMC_HSC = 1031;
-    // Ñ¹Á¦´«¸ĞÆ÷Òì³£
+    // å‹åŠ›ä¼ æ„Ÿå™¨å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[39].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[39].HMC_HSC = 1032;
-    // ±ä±¶Î»ÖÃÒì³£
+    // å˜å€ä½ç½®å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[40].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[40].HMC_HSC = 1033;
-    // ±ä±¶³¬Ê±
+    // å˜å€è¶…æ—¶
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[41].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[41].HMC_HSC = 1034;
-    // ¿É¼ûµ÷½¹Î»ÖÃ³¬²î
+    // å¯è§è°ƒç„¦ä½ç½®è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[42].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[42].HMC_HSC = 1035;
-    // ºìÍâµ÷½¹Î»ÖÃ³¬²î
+    // çº¢å¤–è°ƒç„¦ä½ç½®è¶…å·®
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[43].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[43].HMC_HSC = 1036;
-    // Êı¾İ×ª»»°æRS422
+    // æ•°æ®è½¬æ¢ç‰ˆRS422
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[44].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[44].HMC_HSC = 1037;
-    // ¿É¼û¹âÕÕ¶È¹ıµÍ
+    // å¯è§å…‰ç…§åº¦è¿‡ä½
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[45].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[45].HMC_HSC = 1038;
-    // ¿É¼û¹âÕÕ¶È¹ı¸ß
+    // å¯è§å…‰ç…§åº¦è¿‡é«˜
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[46].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[46].HMC_HSC = 1039;
-    // ¿É¼ûÌ½²âÆ÷Í¨ĞÅÒì³£
+    // å¯è§æ¢æµ‹å™¨é€šä¿¡å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[47].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[47].HMC_HSC = 1040;
-    // ºìÍâÌ½²âÆ÷Í¨ĞÅÒì³£
+    // çº¢å¤–æ¢æµ‹å™¨é€šä¿¡å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[48].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[48].HMC_HSC = 1041;
-    // ºìÍâĞ£ÕıÎ»ÖÃÒì³£
+    // çº¢å¤–æ ¡æ­£ä½ç½®å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[49].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[49].HMC_HSC = 1042;
-    // ºìÍâÖÆÀäÒì³£
+    // çº¢å¤–åˆ¶å†·å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[50].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[50].HMC_HSC = 1043;
-    // Í¼ÏñÔ¤´¦Àíµ¥ÔªRS422Í¨ĞÅ¹ÊÕÏ
+    // å›¾åƒé¢„å¤„ç†å•å…ƒRS422é€šä¿¡æ•…éšœ
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[51].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[51].HMC_HSC = 1044;
-    // ±¾ÌåÎÂ¶È¿ØÖÆÆ÷RS422¿ØÖÆÆ÷Í¨ĞÅÒì³£
+    // æœ¬ä½“æ¸©åº¦æ§åˆ¶å™¨RS422æ§åˆ¶å™¨é€šä¿¡å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[52].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[52].HMC_HSC = 1045;
-    // ±¾ÌåÎÂ¶È´«¸ĞÆ÷Òì³£
+    // æœ¬ä½“æ¸©åº¦ä¼ æ„Ÿå™¨å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[53].HMC_LCN = 398000100;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[53].HMC_HSC = 1046;
-    // ´°¿ÚÎÂ¶È¿ØÖÆÆ÷Rs422
+    // çª—å£æ¸©åº¦æ§åˆ¶å™¨Rs422
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[54].HMC_LCN = 398000300;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[54].HMC_HSC = 2001;
-    // ´°¿ÚÎÂ¶È´«¸ĞÆ÷Òì³£
+    // çª—å£æ¸©åº¦ä¼ æ„Ÿå™¨å¼‚å¸¸
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[55].HMC_LCN = 398000300;
     nb_HMC_DATA.HMC_Data_Item_MS_Sub[55].HMC_HSC = 2002;
 }
 
 void set_One_HMC(int i, int state) {
     nb_HMC_DATA.flag_CURRENT_HMC[i]               = state;
-    nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_State = state; // HMC×´Ì¬£¬·¢Éú1¡¢ÏûÊ§0
+    nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_State = state; // HMCçŠ¶æ€ï¼Œå‘ç”Ÿ1ã€æ¶ˆå¤±0
 }
 
-// HMCĞÅÏ¢»ñÈ¡º¯Êı
+// HMCä¿¡æ¯è·å–å‡½æ•°
 void nb_HMC_DATA_SET() {
     int i         = 0;
-    int temp_HASC = 0; // ÁÙÊ±hascÂë
+    int temp_HASC = 0; // ä¸´æ—¶hascç 
     int sum       = 0;
 
-    // ¹ÊÕÏ0051£ºÍ¨ĞÅ¹¦ÄÜÒì³£
+    // æ•…éšœ0051ï¼šé€šä¿¡åŠŸèƒ½å¼‚å¸¸
     if (nb_HMC_DATA.flag_CURRENT_HMC[8] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[9] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[16] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[27] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[34] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[44] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[51] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[52] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[54] == 1) {
-        set_One_HMC(0, 1); // ²úÉú¹ÊÕÏ
-        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ª½µ¼¶
+        set_One_HMC(0, 1); // äº§ç”Ÿæ•…éšœ
+        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”é™çº§
     } else {
-        set_One_HMC(0, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(0, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0052£º²ÎÊı³¬ÏŞ
+    // æ•…éšœ0052ï¼šå‚æ•°è¶…é™
     if (nb_HMC_DATA.flag_CURRENT_HMC[10] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[11] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[12] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[13] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[14] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[15] == 1) {
-        set_One_HMC(1, 1); // ²úÉú¹ÊÕÏ
-        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ª½µ¼¶
+        set_One_HMC(1, 1); // äº§ç”Ÿæ•…éšœ
+        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”é™çº§
     } else {
-        set_One_HMC(1, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(1, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0053£ºËÅ·ş¹¦ÄÜÒì³£
+    // æ•…éšœ0053ï¼šä¼ºæœåŠŸèƒ½å¼‚å¸¸
     if (nb_HMC_DATA.flag_CURRENT_HMC[16] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[17] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[18] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[19] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[20] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[21] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[22] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[23] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[24] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[25] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[26] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[27] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[28] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[29] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[30] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[31] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[32] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[33] == 1) {
-        set_One_HMC(2, 1); // ²úÉú¹ÊÕÏ
-        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ª½µ¼¶
+        set_One_HMC(2, 1); // äº§ç”Ÿæ•…éšœ
+        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”é™çº§
     } else {
-        set_One_HMC(2, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(2, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // ¹ÊÕÏ0054£ºµ÷½¹¹¦ÄÜÒì³£
+    // æ•…éšœ0054ï¼šè°ƒç„¦åŠŸèƒ½å¼‚å¸¸
     if (nb_HMC_DATA.flag_CURRENT_HMC[34] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[35] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[26] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[37] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[38] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[39] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[40] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[41] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[42] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[43] == 1) {
-        set_One_HMC(3, 1); // ²úÉú¹ÊÕÏ
-        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ª½µ¼¶
+        set_One_HMC(3, 1); // äº§ç”Ÿæ•…éšœ
+        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”é™çº§
     } else {
-        set_One_HMC(3, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(3, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // ¹ÊÕÏ0055£ºµ÷¹â¹¦ÄÜÒì³£
+    // æ•…éšœ0055ï¼šè°ƒå…‰åŠŸèƒ½å¼‚å¸¸
     if ((nb_HMC_DATA.flag_CURRENT_HMC[45] == 1 && temp_mess_FromFc_MISSION_EVENT_REPORT.WOW_main == V_WOW_MAIN_WOW_AIR) || nb_HMC_DATA.flag_CURRENT_HMC[46] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[47] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[48] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[49] == 1 || nb_HMC_DATA.flag_CURRENT_HMC[50] == 1) {
 
-        set_One_HMC(4, 1); // ²úÉú¹ÊÕÏ
-        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ª½µ¼¶
+        set_One_HMC(4, 1); // äº§ç”Ÿæ•…éšœ
+        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”é™çº§
     } else {
-        set_One_HMC(4, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(4, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // ¹ÊÕÏ0045£ºÍ¼ÏñÔ¤´¦Àíµ¥Ôª¿É¼û¹âÍ¼ÏñÍ¨Â·Òì³£
+    // æ•…éšœ0045ï¼šå›¾åƒé¢„å¤„ç†å•å…ƒå¯è§å…‰å›¾åƒé€šè·¯å¼‚å¸¸
     if (mess_From_TXCL.fault_bit2) {
-        set_One_HMC(5, 1); // ²úÉú¹ÊÕÏ
-        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ª½µ¼¶
+        set_One_HMC(5, 1); // äº§ç”Ÿæ•…éšœ
+        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”é™çº§
     } else {
-        set_One_HMC(5, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(5, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0046£ºÍ¼ÏñÔ¤´¦Àíµ¥ÔªºìÍâÍ¼ÏñÍ¨Â·Òì³£
+    // æ•…éšœ0046ï¼šå›¾åƒé¢„å¤„ç†å•å…ƒçº¢å¤–å›¾åƒé€šè·¯å¼‚å¸¸
     if (mess_From_TXCL.fault_bit3) {
-        set_One_HMC(6, 1); // ²úÉú¹ÊÕÏ
-        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ª½µ¼¶
+        set_One_HMC(6, 1); // äº§ç”Ÿæ•…éšœ
+        //		update_Work_State(V_SUBSYS_WORK_STATE_DEGRADE);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”é™çº§
     } else {
-        set_One_HMC(6, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(6, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // ¹ÊÕÏ0049£ºÒşÉí¹â´°È¥ÎíÒì³££¨Êµ¼ÊÊÇ¹â´°422Òì³££©
+    // æ•…éšœ0049ï¼šéšèº«å…‰çª—å»é›¾å¼‚å¸¸ï¼ˆå®é™…æ˜¯å…‰çª—422å¼‚å¸¸ï¼‰
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_gc == 1) {
-        set_One_HMC(7, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(7, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(7, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(7, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // //¹ÊÕÏ0001£º¹â»ú×é¼ş¿ØÖÆÆ÷Í¨ĞÅ½Ó¿Ú¹ÊÕÏ
+    // //æ•…éšœ0001ï¼šå…‰æœºç»„ä»¶æ§åˆ¶å™¨é€šä¿¡æ¥å£æ•…éšœ
     // if(ACoreOs_atomic32_get(&flag_Fpga_down_times) > 50)
     // {
-    // 	set_One_HMC(8, 1);//²úÉú¹ÊÕÏ
+    // 	set_One_HMC(8, 1);//äº§ç”Ÿæ•…éšœ
     // }
     // else
     // {
-    // 	set_One_HMC(8, 0);//ÏûÊ§¹ÊÕÏ
+    // 	set_One_HMC(8, 0);//æ¶ˆå¤±æ•…éšœ
     // }
 
-    // ¹ÊÕÏ0002£ºPOSÍ¨ĞÅ¹ÊÕÏ
+    // æ•…éšœ0002ï¼šPOSé€šä¿¡æ•…éšœ
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_pos) {
-        set_One_HMC(9, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(9, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(9, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(9, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0003£ºÊäÈë¸©Ñö½Ç²ÎÊı³¬ÏŞ
+    // æ•…éšœ0003ï¼šè¾“å…¥ä¿¯ä»°è§’å‚æ•°è¶…é™
     if (mess_From_PCS_DATA.pitch * (PI / pow(2, 31)) * 57.2958 > 5.0 || mess_From_PCS_DATA.pitch * (PI / pow(2, 31)) * 57.2958 < -5.0) {
-        set_One_HMC(10, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(10, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(10, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(10, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0004£ºËÙ¸ß±È³¬ÏŞ
+    // æ•…éšœ0004ï¼šé€Ÿé«˜æ¯”è¶…é™
     if (param_Compute_Output.toKJ_speed_hight > 0.02) {
-        set_One_HMC(11, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(11, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(11, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(11, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0005£ºÊäÈëËÙ¶È²ÎÊı³¬ÏŞ
+    // æ•…éšœ0005ï¼šè¾“å…¥é€Ÿåº¦å‚æ•°è¶…é™
     if (sqrt(param_Compute_Input_Fromfpga.north_speed * param_Compute_Input_Fromfpga.north_speed +
              param_Compute_Input_Fromfpga.east_speed * param_Compute_Input_Fromfpga.east_speed) *
             0.001 * 3.6 >
         1000) {
-        set_One_HMC(12, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(12, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(12, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(12, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0006£ºÊäÈë¸ß¶È²ÎÊı³¬ÏŞ
+    // æ•…éšœ0006ï¼šè¾“å…¥é«˜åº¦å‚æ•°è¶…é™
     if (param_Compute_Input_Fromfpga.altitude * 0.001 > 20000 || param_Compute_Input_Fromfpga.altitude * 0.001 < 1000) {
-        set_One_HMC(13, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(13, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(13, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(13, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // ¹ÊÕÏ0007£ºÊäÈëÆ«Á÷½Ç²ÎÊı³¬ÏŞ
+    // æ•…éšœ0007ï¼šè¾“å…¥åæµè§’å‚æ•°è¶…é™
     if (temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_sl_angle._angle_mrad * 1000 * 57.2958 > 5.0 || temp_mess_FromFc_ABSOLUTE_NAV_DATA_FUSED.ac_flight_vector.ac_sl_angle._angle_mrad * 1000 * 57.2958 < -5.0) {
-        set_One_HMC(14, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(14, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(14, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(14, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0008£ºÊäÈëºá¹ö½Ç²ÎÊı³¬ÏŞ
+    // æ•…éšœ0008ï¼šè¾“å…¥æ¨ªæ»šè§’å‚æ•°è¶…é™
     if (mess_From_PCS_DATA.roll * (PI / pow(2, 31)) * 57.2958 > 5.0 || mess_From_PCS_DATA.roll * (PI / pow(2, 31)) * 57.2958 < -5.0) {
-        set_One_HMC(15, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(15, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(15, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(15, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0009£º¿ò¼Ü¿ØÖÆ·ÖÏµÍ³RS422¹ÊÕÏ
+    // æ•…éšœ0009ï¼šæ¡†æ¶æ§åˆ¶åˆ†ç³»ç»ŸRS422æ•…éšœ
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_kj) {
-        set_One_HMC(16, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(16, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(16, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(16, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0010£ºÍâ¿ò¼ÜÍÓÂİÒì³£
+    // æ•…éšœ0010ï¼šå¤–æ¡†æ¶é™€èºå¼‚å¸¸
     if (mess_From_KJ.error_kj_kjfwtlyc) {
-        set_One_HMC(17, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(17, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(17, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(17, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0011£ºÍâ¿ò¼Ü±àÂëÆ÷Òì³£
+    // æ•…éšœ0011ï¼šå¤–æ¡†æ¶ç¼–ç å™¨å¼‚å¸¸
     if (mess_From_KJ.error_kj_fwbmqyc) {
-        set_One_HMC(18, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(18, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(18, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(18, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0012£ºÍâ¿ò¼ÜÎ»ÖÃ³¬²î
+    // æ•…éšœ0012ï¼šå¤–æ¡†æ¶ä½ç½®è¶…å·®
     if (mess_From_KJ.error_kj_kjfwwzcc) {
-        set_One_HMC(19, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(19, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(19, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(19, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0013£ºÍâ¿ò¼ÜËÙ¶È³¬²î
+    // æ•…éšœ0013ï¼šå¤–æ¡†æ¶é€Ÿåº¦è¶…å·®
     if (mess_From_KJ.error_kj_kjfwsdcc) {
-        set_One_HMC(20, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(20, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(20, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(20, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0014£ºÄÚ¿ò¼ÜÍÓÂİÒì³£
+    // æ•…éšœ0014ï¼šå†…æ¡†æ¶é™€èºå¼‚å¸¸
     if (mess_From_KJ.error_kj_kjfytlyc) {
-        set_One_HMC(21, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(21, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(21, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(21, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0015£ºÄÚ¿ò¼Ü±àÂëÆ÷Òì³£
+    // æ•…éšœ0015ï¼šå†…æ¡†æ¶ç¼–ç å™¨å¼‚å¸¸
     if (mess_From_KJ.error_kj_kjfybmqyc) {
-        set_One_HMC(22, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(22, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(22, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(22, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0016£ºÄÚ¿ò¼ÜÎ»ÖÃ³¬²î
+    // æ•…éšœ0016ï¼šå†…æ¡†æ¶ä½ç½®è¶…å·®
     if (mess_From_KJ.error_kj_kjfywzcc) {
-        set_One_HMC(23, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(23, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(23, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(23, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0017£ºÄÚ¿ò¼ÜËÙ¶È³¬²î
+    // æ•…éšœ0017ï¼šå†…æ¡†æ¶é€Ÿåº¦è¶…å·®
     if (mess_From_KJ.error_kj_kjfysdcc) {
-        set_One_HMC(24, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(24, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(24, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(24, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0018£º¿ò¼ÜÎ»ÖÃ/ËÙ¶ÈĞÅºÅÒì³£
+    // æ•…éšœ0018ï¼šæ¡†æ¶ä½ç½®/é€Ÿåº¦ä¿¡å·å¼‚å¸¸
     if (mess_From_KJ.error_wzsdtbxh) {
-        set_One_HMC(25, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(25, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(25, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(25, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0019£º¿ò¼Ü½ÓÊÕµÄ¿ì·´Æô¶¯ĞÅºÅÒì³£
+    // æ•…éšœ0019ï¼šæ¡†æ¶æ¥æ”¶çš„å¿«åå¯åŠ¨ä¿¡å·å¼‚å¸¸
     if (mess_From_KJ.error_xybczqxhyc) {
-        set_One_HMC(26, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(26, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(26, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(26, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0020£º²¹³¥¾µ¿ØÖÆ·ÖÏµÍ³RS422¹ÊÕÏ
+    // æ•…éšœ0020ï¼šè¡¥å¿é•œæ§åˆ¶åˆ†ç³»ç»ŸRS422æ•…éšœ
     if (mess_From_KJ.error_kf422txyc) {
-        set_One_HMC(27, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(27, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(27, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(27, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0021£º¿ì·´·½Î»AD²É¼¯Òì³£
+    // æ•…éšœ0021ï¼šå¿«åæ–¹ä½ADé‡‡é›†å¼‚å¸¸
     if (mess_From_KJ.error_kfADcyyc) {
-        set_One_HMC(28, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(28, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(28, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(28, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0022£º¿ì·´¸©ÑöAD²É¼¯Òì³£
+    // æ•…éšœ0022ï¼šå¿«åä¿¯ä»°ADé‡‡é›†å¼‚å¸¸
     if (mess_From_KJ.error_kfADcyyc) {
-        set_One_HMC(29, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(29, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(29, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(29, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0023£º¿ì·´·½Î»µç»ú×´Ì¬Òì³£
+    // æ•…éšœ0023ï¼šå¿«åæ–¹ä½ç”µæœºçŠ¶æ€å¼‚å¸¸
     if (mess_From_KJ.error_fwwzcc) {
-        set_One_HMC(30, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(30, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(30, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(30, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0024£º¿ì·´¸©Ñöµç»ú×´Ì¬Òì³£
+    // æ•…éšœ0024ï¼šå¿«åä¿¯ä»°ç”µæœºçŠ¶æ€å¼‚å¸¸
     if (mess_From_KJ.error_fywzcc) {
-        set_One_HMC(31, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(31, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(31, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(31, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0025£º¿ì·´·½Î»Î»ÖÃ³¬²î
+    // æ•…éšœ0025ï¼šå¿«åæ–¹ä½ä½ç½®è¶…å·®
     if (mess_From_KJ.error_fwwzcc) {
-        set_One_HMC(32, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(32, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(32, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(32, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0026£º¿ì·´¸©ÑöÎ»ÖÃ³¬²î
+    // æ•…éšœ0026ï¼šå¿«åä¿¯ä»°ä½ç½®è¶…å·®
     if (mess_From_KJ.error_fywzcc) {
-        set_One_HMC(33, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(33, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(33, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(33, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0027£ºµ÷½¹RS422Í¨ĞÅ¹ÊÕÏ
+    // æ•…éšœ0027ï¼šè°ƒç„¦RS422é€šä¿¡æ•…éšœ
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_tj) {
-        set_One_HMC(34, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(34, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(34, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(34, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0028£º¿É¼ûµ÷½¹±àÂëÆ÷Òì³£
+    // æ•…éšœ0028ï¼šå¯è§è°ƒç„¦ç¼–ç å™¨å¼‚å¸¸
     if (mess_From_TJ.error1_kj_tjbmq) {
-        set_One_HMC(35, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(35, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(35, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(35, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0029£ººìÍâµ÷½¹±àÂëÆ÷Òì³£
+    // æ•…éšœ0029ï¼šçº¢å¤–è°ƒç„¦ç¼–ç å™¨å¼‚å¸¸
     if (mess_From_TJ.error1_hw_tjbmq) {
-        set_One_HMC(36, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(36, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(36, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(36, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0030£º¿É¼û¼ì½¹³¬Ê±
+    // æ•…éšœ0030ï¼šå¯è§æ£€ç„¦è¶…æ—¶
     if (mess_From_TJ.error1_kj_jjcs) {
-        set_One_HMC(37, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(37, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(37, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(37, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0031£ººìÍâ¼ì½¹³¬Ê±
+    // æ•…éšœ0031ï¼šçº¢å¤–æ£€ç„¦è¶…æ—¶
     if (mess_From_TJ.error1_hw_timeout) {
-        set_One_HMC(38, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(38, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(38, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(38, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0032£ºÑ¹Á¦´«¸ĞÆ÷Òì³£
+    // æ•…éšœ0032ï¼šå‹åŠ›ä¼ æ„Ÿå™¨å¼‚å¸¸
     if (mess_From_TJ.error2_ylcgq) {
-        set_One_HMC(39, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(39, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(39, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(39, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0033£º±ä±¶Î»ÖÃÒì³£
+    // æ•…éšœ0033ï¼šå˜å€ä½ç½®å¼‚å¸¸
     if (mess_From_TJ.error1_bbj_dw) {
-        set_One_HMC(40, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(40, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(40, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(40, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0034£º±ä±¶³¬Ê±
+    // æ•…éšœ0034ï¼šå˜å€è¶…æ—¶
     if (mess_From_TJ.error1_bbj_timeout) {
-        set_One_HMC(41, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(41, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(41, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(41, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0035£º¿É¼ûµ÷½¹Î»ÖÃ³¬²î
+    // æ•…éšœ0035ï¼šå¯è§è°ƒç„¦ä½ç½®è¶…å·®
     if (mess_From_TJ.error1_kj_wzcc) {
-        set_One_HMC(42, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(42, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(42, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(42, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0036£ººìÍâµ÷½¹Î»ÖÃ³¬²î
+    // æ•…éšœ0036ï¼šçº¢å¤–è°ƒç„¦ä½ç½®è¶…å·®
     if (mess_From_TJ.error1_hw_wzcc) {
-        set_One_HMC(43, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(43, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(43, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(43, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0037£ºÊı¾İ×ª»»°å¿ØÖÆ·ÖÏµÍ³RS422¹ÊÕÏ
+    // æ•…éšœ0037ï¼šæ•°æ®è½¬æ¢æ¿æ§åˆ¶åˆ†ç³»ç»ŸRS422æ•…éšœ
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_qn) {
-        set_One_HMC(44, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(44, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(44, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(44, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0038£º¿É¼û¹âÕÕ¶È¹ıµÍ
+    // æ•…éšœ0038ï¼šå¯è§å…‰ç…§åº¦è¿‡ä½
     if (mess_From_TG.KJGZD_LowError) {
-        set_One_HMC(45, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(45, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(45, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(45, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0039£º¿É¼û¹âÕÕ¶È¹ı¸ß
+    // æ•…éšœ0039ï¼šå¯è§å…‰ç…§åº¦è¿‡é«˜
     if (mess_From_TG.KJGZD_HighError) {
-        set_One_HMC(46, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(46, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(46, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(46, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0040£º¿É¼ûÌ½²âÆ÷Í¨ĞÅÒì³£
+    // æ•…éšœ0040ï¼šå¯è§æ¢æµ‹å™¨é€šä¿¡å¼‚å¸¸
     if (mess_From_TG.KJTCQ_Error | mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_qn) {
-        set_One_HMC(47, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(47, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(47, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(47, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0041£ººìÍâÌ½²âÆ÷Í¨ĞÅÒì³£
+    // æ•…éšœ0041ï¼šçº¢å¤–æ¢æµ‹å™¨é€šä¿¡å¼‚å¸¸
     if (mess_From_TG.HWTCQ_Error | mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_qn) {
-        set_One_HMC(48, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(48, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(48, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(48, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0042£ºĞ£ÕıÎ»ÖÃÒì³£
+    // æ•…éšœ0042ï¼šæ ¡æ­£ä½ç½®å¼‚å¸¸
     if (mess_From_TJ.error2_jzb_dw) {
-        set_One_HMC(49, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(49, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(49, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(49, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0043£ººìÍâÖÆÀäÒì³£
+    // æ•…éšœ0043ï¼šçº¢å¤–åˆ¶å†·å¼‚å¸¸
     if (mess_From_TG.HW_Coolling_Error) {
-        set_One_HMC(50, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(50, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(50, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(50, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0044£ºÍ¼ÏñÔ¤´¦Àíµ¥ÔªRS422Í¨ĞÅ¹ÊÕÏ
+    // æ•…éšœ0044ï¼šå›¾åƒé¢„å¤„ç†å•å…ƒRS422é€šä¿¡æ•…éšœ
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_tx) {
-        set_One_HMC(51, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(51, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(51, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(51, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // ¹ÊÕÏ0047£ºÔØºÉ±¾ÌåÎÂ¶È¿ØÖÆÆ÷RS422Í¨Ñ¶
+    // æ•…éšœ0047ï¼šè½½è·æœ¬ä½“æ¸©åº¦æ§åˆ¶å™¨RS422é€šè®¯
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_qnwk == 1) {
-        set_One_HMC(52, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(52, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(52, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(52, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0048£ºÔØºÉÎÂ¶È´«¸ĞÆ÷Òì³£
+    // æ•…éšœ0048ï¼šè½½è·æ¸©åº¦ä¼ æ„Ÿå™¨å¼‚å¸¸
     if (mess_From_QNSJ.error1 != 0 || mess_From_QNSJ.error2 != 0) {
-        set_One_HMC(53, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(53, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(53, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(53, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0049£º´°¿ÚÎÂ¶È¿ØÖÆÆ÷RS422Í¨Ñ¶
+    // æ•…éšœ0049ï¼šçª—å£æ¸©åº¦æ§åˆ¶å™¨RS422é€šè®¯
     if (mess_From_FPGA.fpga_422ERR.fpag_422Err.error_commu_gc == 1) {
-        set_One_HMC(54, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(54, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(54, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(54, 0); // æ¶ˆå¤±æ•…éšœ
     }
-    // ¹ÊÕÏ0050£º´°¿ÚÎÂ¶È´«¸ĞÆ÷Òì³£
+    // æ•…éšœ0050ï¼šçª—å£æ¸©åº¦ä¼ æ„Ÿå™¨å¼‚å¸¸
     if (mess_From_GCWK.tem_error) {
-        set_One_HMC(55, 1); // ²úÉú¹ÊÕÏ
+        set_One_HMC(55, 1); // äº§ç”Ÿæ•…éšœ
     } else {
-        set_One_HMC(55, 0); // ÏûÊ§¹ÊÕÏ
+        set_One_HMC(55, 0); // æ¶ˆå¤±æ•…éšœ
     }
 
-    // Èç¹û¿É¼ûºìÍâÍ¼Ïñ¶¼´«ÊäÒì³££¬ÔòÖÃÎªÊ§Ğ§
+    // å¦‚æœå¯è§çº¢å¤–å›¾åƒéƒ½ä¼ è¾“å¼‚å¸¸ï¼Œåˆ™ç½®ä¸ºå¤±æ•ˆ
     if (nb_HMC_DATA.flag_CURRENT_HMC[5] == 1 && nb_HMC_DATA.flag_CURRENT_HMC[6] == 1) {
-        //		update_Work_State(V_SUBSYS_WORK_STATE_FAIL);//¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ªÊ§Ğ§
+        //		update_Work_State(V_SUBSYS_WORK_STATE_FAIL);//æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”å¤±æ•ˆ
     }
 
     for (i = 0; i < TOTAL_HMC_NUM; i++) {
         sum += nb_HMC_DATA.flag_CURRENT_HMC[i];
     }
 
-    // Èç¹ûÃ»ÓĞ¹ÊÕÏ£¬È¡Ïû¹ÊÕÏ
+    // å¦‚æœæ²¡æœ‰æ•…éšœï¼Œå–æ¶ˆæ•…éšœ
     if (sum == 0) {
-        update_Work_State(-1); // ¸üĞÂÏà»ú¹¤×÷×´Ì¬¡ª¡ªÈ¡Ïû
+        update_Work_State(-1); // æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€â€”â€”å–æ¶ˆ
     }
 
-    // µ±Ç°×´Ì¬»ñÈ¡£¬ÓÃÓÚÉèÖÃ//HASCÂë£¬ÉÏµç10£¬ÖÜÆÚ30£¬Æô¶¯40£¬Î¬»¤50
-    if (main_Control_State_Param.main_mode == V_SUBSYS_MAIN_MODE_TEST)           // Î¬»¤50
-        temp_HASC = 50;                                                          // ÁÙÊ±hascÂë
-    else if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_INIT) // ÉÏµç10
-        temp_HASC = 10;                                                          // ÁÙÊ±hascÂë
-    else if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_BIT)  // Æô¶¯40
-        temp_HASC = 40;                                                          // ÁÙÊ±hascÂë
-    else                                                                         // ÖÜÆÚ×Ô¼ì
-        temp_HASC = 30;                                                          // ÁÙÊ±hascÂë
+    // å½“å‰çŠ¶æ€è·å–ï¼Œç”¨äºè®¾ç½®//HASCç ï¼Œä¸Šç”µ10ï¼Œå‘¨æœŸ30ï¼Œå¯åŠ¨40ï¼Œç»´æŠ¤50
+    if (main_Control_State_Param.main_mode == V_SUBSYS_MAIN_MODE_TEST)           // ç»´æŠ¤50
+        temp_HASC = 50;                                                          // ä¸´æ—¶hascç 
+    else if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_INIT) // ä¸Šç”µ10
+        temp_HASC = 10;                                                          // ä¸´æ—¶hascç 
+    else if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_BIT)  // å¯åŠ¨40
+        temp_HASC = 40;                                                          // ä¸´æ—¶hascç 
+    else                                                                         // å‘¨æœŸè‡ªæ£€
+        temp_HASC = 30;                                                          // ä¸´æ—¶hascç 
 
     for (i = 0; i < TOTAL_HMC_NUM; i++) {
-        // Ê±¼äÉèÖÃ
+        // æ—¶é—´è®¾ç½®
         nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].date_day          = temp_mess_FromFc_SYM_TIME_REPORT.univesal_date.date_day;
         nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].date_month        = temp_mess_FromFc_SYM_TIME_REPORT.univesal_date.date_month;
         nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].date_year         = temp_mess_FromFc_SYM_TIME_REPORT.univesal_date.date_year;
         nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].time_calendartime = temp_mess_FromFc_SYM_TIME_REPORT.time_calendartime;
-        // HASCÂëÉèÖÃ
+        // HASCç è®¾ç½®
         nb_HMC_DATA.HMC_Data_Item_MS_Sub[i].HMC_HASC = temp_HASC;
     }
 
-    nb_HMC_DATA_UPLOAD(); // ¼ÇÂ¼ĞèÒªÉÏ±¨µÄ¹ÊÕÏĞÅÏ¢£º°üÀ¨¸öÊıºÍÄÚÈİ
+    nb_HMC_DATA_UPLOAD(); // è®°å½•éœ€è¦ä¸ŠæŠ¥çš„æ•…éšœä¿¡æ¯ï¼šåŒ…æ‹¬ä¸ªæ•°å’Œå†…å®¹
 }
 
-// ¼ÇÂ¼ĞèÒªÉÏ±¨µÄ¹ÊÕÏĞÅÏ¢£º°üÀ¨¸öÊıºÍÄÚÈİ
+// è®°å½•éœ€è¦ä¸ŠæŠ¥çš„æ•…éšœä¿¡æ¯ï¼šåŒ…æ‹¬ä¸ªæ•°å’Œå†…å®¹
 void nb_HMC_DATA_UPLOAD() {
     int i                        = 0;
-    nb_HMC_DATA.hmc_count_upload = 0; // ĞèÒªÉÏ±¨µÄ¹ÊÕÏÊıÁ¿ÇåÁã
+    nb_HMC_DATA.hmc_count_upload = 0; // éœ€è¦ä¸ŠæŠ¥çš„æ•…éšœæ•°é‡æ¸…é›¶
     nb_HMC_DATA.pack_count       = 0;
-    // ÅĞ¶ÏcurrentºÍlastÊÇ·ñÒ»ÖÂ£¬²»Ò»ÖÂµÄÉÏ±¨
+    // åˆ¤æ–­currentå’Œlastæ˜¯å¦ä¸€è‡´ï¼Œä¸ä¸€è‡´çš„ä¸ŠæŠ¥
     for (i = 0; i < TOTAL_HMC_NUM; i++) {
-        // Èç¹ûÓĞ±ä»¯
+        // å¦‚æœæœ‰å˜åŒ–
         if (nb_HMC_DATA.flag_LAST_HMC[i] != nb_HMC_DATA.flag_CURRENT_HMC[i]) {
-            // ¼ÇÂ¼ĞèÒªÉÏ±¨µÄHMCÄÚÈİ
+            // è®°å½•éœ€è¦ä¸ŠæŠ¥çš„HMCå†…å®¹
             memcpy(&(nb_HMC_DATA.HMC_Data_Item_MS_Sub_upload[nb_HMC_DATA.hmc_count_upload]),
                    &(nb_HMC_DATA.HMC_Data_Item_MS_Sub[i]), sizeof(HMC_DATA_ITEM_MS_SUB_TYPE_DEF));
-            nb_HMC_DATA.hmc_count_upload++; // ÉÏ±¨¹ÊÕÏÊıÁ¿Ôö¼Ó
+            nb_HMC_DATA.hmc_count_upload++; // ä¸ŠæŠ¥æ•…éšœæ•°é‡å¢åŠ 
         }
     }
 
-    // ÉÏ±¨ºó£¬ÓÃcurrentÌæ»»last
+    // ä¸ŠæŠ¥åï¼Œç”¨currentæ›¿æ¢last
     for (i = 0; i < TOTAL_HMC_NUM; i++) {
         nb_HMC_DATA.flag_LAST_HMC[i] = nb_HMC_DATA.flag_CURRENT_HMC[i];
         if (nb_HMC_DATA.hmc_count_upload % 10 == 0)
-            nb_HMC_DATA.pack_count = nb_HMC_DATA.hmc_count_upload / 10; // ĞèÒªÉÏ±¨µÄHMC°üÊı
+            nb_HMC_DATA.pack_count = nb_HMC_DATA.hmc_count_upload / 10; // éœ€è¦ä¸ŠæŠ¥çš„HMCåŒ…æ•°
         else
-            nb_HMC_DATA.pack_count = nb_HMC_DATA.hmc_count_upload / 10 + 1; // ĞèÒªÉÏ±¨µÄHMC°üÊı
+            nb_HMC_DATA.pack_count = nb_HMC_DATA.hmc_count_upload / 10 + 1; // éœ€è¦ä¸ŠæŠ¥çš„HMCåŒ…æ•°
     }
 }
 
-// Çå³ıHMCĞÅÏ¢º¯Êı
+// æ¸…é™¤HMCä¿¡æ¯å‡½æ•°
 void nb_HMC_DATA_CLEAR() {
-    nb_HMC_DATA_INIT(); // ÖØĞÂ³õÊ¼»¯
+    nb_HMC_DATA_INIT(); // é‡æ–°åˆå§‹åŒ–
 }

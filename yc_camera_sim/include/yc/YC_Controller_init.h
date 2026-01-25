@@ -1,9 +1,9 @@
 /*
  * YC_Controller_init.h
  *
- *  Created on: 2025Äê4ÔÂ30ÈÕ
+ *  Created on: 2025å¹´4æœˆ30æ—¥
  *      Author: wangx
- *      ³õÊ¼»¯ÏµÍ³±äÁ¿º¯ÊıÉùÃ÷
+ *      åˆå§‹åŒ–ç³»ç»Ÿå˜é‡å‡½æ•°å£°æ˜
  */
 
 #ifndef YC_CONTROLLER_INIT_H_
@@ -16,30 +16,30 @@
 // #include <tasks.h>
 // #include <attribute.h>
 // #include <periodtasks.h>
-// //**************************´´½¨Ïß³Ì**************************
-// //**UINT32 affinity:´¦ÀíÆ÷ºËºÅ
-// //**ACoreOs_task_priority priority£ºÓÅÏÈ¼¶
-// //**ULONG stack_size£ºÈÎÎñÕ»´óĞ¡
-// //**ACoreOs_name name£ºÈÎÎñÃû³Æ
-// //**Task_ID task_id£ºÈÎÎñid
-// //**ACoreOs_task_entry entryPoint£ºÈÎÎñÈë¿Úº¯Êı
-// //**************************´´½¨Ïß³Ì**************************
+// //**************************åˆ›å»ºçº¿ç¨‹**************************
+// //**UINT32 affinity:å¤„ç†å™¨æ ¸å·
+// //**ACoreOs_task_priority priorityï¼šä¼˜å…ˆçº§
+// //**ULONG stack_sizeï¼šä»»åŠ¡æ ˆå¤§å°
+// //**ACoreOs_name nameï¼šä»»åŠ¡åç§°
+// //**Task_ID task_idï¼šä»»åŠ¡id
+// //**ACoreOs_task_entry entryPointï¼šä»»åŠ¡å…¥å£å‡½æ•°
+// //**************************åˆ›å»ºçº¿ç¨‹**************************
 // void yc_Create_Task(UINT32 affinity, ACoreOs_task_priority priority,  ULONG stack_size, ACoreOs_name name,Task_ID task_id, ACoreOs_task_entry entryPoint );
 
-// //**************************´´½¨ÖÜÆÚÏß³Ì**************************
-// //**UINT32 affinity:´¦ÀíÆ÷ºËºÅ
-// //**ACoreOs_task_priority priority£ºÓÅÏÈ¼¶
-// //**ULONG stack_size£ºÈÎÎñÕ»´óĞ¡
-// //**ACoreOs_name name£ºÈÎÎñÃû³Æ
-// //**Task_ID task_id£ºÈÎÎñid
-// //**ACoreOs_task_entry entryPoint£ºÈÎÎñÈë¿Úº¯Êı
-// //**************************´´½¨Ïß³Ì**************************
+// //**************************åˆ›å»ºå‘¨æœŸçº¿ç¨‹**************************
+// //**UINT32 affinity:å¤„ç†å™¨æ ¸å·
+// //**ACoreOs_task_priority priorityï¼šä¼˜å…ˆçº§
+// //**ULONG stack_sizeï¼šä»»åŠ¡æ ˆå¤§å°
+// //**ACoreOs_name nameï¼šä»»åŠ¡åç§°
+// //**Task_ID task_idï¼šä»»åŠ¡id
+// //**ACoreOs_task_entry entryPointï¼šä»»åŠ¡å…¥å£å‡½æ•°
+// //**************************åˆ›å»ºçº¿ç¨‹**************************
 // void yc_Create_Period_Task(UINT32 affinity,ACoreOs_task_priority priority, ULONG stack_size, ACoreOs_name name, Task_ID * task_id, ACoreOs_task_entry entryPoint,ACoreOs_interval periodLength);
 
-extern void param_Init(); // ²ÎÊı³õÊ¼»¯
-extern void mess_Init();  // ÏûÏ¢³õÊ¼»¯
-// extern void flash_Data_Init();//³Ö¾Ã»¯´æ´¢ĞÅÏ¢³õÊ¼»¯
-// extern void interrupt_Init();//ÖĞ¶Ï³õÊ¼»¯
+extern void param_Init(); // å‚æ•°åˆå§‹åŒ–
+extern void mess_Init();  // æ¶ˆæ¯åˆå§‹åŒ–
+// extern void flash_Data_Init();//æŒä¹…åŒ–å­˜å‚¨ä¿¡æ¯åˆå§‹åŒ–
+// extern void interrupt_Init();//ä¸­æ–­åˆå§‹åŒ–
 
 // void mess_Init();
 

@@ -126,7 +126,18 @@ void param_Init() {
 
     TG_VarInit(); // 调光初始化-25-8-15,sc
 
-    // flash_Data_Init(); // 持久化存储信息初始化
+    // 持久化数据初始化
+    // 累加上电次数
+    nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave++;
+    // 默认焦距参数
+    nbMess_hwInfo_FLASH.jj_Small_KJ          = 1960.0f; // 可见光小视场-长焦
+    nbMess_hwInfo_FLASH.jj_Big_KJ            = 392.0f;  // 可见光大视场-短焦
+    nbMess_hwInfo_FLASH.jj_Small_HW          = 500.0f;  // 红外小视场-长焦
+    nbMess_hwInfo_FLASH.jj_Big_HW            = 125.0f;  // 红外大视场-短焦
+    param_Compute_Input_Fromfpga.jj_Small_KJ = nbMess_hwInfo_FLASH.jj_Small_KJ;
+    param_Compute_Input_Fromfpga.jj_Big_KJ   = nbMess_hwInfo_FLASH.jj_Big_KJ;
+    param_Compute_Input_Fromfpga.jj_Small_HW = nbMess_hwInfo_FLASH.jj_Small_HW;
+    param_Compute_Input_Fromfpga.jj_Big_HW   = nbMess_hwInfo_FLASH.jj_Big_HW;
 
     nb_HMC_DATA_INIT(); // HMC初始化
 
@@ -204,7 +215,7 @@ void mess_Init() {
     memset(&temp_mess_FromFc_MISSION_EVENT_REPORT, 0, sizeof(MISSION_EVENT_REPORT));       // 战术任务事件报告
 
     memset(&mess_ToFC_IRST_ACT_REQ_REPORT, 0, sizeof(IRST_ACT_REQ_REPORT));                       // IRST_活动请求通告
-    memset(&mess_ToFC_WORK_STATE_REPORT, 0, sizeof(IRST_ACT_REQ_REPORT));                         // 工作状态报告
+    memset(&mess_ToFC_WORK_STATE_REPORT, 0, sizeof(WORK_STATE_REPORT));                           // 工作状态报告
     memset(&mess_ToFC_IRST_OPERATIONAL_PARAS, 0, sizeof(IRST_OPERATIONAL_PARAS));                 // IRST工作参数报告
     memset(&temp_mess_ToFC_IRST_OPERATIONAL_PARAS, 0, sizeof(IRST_OPERATIONAL_PARAS));            // IRST工作参数报告
     memset(&mess_ToFC_HW_CONFIG_INFO_REPORT, 0, sizeof(HW_CONFIG_INFO_REPORT));                   // 硬件配置信息报告

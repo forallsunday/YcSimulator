@@ -1,7 +1,7 @@
 /*
  * YC_Controller_Process.h
  *
- *  Created on: 2025Äê5ÔÂ16ÈÕ
+ *  Created on: 2025å¹´5æœˆ16æ—¥
  *      Author: wangx
  */
 
@@ -16,65 +16,67 @@
 
 #include <chrono>
 
-void main_Control_And_Mess_Process_Act_req_task();            // Ö÷Á÷³Ì¿ØÖÆ£¬´¦Àíact_reqÏûÏ¢
-void fc_Mess_Process_Others_task();                           // ÆäËûÏûÏ¢´¦Àí
-void fc_Mess_Send_Period_task();                              // ÖÜÆÚÏûÏ¢·¢ËÍ´¦Àí
-void timer_service_func_5ms();                                // 5ms¶¨Ê±Æ÷ÏìÓ¦º¯Êı£¬ÓÃÓÚÍ³¼ÆfpgaµôÏß´ÎÊı
-void isr_Fpga_Mess(UINT32 vector, void *context, LONG param); // ½ÓÊÕµ½fpageÖĞ¶ÏµÄÏìÓ¦º¯Êı0A2
+void main_Control_And_Mess_Process_Act_req_task();            // ä¸»æµç¨‹æ§åˆ¶ï¼Œå¤„ç†act_reqæ¶ˆæ¯
+void fc_Mess_Process_Others_task();                           // å…¶ä»–æ¶ˆæ¯å¤„ç†
+void fc_Mess_Send_Period_task();                              // å‘¨æœŸæ¶ˆæ¯å‘é€å¤„ç†
+void timer_service_func_5ms();                                // 5mså®šæ—¶å™¨å“åº”å‡½æ•°ï¼Œç”¨äºç»Ÿè®¡fpgaæ‰çº¿æ¬¡æ•°
+void isr_Fpga_Mess(UINT32 vector, void *context, LONG param); // æ¥æ”¶åˆ°fpageä¸­æ–­çš„å“åº”å‡½æ•°0A2
 
-void act_req_mess_Process(); // ´¦Àí»î¶¯ÇëÇóÖ¸Áî
-void act_req_IRST_Process(); // ÌØÊâ»î¶¯ÇëÇóÖ¸Áî´¦Àí
+void act_req_mess_Process(); // å¤„ç†æ´»åŠ¨è¯·æ±‚æŒ‡ä»¤
+void act_req_IRST_Process(); // ç‰¹æ®Šæ´»åŠ¨è¯·æ±‚æŒ‡ä»¤å¤„ç†
 
-void wide_Image_Paras_Set();             // ¹ãÓò³ÉÏñ²ÎÊı»ñÈ¡¼°ÉèÖÃ
-void area_Image_Paras_Set(int AREA_num); // ÇøÓò³ÉÏñ²ÎÊı»ñÈ¡¼°ÉèÖÃ
+void wide_Image_Paras_Set();             // å¹¿åŸŸæˆåƒå‚æ•°è·å–åŠè®¾ç½®
+void area_Image_Paras_Set(int AREA_num); // åŒºåŸŸæˆåƒå‚æ•°è·å–åŠè®¾ç½®
 
-// ¸üĞÂÏµÍ³¹¤×÷Ä£Ê½¡¢×´Ì¬Ïà¹Ø
-void update_Work_State(INT8 state);                 // ¸üĞÂÏà»ú¹¤×÷×´Ì¬
-void update_Main_Mode(SUBSYS_MAIN_MODE mode);       // ¸üĞÂÏà»ú¹¤×÷Ä£Ê½
-void update_Irst_State(IRST_WORK_STATE irst_state); // ¸üĞÂIRST¹¤×÷×´Ì¬
-void update_Irst_Mode(IRST_FORM_MODE irst_mode);    // ¸üĞÂIRST³ÉÏñÄ£Ê½
+// æ›´æ–°ç³»ç»Ÿå·¥ä½œæ¨¡å¼ã€çŠ¶æ€ç›¸å…³
+void update_Work_State(INT8 state);                 // æ›´æ–°ç›¸æœºå·¥ä½œçŠ¶æ€
+void update_Main_Mode(SUBSYS_MAIN_MODE mode);       // æ›´æ–°ç›¸æœºå·¥ä½œæ¨¡å¼
+void update_Irst_State(IRST_WORK_STATE irst_state); // æ›´æ–°IRSTå·¥ä½œçŠ¶æ€
+void update_Irst_Mode(IRST_FORM_MODE irst_mode);    // æ›´æ–°IRSTæˆåƒæ¨¡å¼
 
-// ¹¤×÷Á÷³Ì¿ØÖÆ----------------
-void Work_Control();              // ¹¤×÷Á÷³Ì¿ØÖÆ1
-void init_Model_WorkControl();    // ¹¤×÷Á÷³Ì¿ØÖÆ----³õÊ¼»¯1
-void collect_Model_WorkControl(); // ¹¤×÷Á÷³Ì¿ØÖÆ----ÊÕ²Ø1
-void prepare_Model_WorkControl(); // ¹¤×÷Á÷³Ì¿ØÖÆ----×¼±¸ÖĞ1
-void wait_Model_WorkControl();    // ¹¤×÷Á÷³Ì¿ØÖÆ----´ı»ú1
-void photo_Model_WorkControl();   // ¹¤×÷Á÷³Ì¿ØÖÆ----ÅÄÕÕ1
-void check_Model_WorkControl();   // ¹¤×÷Á÷³Ì¿ØÖÆ----×Ô¼ì²â1
-void na_down_WorkControl();       // ¹¤×÷Á÷³Ì¿ØÖÆ----ÏÂµç
-void nb_jtphoto_WorkControl();    // ¹¤×÷Á÷³Ì¿ØÖÆ----¾²Ì¬³ÉÏñ-ÄÚ²¿Ê¹ÓÃ
+// å·¥ä½œæµç¨‹æ§åˆ¶----------------
+void Work_Control();              // å·¥ä½œæµç¨‹æ§åˆ¶1
+void init_Model_WorkControl();    // å·¥ä½œæµç¨‹æ§åˆ¶----åˆå§‹åŒ–1
+void collect_Model_WorkControl(); // å·¥ä½œæµç¨‹æ§åˆ¶----æ”¶è—1
+void prepare_Model_WorkControl(); // å·¥ä½œæµç¨‹æ§åˆ¶----å‡†å¤‡ä¸­1
+void wait_Model_WorkControl();    // å·¥ä½œæµç¨‹æ§åˆ¶----å¾…æœº1
+void photo_Model_WorkControl();   // å·¥ä½œæµç¨‹æ§åˆ¶----æ‹ç…§1
+void check_Model_WorkControl();   // å·¥ä½œæµç¨‹æ§åˆ¶----è‡ªæ£€æµ‹1
+void na_down_WorkControl();       // å·¥ä½œæµç¨‹æ§åˆ¶----ä¸‹ç”µ
+void nb_jtphoto_WorkControl();    // å·¥ä½œæµç¨‹æ§åˆ¶----é™æ€æˆåƒ-å†…éƒ¨ä½¿ç”¨
 
-void param_Over_Range_Judge(); // ²ÎÊı³¬ÏŞÅĞ¶Ï
+void param_Over_Range_Judge(); // å‚æ•°è¶…é™åˆ¤æ–­
 
-UINT8 jiaozheng_WorkControl(UINT8 rst_n); // ºìÍâĞ£Õı×Óº¯Êı1
+UINT8 jiaozheng_WorkControl(UINT8 rst_n); // çº¢å¤–æ ¡æ­£å­å‡½æ•°1
 
-// Í¼Ïñ´¦Àí×¢ÊÍĞÅÏ¢·¢ËÍ±êÖ¾Î»¡¢fc×¢ÊÍĞÅÏ¢·¢ËÍ¡¢Ö¡ºÅÀÛ¼ÓµÈ
-// ²ÎÊı1£ºÊÇ·ñĞèÒª¸øÍ¼Ïñ´¦Àí·¢ËÍ×¢ÊÍĞÅÏ¢£¬·µ»Ø²ÎÊı
-// ²ÎÊı2£ºÊÇ·ñĞèÒªÏòfc·¢ËÍ×¢ÊÍĞÅÏ¢£¬ÅĞ¶Ï²ÎÊı
-// ²ÎÊı3£ºÊÇ·ñĞèÒªÀÛ¼ÓÌõ´øºÅ¡¢Ö¡ºÅµÈĞÅÏ¢
+// å›¾åƒå¤„ç†æ³¨é‡Šä¿¡æ¯å‘é€æ ‡å¿—ä½ã€fcæ³¨é‡Šä¿¡æ¯å‘é€ã€å¸§å·ç´¯åŠ ç­‰
+// å‚æ•°1ï¼šæ˜¯å¦éœ€è¦ç»™å›¾åƒå¤„ç†å‘é€æ³¨é‡Šä¿¡æ¯ï¼Œè¿”å›å‚æ•°
+// å‚æ•°2ï¼šæ˜¯å¦éœ€è¦å‘fcå‘é€æ³¨é‡Šä¿¡æ¯ï¼Œåˆ¤æ–­å‚æ•°
+// å‚æ•°3ï¼šæ˜¯å¦éœ€è¦ç´¯åŠ æ¡å¸¦å·ã€å¸§å·ç­‰ä¿¡æ¯
 void photoing_Control(UINT8 *toTxcl_zzxx_valid, UINT8 fcSend_Flag, UINT8 numup_Flag);
 
-void clean_cmd_From_FC();       // ÖØÖÃÖ¸Áî»º´æ
-void clean_cmd_ImageInfo_Num(); // ÖØÖÃÍ¼ÏñĞòºÅ
+void clean_cmd_From_FC();       // é‡ç½®æŒ‡ä»¤ç¼“å­˜
+void clean_cmd_ImageInfo_Num(); // é‡ç½®å›¾åƒåºå·
 
-// Note:lcy Ôö¼Ó
+// Note:lcy å¢åŠ 
 extern bool running_main_ctrl;
 extern bool running_other_process;
 extern bool running_periodic_send;
 
-// ×ÓÏµÍ³¹¤×÷Ä£Ê½ÇĞ»»º¯Êı ¿ÉÓÉÍâ²¿µ÷ÓÃ(¶ÁÈ¡¹²ÏíÄÚ´æºóÇĞ»»)
+// å­ç³»ç»Ÿå·¥ä½œæ¨¡å¼åˆ‡æ¢å‡½æ•° å¯ç”±å¤–éƒ¨è°ƒç”¨(è¯»å–å…±äº«å†…å­˜ååˆ‡æ¢)
 void switchSubsysOperMode(SUBSYS_MAIN_OPER_MODE mode);
 
-
-// ×ÓÏµÍ³ÊÇ·ñ´¦ÓÚ³õÊ¼»¯ÖĞ
+// å­ç³»ç»Ÿæ˜¯å¦å¤„äºåˆå§‹åŒ–ä¸­
 bool ycInitializing();
 
-// ×ÓÏµÍ³ÊÇ·ñ´¦ÓÚÕı³£¹¤×÷×´Ì¬
+// å­ç³»ç»Ÿæ˜¯å¦å¤„äºæ­£å¸¸å·¥ä½œçŠ¶æ€
 bool ycAlreadyNormal();
 
-// ×ÓÏµÍ³ÊÇ·ñ´¦ÓÚÏÂµç
-bool ycAlreadyStop() ;
+// å­ç³»ç»Ÿæ˜¯å¦å¤„äºä¸‹ç”µ
+bool ycAlreadyStop();
+
+// é‡ç½®ä¸Šç”µæ¬¡æ•°
+void resetElectrifyAmount();
 
 // #ifdef __cplusplus
 // }

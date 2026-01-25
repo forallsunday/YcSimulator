@@ -1704,9 +1704,6 @@ void init_Model_WorkControl() {
         break;
 
     case 4:
-        // todo: 实现持久化储存
-        // 模拟flash中的赋值内容
-        nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave++;
         log_once("[初始化] step=4: 初始化完成，进入收藏状态, 上电次数=%d", nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave);
 
         // 进入收藏状态
@@ -4062,4 +4059,8 @@ bool ycInitializing() {
     // 如果这两个有一个还是init状态，就认为还在初始化
     return (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_INIT ||
             main_Control_State_Param.main_mode == V_SUBSYS_MAIN_MODE_INI);
+}
+
+void resetElectrifyAmount() {
+    nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave = 0;
 }

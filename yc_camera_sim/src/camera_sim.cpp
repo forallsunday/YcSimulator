@@ -35,19 +35,20 @@ void CameraSimulator::init() {
     // 心跳线程
     startHeartbitting();
 
-    // FPGA 模拟器 初始化
-    fpga_sim_.init();
+    // 上电次数清零
+    resetElectrifyAmount();
 
     // 冻结模型
     sim::freeze_all_process = true;
 
-    // !!!启动任务线程
+    // !启动任务线程
     this->initTaskThreads();
 
-    // todo: 上电次数清零
-    // 上电次数准备写在FlashSimulator中 与类的生命周期一致
+    // FPGA 模拟器 初始化
+    fpga_sim_.init();
 
     status_ = STATUS_INITIALIZED;
+
     log_info("[CameraSimulator] Initialized.");
 }
 
