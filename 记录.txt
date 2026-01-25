@@ -16,6 +16,13 @@
 commit -m '1.原主控代码定位不对,添加lcy的定位代码替代 2.完善共享内存的读写 3.周期性发送work_state_report且不改变bitpercent 4.getRTC改为距离今天0点的纳秒' 
 
 
+设备代码中的下电流程：
+1. 接收 IRST_ACT_REQ (来自UDP)
+2. 如果 IRST_ACT_REQ.general_act_req==V_GENERAL_ACT_REQ_MODE_SWITCH工作模式请求 
+3. 如果 IRST_ACT_REQ.general_act_req.subsys_main_oper_mode==V_SUBSYS_MAIN_OPER_MODE_STOP 
+4. cmd_From_FC.general_cmd_MODE_SWITCH = 1, cmd_From_FC.subsys_main_oper_mode = V_SUBSYS_MAIN_OPER_MODE_STBY;
+5. 工作流程(收藏、准备、拍照等)的轮询中, 判断第4步，执行下电流程
+
 上电流程梳理
 1. 创建线程
 2. 工作流程初始化(50s) 期间会发送work_state_report, remaintime逐渐减少 bitpercent逐渐增加

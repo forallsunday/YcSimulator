@@ -14,9 +14,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-// Note: lcy 添加定位模块
-#include <geolocation.h>
-#include <rotation.h>
+// // Note: lcy 添加定位模块
+// #include <geolocation.h>
+// #include <rotation.h>
 
 #define Sec_KJPosREADY_NKJ 0.8 // 内框架位置好时间s
 #define Sec_KJPosREADY_WKJ 1.2 // 外框架位置好时间s

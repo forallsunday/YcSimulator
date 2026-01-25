@@ -33,7 +33,7 @@
       <SIMROLE NodeName="V_NODE_EWSM" NodeID="1801"/>
       <SIMROLE NodeName="V_NODE_CNAM" NodeID="1602"/>
       <SIMROLE NodeName="V_NODE_CNRM" NodeID="1603"/>
-      <SIMROLE NodeName="V_NODE_IRRM" NodeID="1901"/>
+      <!-- <SIMROLE NodeName="V_NODE_IRRM" NodeID="1901"/> -->
       <SIMROLE NodeName="V_NODE_IRVP" NodeID="1902"/>
       <SIMROLE NodeName="V_NODE_DASM" NodeID="2001"/>
       <SIMROLE NodeName="V_NODE_DAIP" NodeID="2002"/>

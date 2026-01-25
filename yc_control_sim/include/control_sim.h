@@ -13,11 +13,13 @@
 #include <thread_safe_queue.hpp>
 #include <udp_packet.h>
 #include <udpconnect.h>
+#include <read_udp_addr.hpp>
 
 // udp地址 包含ip和端口
 typedef struct UdpAddress {
-    std::string ip;   // ip地址
-    int         port; // 端口
+    std::string ip;        // 功能节点的ip地址
+    int         port;      // 监听端口
+    int         port_send; // 发送端口
 } UdpAddress;
 
 using MapNodeAddr   = std::map<FUNCTION_NODE_TYPE, UdpAddress>;       // ICP节点对应的地址
@@ -27,16 +29,11 @@ using MapTopicNodes = std::map<int, std::vector<FUNCTION_NODE_TYPE>>; // Topic�
 class ControlSimulator {
 
   public:
-    ControlSimulator(std::string ip_icp_server, std::string ip_camera,
-                     int ctrl_port_recv_icp, int ctrl_port_recv_camera, int cam_port,
-                     MapNodeAddr map_node_addr);
+    ControlSimulator(ReadUdpAddr read_udp_addr, MapNodeAddr map_node_addr);
 
     ~ControlSimulator();
 
     void init();
-
-    bool setSend2Camera(bool send2) { is_send2camera_ = send2; };
-    bool setSend2IcpNodes(bool send2) { is_send2icpnodes_ = send2; };
 
   private:
     // 处理ICP来的数据
@@ -54,12 +51,8 @@ class ControlSimulator {
     bool is_send2camera_   = true;
     bool is_send2icpnodes_ = true;
 
-    // ip
-    std::string ip_icp_server_, ip_camera_;
-    // 数据监听端口
-    int ctrl_port_recv_icp_, ctrl_port_recv_camera_;
-    // 发送数据的端口
-    int cam_port_;
+    // 读取机载移植和相机仿真相互之间的UDP的ip和端口
+    ReadUdpAddr read_udp_addr_;
 
     // udp 从ICP接收数据
     std::unique_ptr<UdpConnect> udp_icp_;

@@ -90,7 +90,6 @@ void param_Init() {
     // bSemId_list_Mess_FromFc_IRST_act_req = createBinarysem(bSemName_list_Mess_FromFc_IRST_act_req); // FC接收消息缓冲区互斥锁
     // bSemId_list_Mess_FromFc_Others       = createBinarysem(bSemName_list_Mess_FromFc_Others);       // FC接收消息缓冲区互斥锁
 
-
     // 主控用标志位
     flag_Fpga_Interrupt  = 0; // fpga中断，0为未收到中断，1为已收到中断
     flag_Fpga_down_times = 0; // 统计fpga未触发次数

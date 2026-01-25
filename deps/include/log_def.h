@@ -14,8 +14,8 @@ void log_udp_packet_send(const char *where, const char *ip, int port, const UdpP
 // 多次刷新只打印一次
 void log_once_func(const char *fmt, ...);
 
-#define PRINT_LOG_UDP_RECV 0 // log接收的udp包
-#define PRINT_LOG_UDP_SEND 0 // log发送的udp包
+#define PRINT_LOG_UDP_RECV 1 // log接收的udp包
+#define PRINT_LOG_UDP_SEND 1 // log发送的udp包
 
 #if PRINT_LOG_UDP_RECV
 #define LOG_INFO_UDP_RECV(packet)    \

@@ -94,6 +94,7 @@ void send_Mess_WORK_STATE_REPORT(UINT32 start_remain_time, UINT32 bitpercent) {
     // 标识符:subsys_electrify_amount
     // 名  称:上电次数
     mess_ToFC_WORK_STATE_REPORT.subsys_electrify_amount = nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave;
+    // mess_ToFC_WORK_STATE_REPORT.subsys_electrify_amount = sim::electrify_amount;
     // 发送消息
     fc_Send_Message(V_TOPIC_IRRM_WORK_STATE_REPORT, (UINT8 *)&mess_ToFC_WORK_STATE_REPORT, sizeof(WORK_STATE_REPORT));
 }
@@ -121,7 +122,7 @@ void make_Mess_IRST_OPERATIONAL_PARAS() {
     else
         mess_ToFC_IRST_OPERATIONAL_PARAS.cool_state = mess_From_TG.Cool_state + 1;
     // 名  称:IRST工作参数
-    mess_ToFC_IRST_OPERATIONAL_PARAS.irst_mode_paras.irst_form_mode  = main_Control_State_Param.irst_form_mode;
+    mess_ToFC_IRST_OPERATIONAL_PARAS.irst_mode_paras.irst_form_mode  = main_Control_State_Param.irst_form_mode; // 广域 区域成像 区域监视
     mess_ToFC_IRST_OPERATIONAL_PARAS.irst_mode_paras.irst_work_state = main_Control_State_Param.irst_work_state;
     mess_ToFC_IRST_OPERATIONAL_PARAS.irst_mode_paras.irst_work_mode  = main_Control_State_Param.main_mode;
     // 名  称:IR图像参数----------------------------------------------------------------------------------------------
@@ -373,6 +374,7 @@ void send_Mess_PHM_DATA_RAW_IRST() {
     // 说  明:表征子系统上电次数
     //        不能上报的功能单元将该信号置0
     mess_ToFC_PHM_DATA_RAW_IRST.RawData_MsSubSys_IRST.subsys_electrify_amount = nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave;
+    // mess_ToFC_PHM_DATA_RAW_IRST.RawData_MsSubSys_IRST.subsys_electrify_amount = sim::electrify_amount;
     // 发送消息
     fc_Send_Message(V_TOPIC_IRRM_PHM_DATA_RAW_IRST, (UINT8 *)&mess_ToFC_PHM_DATA_RAW_IRST, sizeof(PHM_DATA_RAW_IRST));
 }

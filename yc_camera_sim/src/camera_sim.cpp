@@ -3,7 +3,10 @@
 #include <Def/MyTopicIdDef.h>
 
 #include <camera_sim.h>
+
+#include <global_vars.h>
 #include <log_def.h>
+#include <udp_trans.h>
 #include <utils.h>
 
 #include <yc/YC_Controller_Main_Process.h>
@@ -11,45 +14,44 @@
 
 #include <chrono>
 #include <cstring>
-#include <log.h>
-#include <udp_trans.h>
 
 using namespace std::chrono;
 
-CameraSimulator::CameraSimulator(int port, std::string ip_control, int port_dst)
-    : port_(port), ip_contrl_(ip_control), port_dst_(port_dst),
+CameraSimulator::CameraSimulator(int port, int port_send, std::string ip_control, int port_dst)
+    : port_(port), port_send_(port_send), ip_contrl_(ip_control), port_dst_(port_dst),
       running_hearbit(false),
       status_(STATUS_UNKNOWN) {}
 
 void CameraSimulator::init() {
-
-    if (!already_initialized) {
-
-        // 设置模拟器标志
-        sim::is_simulating = true;
-
-        // 设置周期性发送间隔
-        sim::periodic_interval = PERIOD_TASK_TIME;
-
-        // UDP线程
-        startUdpConnect();
-        // 心跳线程
-        startHeartbitting();
-
-        // FPGA 模拟器 初始化
-        fpga_sim_.init();
-
-        // running flags 初始化
-        running_main_ctrl     = false;
-        running_other_process = false;
-        running_periodic_send = false;
-
-        this->already_initialized = true;
+    if (status_ == STATUS_INITIALIZED) {
+        return;
     }
+
+    // 设置模拟器标志
+    sim::is_simulating = true;
+
+    // UDP线程
+    startUdpConnect();
+    // 心跳线程
+    startHeartbitting();
+
+    // FPGA 模拟器 初始化
+    fpga_sim_.init();
+
+    // 冻结模型
+    sim::freeze_all_process = true;
+
+    // !!!启动任务线程
+    this->initTaskThreads();
+
+    // todo: 上电次数清零
+    // 上电次数准备写在FlashSimulator中 与类的生命周期一致
+
+    status_ = STATUS_INITIALIZED;
+    log_info("[CameraSimulator] Initialized.");
 }
 
 void CameraSimulator::start() {
-
     // 避免重复
     if (status_ == STATUS_RUNNING) {
         return;
@@ -59,26 +61,33 @@ void CameraSimulator::start() {
     sim::queue_IRST_act_req.clearAndNotify();
     sim::queue_others.clearAndNotify();
 
-    // 设备中的初始化参数
-    param_Init();
-
     // fpga 启动
     fpga_sim_.start();
 
-    // !!!启动任务线程
-    this->startTaskThreads();
+    // 取消冻结
+    sim::freeze_all_process = false;
+
+    // // 模型初始化时先置于下电状态
+    // this->setSubsysStop();
+
+    // // 等待下电
+    // while (!ycAlreadyStop()) {
+    //     std::this_thread::sleep_for(1000ms);
+    //     log_proc("wait for 下电");
+    // }
 
     this->status_ = STATUS_RUNNING;
 
-    log_info("[CameraSimulator] Start.");
+    log_info("[CameraSimulator] Started.");
 }
 
 void CameraSimulator::step(const SharedMemoryInput *shm_input, SharedMemoryOutput *shm_output) {
 
-    if (!already_initialized) {
-        log_error("[CameraSimulator] Not initialized yet!");
+    if (status_ != STATUS_RUNNING) {
+        log_error("[CameraSimulator] Not running yet!");
         return;
     }
+
     if (shm_input == nullptr || shm_output == nullptr) {
         log_error("[CameraSimulator] Shared memory input or output is null!");
         return;
@@ -275,10 +284,11 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageParasIS.St_AcParas.St_EntityLinearVelocit     = St_EntityLinearVelocit;
     St_EOImageParasIS.St_AcParas.St_EntityLinearAcceleratio = St_EntityLinearAcceleratio;
     St_EOImageParasIS.St_AcParas.St_EntityAttitude          = St_EntityAttitude;
-    // 图像任务信息
-    St_EOImageParasIS.Seq_Mission.resize(sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
-    memcpy(St_EOImageParasIS.Seq_Mission.data(), &mess_To_TXCL_ZSXX.to_Txcl_A818_Image_common_paras,
-           sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
+    // todo: 改成数组
+    // // 图像任务信息
+    // St_EOImageParasIS.Seq_Mission.resize(sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
+    // memcpy(St_EOImageParasIS.Seq_Mission.data(), &mess_To_TXCL_ZSXX.to_Txcl_A818_Image_common_paras,
+    //        sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
     // log_once("[CameraSimulator] A818_IMAGE_COMMON_PARAS_TYPE_DEF size: %zu bytes.", sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
     // === EOImageParasIS 图像注释信息 === End
 
@@ -316,38 +326,37 @@ void CameraSimulator::setSubsysNormal(int delay_sec) {
 
     bool is_initializing = ycInitializing();
     bool already_normal  = ycAlreadyNormal();
-    // 必须 不在初始化过程中
-    if (is_initializing == false) {
-        // // 避免重复切换 如果正在切换至normal 或者已经是 normal的话 就直接返回
-        // if (doing_set_normal_.load(std::memory_order_acquire) ||
-        //     this->subsys_status_.load(std::memory_order_acquire) == SUBSYS_STATUS_NORMAL) {
-        //     return;
-        // }
 
-        if (already_normal) {
-            // log_proc("[CameraSimulator] already_normal == true.");
-            return;
-        }
-
-        // 设置正在切换标志
-        doing_set_normal_.store(true, std::memory_order_release);
-
-        // 如果还不是正常模式 说明是第一次切换
-        if (this->subsys_status_.load(std::memory_order_acquire) != SUBSYS_STATUS_NORMAL) {
-            log_proc("[CameraSimulator] Setting to NORMAL mode, delay seconds=%d.", delay_sec);
-            // 延时切换，模拟共享内存中上电启动时间
-            if (delay_sec > 0) {
-                std::this_thread::sleep_for(seconds(delay_sec));
-            }
-        }
-
-        switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_NORMAL);
-
-        this->subsys_status_.store(SUBSYS_STATUS_NORMAL, std::memory_order_release);
-
-        // 清除正在切换标志
-        doing_set_normal_.store(false, std::memory_order_release);
+    // 在初始化过程中 不切 并且 等待一小会
+    if (is_initializing) {
+        std::this_thread::sleep_for(5ms);
+        return;
     }
+
+    // 已经是normal不用切
+    if (already_normal) {
+        // log_proc("[CameraSimulator] already_normal == true.");
+        return;
+    }
+
+    // 设置正在切换标志
+    doing_set_normal_.store(true, std::memory_order_release);
+
+    // 如果还不是正常模式 说明是第一次切换
+    if (this->subsys_status_.load(std::memory_order_acquire) != SUBSYS_STATUS_NORMAL) {
+        log_proc("[CameraSimulator] Setting to NORMAL mode, delay seconds=%d.", delay_sec);
+        // 延时切换，模拟共享内存中上电启动时间
+        if (delay_sec > 0) {
+            std::this_thread::sleep_for(seconds(delay_sec));
+        }
+    }
+
+    switchSubsysOperMode(V_SUBSYS_MAIN_OPER_MODE_NORMAL);
+
+    this->subsys_status_.store(SUBSYS_STATUS_NORMAL, std::memory_order_release);
+
+    // 清除正在切换标志
+    doing_set_normal_.store(false, std::memory_order_release);
 }
 
 void CameraSimulator::setSubsysStop() {
@@ -356,11 +365,11 @@ void CameraSimulator::setSubsysStop() {
     this->subsys_status_.store(SUBSYS_STATUS_STOP, std::memory_order_release);
 }
 
-void CameraSimulator::startTaskThreads() {
+void CameraSimulator::initTaskThreads() {
     // 任务线程启动
-    startMainControl();
-    startOtherProcess();
-    startPeriodicSend();
+    initMainControl();
+    initOtherProcess();
+    initPeriodicSend();
 }
 
 void CameraSimulator::startHeartbitting() {
@@ -386,11 +395,10 @@ void CameraSimulator::startHeartbitting() {
 
 void CameraSimulator::startUdpConnect() {
     // 初始化udp连接 设置接受函数
-    // udpTransInit(port_, ip_contrl_.c_str(), port_dst_, [this](char *data, int size) { this->udpEventRecv(data, size); });
-    udpTransInit(port_, ip_contrl_.c_str(), port_dst_);
+    udpTransInit(port_, port_send_, ip_contrl_.c_str(), port_dst_);
 }
 
-void CameraSimulator::startMainControl() {
+void CameraSimulator::initMainControl() {
     if (running_main_ctrl)
         return;
 
@@ -401,7 +409,7 @@ void CameraSimulator::startMainControl() {
     //
 }
 
-void CameraSimulator::startOtherProcess() {
+void CameraSimulator::initOtherProcess() {
     if (running_other_process)
         return;
 
@@ -411,7 +419,7 @@ void CameraSimulator::startOtherProcess() {
     });
 }
 
-void CameraSimulator::startPeriodicSend() {
+void CameraSimulator::initPeriodicSend() {
     if (running_periodic_send)
         return;
 
@@ -427,7 +435,7 @@ void CameraSimulator::freeze() {
     }
 
     // 先设置暂停标志
-    freeze_all_process = true;
+    sim::freeze_all_process = true;
 
     // 再清空并通知，确保等待的线程能醒来并检查到退出标志
     sim::queue_IRST_act_req.clearAndNotify();
@@ -443,6 +451,12 @@ void CameraSimulator::close() {
     if (status_ == STATUS_CLOSED) {
         return;
     }
+
+    while (!ycAlreadyStop()) {
+        this->setSubsysStop();
+        std::this_thread::sleep_for(15ms);
+    }
+    log_info("[CameraSimulator] IRST WORK STATE already NA.");
 
     this->freeze();
 
@@ -473,9 +487,9 @@ void CameraSimulator::close() {
 
     udpTransClose();
 
-    this->already_initialized = false;
-
     this->status_ = STATUS_CLOSED;
+
+    // 共享内存
 
     log_info("[CameraSimulator] Closed and all threads stopped.");
 }

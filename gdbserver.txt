@@ -2,3 +2,15 @@
 ./bin/gdbserver :50001 ./bin/YcControl
 ./bin/gdbserver :50002 ./midware -mod ./bin/libycSim.so -rate 50
 
+attach 模式
+ps aux
+ps -ef
+
+ps aux | grep midware
+
+mid:
+./debug/gdbserver :50002 --attach 8
+
+YcControl:
+./debug/gdbserver :50001 --attach 8
+

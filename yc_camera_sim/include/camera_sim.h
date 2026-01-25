@@ -20,7 +20,7 @@
 
 class CameraSimulator {
   public:
-    CameraSimulator(int port, std::string ip_control, int port_dst);
+    CameraSimulator(int port, int port_send, std::string ip_control, int port_dst);
     ~CameraSimulator();
 
     // 初始化 建立与ControlSimulator的udp连接
@@ -48,25 +48,26 @@ class CameraSimulator {
     void setConnectToJCY(bool to_jcy) { sim::is_simulating = false; };
 
   private:
-    // 已经初始化了
-    bool already_initialized = false;
-
-    // 心跳计数
-    std::atomic<uint64_t> heartbit_{0};
-    std::atomic<bool>     running_hearbit;
-    std::thread           thread_heartbit_;
-
     // 模型状态
     enum ModelStatus {
         STATUS_UNKNOWN,
+        STATUS_INITIALIZED,
         STATUS_RUNNING,
         STATUS_FROZEN,
         STATUS_CLOSED,
     };
     std::atomic<ModelStatus> status_; // 模型状态
 
+    // 心跳计数
+    std::atomic<uint64_t> heartbit_{0};
+    std::atomic<bool>     running_hearbit;
+    std::thread           thread_heartbit_;
+    // 心跳线程
+    void startHeartbitting();
+
     // UDP
     int         port_;      // udp 监听端口
+    int         port_send_; // udp 发送端口
     std::string ip_contrl_; // udp 机载主控模拟器ip
     int         port_dst_;  // udp 要发送到的端口(机载主控模拟器)
 
@@ -75,21 +76,19 @@ class CameraSimulator {
     std::thread thread_other_process_; // 子线程3
     std::thread thread_periodic_send_; // 子线程4
 
-    // =============线程启动函数==============
-    // 心跳线程
-    void startHeartbitting();
+    // =============线程函数==============
     // 子线程1 udp连接: 数据接收函数 udpEventRecv 线程一直运行 与类的生命周期一致
     void startUdpConnect();
     // 子线程2 任务线程 运行函数 : 处理act_req以及主流程控制
-    void startMainControl();
+    void initMainControl();
     // 子线程3 任务线程 运行函数 : 其他消息处理
-    void startOtherProcess();
+    void initOtherProcess();
     // 子线程4 任务线程 运行函数 : 周期发送
-    void startPeriodicSend();
-    // ===============END===================
+    void initPeriodicSend();
+    // ===============END=================
 
-    // 开始任务线程 (不包括 udp线程、心跳线程)
-    void startTaskThreads();
+    // 初始化任务线程 (不包括 udp线程、心跳线程)
+    void initTaskThreads();
 
     // fpga 仿真
     FpgaSimulator fpga_sim_;

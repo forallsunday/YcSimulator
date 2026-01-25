@@ -7,10 +7,8 @@
 
 #define SEND_TOPIC (0xd6 << 24)
 
-ControlSimulator::ControlSimulator(std::string ip_icp_server, std::string ip_camera, int ctrl_port_recv_icp, int ctrl_port_recv_camera, int cam_port, MapNodeAddr map_node_addr)
-    : ip_icp_server_(ip_icp_server), ip_camera_(ip_camera),
-      ctrl_port_recv_icp_(ctrl_port_recv_icp), ctrl_port_recv_camera_(ctrl_port_recv_camera),
-      cam_port_(cam_port), map_node_addr_(map_node_addr) {
+ControlSimulator::ControlSimulator(ReadUdpAddr read_udp_addr, MapNodeAddr map_node_addr)
+    : read_udp_addr_(read_udp_addr), map_node_addr_(map_node_addr) {
 }
 
 ControlSimulator::~ControlSimulator() {
@@ -40,22 +38,33 @@ void ControlSimulator::init() {
     // udp连接 设置参数
     std::string ip_0 = "0.0.0.0";
 
+    // 接收icp的端口和发送到icp的端口
+    int port_icp      = map_node_addr_[V_NODE_IRRM].port;
+    int port_icp_send = map_node_addr_[V_NODE_IRRM].port_send;
+
     udp_icp_ = std::make_unique<UdpConnect>(
-        ip_0, ctrl_port_recv_icp_, -1,
+        // ip_0, 17200, -1,
+        ip_0, port_icp, port_icp_send,
         [this](char *data, int size) { this->dataHandlerICP(data, size); });
+
+    // 接收camera的端口和发送到camera的端口
+    // std::string ip_camera_     = read_udp_addr_.ip_camera;
+    int port_cam      = read_udp_addr_.port_ctrl_listen_cam;
+    int port_cam_send = read_udp_addr_.port_ctrl_send2_cam;
+
     udp_camera_ = std::make_unique<UdpConnect>(
-        ip_0, ctrl_port_recv_camera_, -1,
+        ip_0, port_cam, port_cam_send,
         [this](char *data, int size) { this->dataHandlerCamera(data, size); });
 
     // udp连接 初始化
     if (udp_icp_->Init()) {
-        log_info("udp初始化成功 监听端口%d", ctrl_port_recv_icp_);
+        log_info("udp与icp通信初始化成功 监听端口=%d 发送端口=%d", port_icp, port_icp_send);
     } else {
         log_warn("udp初始化失败");
     }
 
     if (udp_camera_->Init()) {
-        log_info("udp初始化成功 监听端口%d", ctrl_port_recv_camera_);
+        log_info("udp与camera通信初始化成功 监听端口=%d 发送端口=%d", port_cam, port_cam_send);
     } else {
         log_warn("udp初始化失败");
     }
@@ -72,7 +81,9 @@ void ControlSimulator::init() {
 int ControlSimulator::sendPkt2Camera(const UdpPacket *ptr_packet) {
     return udp_camera_->SendData(
         reinterpret_cast<const char *>(ptr_packet),
-        sizeofPacket(ptr_packet), ip_camera_.c_str(), cam_port_);
+        // sizeofPacket(ptr_packet), ip_camera_.c_str(), cam_port_);
+        sizeofPacket(ptr_packet),
+        read_udp_addr_.ip_camera.c_str(), read_udp_addr_.port_cam_listen_ctrl);
 }
 
 int ControlSimulator::sendPkt2IcpNodes(const UdpPacket *ptr_packet, std::string ip, int port) {
@@ -236,14 +247,15 @@ void ControlSimulator::dataHandlerICP(char *data, int size) {
 
     auto ptr_packet = PtrUdpPacket(std::make_unique<UdpPacket>());
     std::memcpy(ptr_packet.get(), data, size);
-    LOG_INFO_UDP_RECV(*ptr_packet);
+    // LOG_INFO_UDP_RECV(*ptr_packet);
 
     // 只接收 发送到 IRRM的包
-    if (ptr_packet->dest == V_NODE_IRRM) {
-        // INFO_UDP_PACKET_RECV_ICP_TO_IRRM(*ptr_packet);
-        // 收到后放入队列icp中
-        queue_from_icp_.push(std::move(ptr_packet));
+    // if (ptr_packet->dest == V_NODE_IRRM) {
+    if (ptr_packet->source == V_NODE_SRMM) {
+        LOG_INFO_UDP_RECV(*ptr_packet);
     }
+
+    queue_from_icp_.push(std::move(ptr_packet));
 }
 
 void ControlSimulator::dataHandlerCamera(char *data, int size) {
@@ -358,7 +370,7 @@ void ControlSimulator::startSend2Camera() {
             if (queue_from_icp_.waitForAndPop(ptr_packet, this->timeout)) {
                 // if (queue_from_camera_.waitForAndPop(ptr_packet, this->timeout)) { // Note: 测试从Camera收
                 // 没有竞争条件 不用加锁
-                LOG_INFO_UDP_SEND("相机仿真", ip_camera_.c_str(), cam_port_, *ptr_packet);
+                // LOG_INFO_UDP_SEND("相机仿真", ip_camera_.c_str(), cam_port_, *ptr_packet);
                 this->sendPkt2Camera(ptr_packet.get());
             }
         } // 这里 packet 超出作用域，它会自动 delete UdpPacket
@@ -394,7 +406,7 @@ void ControlSimulator::startSend2IcpNodes() {
                 for (const FUNCTION_NODE_TYPE node : iter_topic->second) {
                     auto iter_node = map_node_addr_.find(node);
                     if (iter_node == map_node_addr_.end()) {
-                        log_info("未找到<%s>对应的ip和port.", lookupNode(node));
+                        // log_info("未找到<%s>对应的ip和port.", lookupNode(node));
                         continue;
                     }
 
@@ -404,7 +416,10 @@ void ControlSimulator::startSend2IcpNodes() {
                     auto pkt = *ptr_packet; // 拷贝一份 避免多线程混乱
                     // 修改 packet 发送到的节点
                     pkt.dest = node;
-                    LOG_INFO_UDP_SEND("ICP Nodes 节点", ip.c_str(), port, pkt);
+                    // 只打印工作参数
+                    if (topic_id == V_TOPIC_IRRM_IRST_OPERATIONAL_PARAS) {
+                        LOG_INFO_UDP_SEND(lookupNode(node), ip.c_str(), port, pkt);
+                    }
                     // 现在camera 发送过来的包没有发送标记了, 在这里打发送标记
                     pkt.topicId = SEND_TOPIC | topic_id;
 
@@ -421,7 +436,7 @@ void ControlSimulator::startSend2IcpNodes() {
                     // 修改 packet 发送到的节点
                     pkt.dest    = V_NODE_ADAS;
                     pkt.topicId = SEND_TOPIC | topic_id;
-                    LOG_INFO_UDP_SEND("V_NODE_ADAS 监控", ip_adas.c_str(), port_adas, pkt);
+                    // LOG_INFO_UDP_SEND("V_NODE_ADAS 监控", ip_adas.c_str(), port_adas, pkt);
                     this->sendPkt2IcpNodes(&pkt, ip_adas, port_adas);
                 }
             }

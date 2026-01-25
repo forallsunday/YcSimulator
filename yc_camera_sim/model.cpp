@@ -102,7 +102,7 @@ void usrmode_init() {
     /* ************************************* */
     //    printf("Usr_ModeInit data is NULL \n");
 
-    // Note: 2025-12-30 LCY
+    // 初始化 log
     // log_init("camera_sim.log");
     log_init(nullptr);
 
@@ -111,19 +111,17 @@ void usrmode_init() {
 
     if (!cam_sim) {
         cam_sim = std::make_unique<CameraSimulator>(
-            rua.cam_port, rua.ip_control, rua.ctrl_port_recv_camera);
+            rua.port_cam_listen_ctrl, rua.ip_control, rua.port_ctrl_listen_cam);
     }
 
     cam_sim->init();
+    // cam_sim->start();
 
     // 调试时设置周期发送间隔
-    cam_sim->setPeriodicInterval(2000);
+    // cam_sim->setPeriodicInterval(2000);
 
     // Note: 测试直接执行拍照模式
-    cam_sim->testPhotoing();
-
-    // 启动任务线程等
-    cam_sim->start();
+    // cam_sim->testPhotoing();
 
     return;
 }
@@ -145,6 +143,10 @@ void step_calculate() {
      */
 
     /* ************************************* */
+
+    // 启动模型
+    cam_sim->start();
+
     /* 1. 调用topic_read从共享内存中读取所需信息 */
     topic_read("FacilitiesPowerSupplyStatusParasMsg",
                &(shm_input.m_FacilitiesPowerSupplyStatusParasMsg), 0);
@@ -213,8 +215,10 @@ void usrmode_close() {
 
     /* ************************************* */
     /* 1. 添加模型停止逻辑, 关闭打开的资源 */
-    if (cam_sim)
+    if (cam_sim) {
         cam_sim->close();
+        cam_sim.reset();
+    }
 
     /* ************************************* */
 

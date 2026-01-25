@@ -15,31 +15,49 @@
 #include <cstring>
 
 static std::unique_ptr<UdpConnect> udp0;
-static int                         port_local;
-static std::string                 ip_dst;
-static int                         port_dst;
 
-static std::once_flag udp_init_flag;
-static bool           udp_init_ok = false;
+static int         port_t;      // 本地监听端口
+static int         port_send_t; // 发送端口
+static const char *ip_dst_t;    // 目标IP
+static int         port_dst_t;  // 目标端口
 
-bool udpTransInit(int local_port, const char *dst_ip, int dst_port_) {
+bool udpTransInit(int port, int port_send, const char *ip_dst, int port_dst) {
 
-    std::call_once(udp_init_flag, [&]() {
-        port_local = local_port;
-        ip_dst     = dst_ip;
-        port_dst   = dst_port_;
+    // std::call_once(udp_init_flag, [&]() {
+    //     port_local = local_port;
+    //     ip_dst     = dst_ip;
+    //     port_dst   = dst_port_;
 
-        udp0 = std::make_unique<UdpConnect>(
-            "0.0.0.0", port_local, -1, udpEventRecv);
+    //     udp0 = std::make_unique<UdpConnect>(
+    //         "0.0.0.0", port_local, -1, udpEventRecv);
 
-        udp_init_ok = udp0->Init();
-    });
+    //     udp_init_ok = udp0->Init();
+    // });
+
+    // unique ptr 已经有对象了
+    if (udp0) {
+        if (udp0->isRunning()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    port_t      = port;
+    port_send_t = port_send;
+    ip_dst_t    = ip_dst;
+    port_dst_t  = port_dst;
+
+    udp0 = std::make_unique<UdpConnect>(
+        "0.0.0.0", port_t, port_send_t, udpEventRecv);
+
+    bool udp_init_ok = udp0->Init();
 
     if (udp_init_ok) {
-        log_info("udp初始化成功 监听端口%d", port_local);
+        log_info("相机仿真udp初始化成功 监听端口=%d, 发送端口=%d", port_t, port_send_t);
         return true;
     } else {
-        log_warn("udp初始化失败");
+        log_warn("相机仿真udp初始化失败");
         return false;
     }
 }
@@ -58,13 +76,14 @@ void udpEventRecv(char *data, int size) {
     auto ptr_packet = std::make_unique<UdpPacket>();
     std::memcpy(ptr_packet.get(), data, size);
 
-    LOG_INFO_UDP_RECV(*ptr_packet);
+    // LOG_INFO_UDP_RECV(*ptr_packet);
 
     // 将收到的消息放入对应队列中
     auto topic_id = ptr_packet->topicId;
     switch (topic_id) {
         // 如果是IRST_ACT_REQ消息
     case V_TOPIC_IRST_ACT_REQ:
+        LOG_INFO_UDP_RECV(*ptr_packet);
         sim::queue_IRST_act_req.push(std::move(ptr_packet));
         break;
         // 如果是需要处理和回复的消息
@@ -133,11 +152,11 @@ void udpTransSend(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
     packet.payloadLen = size_msg;
     std::memcpy(packet.pPayload, msg, size_msg);
 
-    LOG_INFO_UDP_SEND("机载移植", ip_dst.c_str(), port_dst, packet);
+    // LOG_INFO_UDP_SEND("机载移植", ip_dst, port_dst, packet);
 
     udp0->SendData(
         reinterpret_cast<const char *>(&packet),
-        sizeofPacket(&packet), ip_dst.c_str(), port_dst);
+        sizeofPacket(&packet), ip_dst_t, port_dst_t);
 }
 
 void fc_Send_Message(uint32_t topic_id, const uint8_t *msg, uint32_t size_msg) {
@@ -162,11 +181,11 @@ void sendOkMsg() {
     packet.payloadLen = 1;
     std::memcpy(packet.pPayload, &c_ok_msg, 1);
 
-    // LOG_INFO_UDP_SEND("机载移植", ip_dst.c_str(), port_dst, packet);
+    // LOG_INFO_UDP_SEND("机载移植", ip_dst, port_dst, packet);
 
     udp0->SendData(
         reinterpret_cast<const char *>(&packet),
-        sizeofPacket(&packet), ip_dst.c_str(), port_dst);
+        sizeofPacket(&packet), ip_dst_t, port_dst_t);
 }
 
 void udpTransClose() {
@@ -174,21 +193,4 @@ void udpTransClose() {
         udp0->Close();
         udp0.reset();
     }
-}
-
-void testSendToYcControl() {
-    uint8_t   msg = 1;
-    UdpPacket packet{};
-    packet.time_tag = getSysRTC();
-    packet.source   = FUNCTION_NODE_TYPE::V_NODE_IRRM;
-    packet.topicId  = MY_TOPIC_OKMSG;
-
-    int size_msg      = 1;
-    packet.payloadLen = 1;
-    memcpy(packet.pPayload, &msg, size_msg);
-
-    LOG_INFO_UDP_SEND("机载移植", "172.19.5.3", 9318, packet);
-
-    udp0->SendData(
-        reinterpret_cast<const char *>(&packet), sizeofPacket(&packet), "172.19.5.3", 9318);
 }

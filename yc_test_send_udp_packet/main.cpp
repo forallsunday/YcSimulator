@@ -18,54 +18,8 @@
 #include <log_def.h>
 #include <log_init.h>
 
-void timerTest() {
-    TimerPeriod timer_test;
-
-    timer_test.init(std::chrono::milliseconds(1200), []() {
-        printf("[callback] TimerPeriod callback executed\n");
-    });
-
-    std::atomic<bool> exit{false};
-
-    // ===============================
-    // 控制定时器 start / stop 的线程
-    // ===============================
-    std::thread controller([&] {
-        while (!exit.load()) {
-
-            printf(">>> controller: START timer\n");
-            timer_test.start();
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(1200));
-
-            printf(">>> controller: STOP timer\n");
-            timer_test.stop();
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(900));
-        }
-    });
-
-    // ===============================
-    // 主线程：打印 elapsedTime
-    // ===============================
-    while (true) {
-        auto elapsed_ms = timer_test.elapsedTimeMs();
-
-        if (elapsed_ms >= 0) {
-            printf("[main] elapsed = %.1f ms\n", elapsed_ms);
-        } else {
-            printf("[main] timer not running\n");
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(70));
-    }
-
-    exit = true;
-    controller.join();
-}
-
 int main() {
-    log_init("test_.log");
+    log_init(nullptr);
 
     // 解析xml文件 获取icp节点(V_NODE_XXX)对应的所有地址
     SOCKET_PARSE socket_data; // xml解析的数据
@@ -100,64 +54,44 @@ int main() {
         return result;
     };
 
+    // Note: 与检测仪互发 检测仪在win中 仿真模型载wsl中
     std::string win_ip = getWindowsVethIP_fromCmd();
     printf("Windows vEthernet IP: %s\n", win_ip.c_str());
+    int port      = 6000; // 仿真模型的监听端口
+    int port_send = 6001; // 仿真模型发送端口
+    int port_dst  = 7000; // 检测仪的监听端口 (windows)
 
-    ReadUdpAddr rua;
+    using namespace std::chrono_literals;
 
-    // !与检测仪互发
-    // rua.ip_control = "172.20.160.1"; // 发送到windows检测仪的ip
-    rua.ip_control            = win_ip; // 发送到windows检测仪的ip
-    rua.cam_port              = 6000;   // 仿真模型的监听端口
-    rua.ctrl_port_recv_camera = 7000;   // 检测仪的监听端口 (windows)
-
-    CameraSimulator cam_sim(rua.cam_port, rua.ip_control, rua.ctrl_port_recv_camera);
+    CameraSimulator cam_sim(port, port_send, win_ip, port_dst);
 
     // 设置周期性发送线程中发送间隔
-    cam_sim.setPeriodicInterval(1000);
+    // cam_sim.setPeriodicInterval(1000);
 
     cam_sim.init();
+
+    cam_sim.setConnectToJCY(true);
+
+    std::this_thread::sleep_for(3s);
 
     cam_sim.start();
 
     // Note: 测试直接拍照
-    cam_sim.testPhotoing();
+    // cam_sim.testPhotoing();
 
     SharedMemoryInput  shm_input;
     SharedMemoryOutput shm_output;
 
     auto *power_supply_status = &shm_input.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData.ArrU1_FacilitiesPowerSupplyStatus[5];
 
-    using namespace std::chrono_literals;
-
-    int count = 0;
+    int64_t count = 0;
     while (true) {
         *power_supply_status = 2; // 快速上电
+        // *power_supply_status = 0; // NA
         cam_sim.step(&shm_input, &shm_output);
         std::this_thread::sleep_for(10ms);
         count++;
-        if (count >= 1000) {
-            count = 0;
-            break;
-        }
-    }
-    while (true) {
-        *power_supply_status = 4; // 下电
-        cam_sim.step(&shm_input, &shm_output);
-        std::this_thread::sleep_for(10ms);
-        count++;
-        if (count >= 200) {
-            count = 0;
-            break;
-        }
-    }
-    // todo: 这里再次上电后，相机无法拍照，怀疑是状态没有复位
-    while (true) {
-        *power_supply_status = 2; // 快速上电
-        cam_sim.step(&shm_input, &shm_output);
-        std::this_thread::sleep_for(10ms);
-        count++;
-        if (count >= 30000000) {
+        if (count >= 1e9) {
             count = 0;
             break;
         }

@@ -177,6 +177,8 @@ bool UdpConnect::Init() {
                         sizeof(buf),
                         &farAddr,
                         &farPort);
+                    
+                    // printf("farAddr=%d, farPort: %d\n", farAddr, farPort);
 
                     int savedErrno = errno; // ← 第一时间保存 errno
 

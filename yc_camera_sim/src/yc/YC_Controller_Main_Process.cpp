@@ -42,11 +42,9 @@
 
 #include <chrono>
 
-bool running_main_ctrl;
-bool running_other_process;
-bool running_periodic_send;
-
-bool freeze_all_process = false;
+bool running_main_ctrl     = false;
+bool running_other_process = false;
+bool running_periodic_send = false;
 
 using namespace std::chrono_literals;
 
@@ -55,14 +53,17 @@ void main_Control_And_Mess_Process_Act_req_task() {
     //	static UINT64 time_start = 0;
     //	static UINT64 time_end = 0;
 
-    PtrUdpPacket p_packet;
     while (running_main_ctrl) {
-        if (freeze_all_process) {
+        if (sim::freeze_all_process) {
+            // log_proc("freezing...");
             std::this_thread::sleep_for(5ms);
             continue;
         }
 
+        PtrUdpPacket p_packet;
+
         if (sim::queue_IRST_act_req.tryPop(p_packet)) {
+            log_proc("处理IRST_act_req消息");
             localUpdate(cmd_From_FC.current_IRST_ACT_REQ, p_packet.get());
             // 发送消息——回复响应ECHO
             send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_ECHO, V_ACT_REFUSED_REASON_NA);
@@ -103,6 +104,13 @@ void main_Control_And_Mess_Process_Act_req_task() {
             // 标志位清零
             flag_Fpga_Interrupt = 0;
         }
+        // fpga不中断时 下面再接一遍 但是是阻塞的 避免空转
+        else if (sim::queue_IRST_act_req.waitForAndPop(p_packet, 1ms)) {
+            localUpdate(cmd_From_FC.current_IRST_ACT_REQ, p_packet.get());
+            // 发送消息——回复响应ECHO
+            send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_ECHO, V_ACT_REFUSED_REASON_NA);
+            act_req_mess_Process(); // 活动请求指令判断
+        }
 
         // 如果fpga掉线,错误处理，异常流程，
         // if (ACoreOs_atomic32_get(&flag_Fpga_down_times) > 5) // 如果掉线超过五次，进行异常处理
@@ -121,7 +129,7 @@ void main_Control_And_Mess_Process_Act_req_task() {
         //			unLockBinarySem(bSemId_flag_Fpga_down_times);
         //		}
         // usleep(SHORT_MSG_SLEEP_TIME); // 延时
-        sleep_us(SHORT_MSG_SLEEP_TIME);
+        // sleep_us(SHORT_MSG_SLEEP_TIME);
     }
 }
 
@@ -130,15 +138,14 @@ void fc_Mess_Process_Others_task() {
     // MESS_NODE *p_MESS_NODE; // 节点
     int          i = 0;
     PtrUdpPacket p_packet;
-    auto         timeout = std::chrono::milliseconds(5);
 
     while (running_other_process) {
-        if (freeze_all_process) {
+        if (sim::freeze_all_process) {
             std::this_thread::sleep_for(5ms);
             continue;
         }
 
-        if (sim::queue_IRST_act_req.waitForAndPop(p_packet, timeout)) {
+        if (sim::queue_others.waitForAndPop(p_packet, 1ms)) {
             // 判断消息类型，此处处理所有其他类型消息，逐一在case中添加
             // switch (p_MESS_NODE->mess_typeId) {
             switch (p_packet->topicId) {
@@ -259,7 +266,7 @@ void fc_Mess_Send_Period_task() {
     static int upload_pack_num = 1; // 当前上报的第几包
 
     while (running_periodic_send) {
-        if (freeze_all_process) {
+        if (sim::freeze_all_process) {
             std::this_thread::sleep_for(5ms);
             continue;
         }
@@ -416,8 +423,10 @@ void timer_service_func_5ms() {
 // 能直接响应的指令在此函数中响应处理；不能直接响应的指令记录到cmd_From_FC中，后在Work_Control中处理
 void act_req_mess_Process() {
     // 通用活动请求，不记录参数
+    // log_proc("通用活动请求处理");
     switch (cmd_From_FC.current_IRST_ACT_REQ.general_act_req) {
     case V_GENERAL_ACT_REQ_MODE_SWITCH: // 工作模式请求
+        log_proc("工作模式请求处理");
         //		V_SUBSYS_MAIN_OPER_MODE_LOW_POWER = 2,		//省电模式--不响应
         //		V_SUBSYS_MAIN_OPER_MODE_STBY = 3,			//待机模式————只有拍照能响应，按正常待机处理1
         //		V_SUBSYS_MAIN_OPER_MODE_NORMAL = 4,			//正常模式--切换1——所有模式
@@ -544,6 +553,7 @@ void act_req_mess_Process() {
         break;
 
     case V_GENERAL_ACT_REQ_UNIQUE_ACT: // 特殊活动请求
+        log_proc("特殊活动请求处理");
         act_req_IRST_Process();
         break;
 
@@ -643,7 +653,6 @@ void act_req_IRST_Process() {
         else if (V_IRST_WORK_STATE_NB_JT == cmd_From_FC.current_IRST_ACT_REQ.unique_act_req_paras_IRST.irst_work_state) {
             // 待机和收藏可以进入
             if (main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_COLLECT || main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_STBY) {
-
                 // 拷贝置待处理指令
                 clean_cmd_From_FC();
                 cmd_From_FC.irst_cmd_STATE_SET             = 1;                       // 修改工作状态指令
@@ -1641,13 +1650,15 @@ void init_Model_WorkControl() {
 
     switch (step) {
     case 0:
-        param_Init();                   // 参数初始化
+        log_once("[初始化] step=0: 打开所有电源, 参数初始化");
         make_Mess_To_DY(3, 1, 1, 1, 1); // 电源分系统通信，打开所有电源
+
         // 如果电源返回上电成功
-        {
-            if ((mess_From_DY.state_szgd == 1 && mess_From_DY.state_glgd == 1 && mess_From_DY.state_rkbjgd == 1 && mess_From_DY.state_rkgcgd == 1) || cnt_wait > 4) {
-                step = 1; // 进入下一步
-            }
+        if ((mess_From_DY.state_szgd == 1 && mess_From_DY.state_glgd == 1 && mess_From_DY.state_rkbjgd == 1 && mess_From_DY.state_rkgcgd == 1) ||
+            // wait 从4改到2000 即等待要10s 等待fpga仿真的响应
+            cnt_wait > 2000) {
+            param_Init(); // 参数初始化
+            step = 1;     // 进入下一步
         }
         break;
 
@@ -1693,7 +1704,11 @@ void init_Model_WorkControl() {
         break;
 
     case 4:
-        log_once("[初始化] step=4: 初始化完成，进入收藏状态");
+        // todo: 实现持久化储存
+        // 模拟flash中的赋值内容
+        nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave++;
+        log_once("[初始化] step=4: 初始化完成，进入收藏状态, 上电次数=%d", nbMess_hwInfo_FLASH.electrify_amount_From_FPGAsave);
+
         // 进入收藏状态
         step     = 0;
         cnt_wait = 0;
@@ -1923,6 +1938,8 @@ void collect_Model_WorkControl() {
         TG_ShouCang();   // 调光收藏
 
         param_Over_Range_Judge(); // 参数超限判断
+
+        log_once("[收藏] step=1: 收藏状态保持通信");
 
         break;
 
@@ -4035,6 +4052,10 @@ void switchSubsysOperMode(SUBSYS_MAIN_OPER_MODE mode) {
 bool ycAlreadyNormal() {
     return (main_Control_State_Param.work_state == V_SUBSYS_WORK_STATE_NORMAL &&
             main_Control_State_Param.main_mode == V_SUBSYS_MAIN_MODE_NORMAL);
+}
+
+bool ycAlreadyStop() {
+    return main_Control_State_Param.irst_work_state == V_IRST_WORK_STATE_NA;
 }
 
 bool ycInitializing() {

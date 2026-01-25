@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-static const char file_udp[] = "UDP";
+static const char file_udp[] = "UDP ";
 
 void log_udp_packet_recv(const UdpPacket &packet) {
 
