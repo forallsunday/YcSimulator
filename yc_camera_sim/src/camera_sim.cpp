@@ -10,8 +10,8 @@
 #include <udp_trans.h>
 #include <utils.h>
 
-#include <yc/YC_Controller_Main_Process.h>
-#include <yc/YC_Controller_init.h>
+#include <YC_Controller_Main_Process.h>
+#include <YC_Controller_init.h>
 
 #include <chrono>
 #include <cstring>

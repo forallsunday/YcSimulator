@@ -74,53 +74,7 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-linux-cross.cmake",
                 "TARGET_PLATFORM": "linux-aarch64"
             }
-        },
-        // {
-        //     "name": "linux-aarch64-win-cross-debug",
-        //     "description": "Cross compile from Windows to Linux ARM64 (Debug)",
-        //     "generator": "Ninja",
-        //     "binaryDir": "${sourceDir}/build/linux-aarch64-win-cross-debug",
-        //     "cacheVariables": {
-        //         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-win-cross.cmake",
-        //         "CMAKE_BUILD_TYPE": "Debug",
-        //         "TARGET_PLATFORM": "linux-aarch64",
-        //         "CMAKE_MAKE_PROGRAM": "d:/cross_compile/tools//ninja_1.9.0/ninja.exe"
-        //     }
-        // },
-        // {
-        //     "name": "linux-aarch64-win-cross-release",
-        //     "description": "Cross compile from Windows to Linux ARM64 (Release)",
-        //     "generator": "Ninja",
-        //     "binaryDir": "${sourceDir}/build/linux-aarch64-win-cross-release",
-        //     "cacheVariables": {
-        //         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-win-cross.cmake",
-        //         "CMAKE_BUILD_TYPE": "Release",
-        //         "TARGET_PLATFORM": "linux-aarch64",
-        //         "CMAKE_MAKE_PROGRAM": "d:/cross_compile/tools//ninja_1.9.0/ninja.exe"
-        //     }
-        // },
-        // {
-        //     "name": "linux-aarch64-linux-cross-debug",
-        //     "description": "Cross compile from Linux x64 to Linux ARM64 (Debug)",
-        //     "generator": "Ninja",
-        //     "binaryDir": "${sourceDir}/build/linux-aarch64-linux-cross-debug",
-        //     "cacheVariables": {
-        //         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-linux-cross.cmake",
-        //         "CMAKE_BUILD_TYPE": "Debug",
-        //         "TARGET_PLATFORM": "linux-aarch64"
-        //     }
-        // },
-        // {
-        //     "name": "linux-aarch64-linux-cross-release",
-        //     "description": "Cross compile from Linux x64 to Linux ARM64 (Release)",
-        //     "generator": "Ninja",
-        //     "binaryDir": "${sourceDir}/build/linux-aarch64-linux-cross-release",
-        //     "cacheVariables": {
-        //         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchain-linux-aarch64-linux-cross.cmake",
-        //         "CMAKE_BUILD_TYPE": "Release",
-        //         "TARGET_PLATFORM": "linux-aarch64"
-        //     }
-        // }
+        }
     ],
     "buildPresets": [
         {
@@ -169,18 +123,6 @@
             "description": "Build Release for Linux ARM64 (native)",
             "configuration": "Release"
         },
-        // {
-        //     "name": "Debug-linux-aarch64-win-cross",
-        //     "configurePreset": "linux-aarch64-win-cross-debug",
-        //     "description": "Build Debug for Linux ARM64 (Windows cross compile)",
-        //     "configuration": "Debug"
-        // },
-        // {
-        //     "name": "Release-linux-aarch64-win-cross",
-        //     "configurePreset": "linux-aarch64-win-cross-release",
-        //     "description": "Build Release for Linux ARM64 (Windows cross compile)",
-        //     "configuration": "Release"
-        // },
         {
             "name": "Debug-linux-aarch64-linux-cross-multiconfig",
             "configurePreset": "linux-aarch64-linux-cross-multiconfig",

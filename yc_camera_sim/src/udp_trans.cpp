@@ -2,7 +2,7 @@
 #include <Def/AppTopicIdDef.h>
 #include <Def/MyTopicIdDef.h>
 
-#include <yc/YC_Controller_globalVal_Ext.h>
+#include <YC_Controller_globalVal_Ext.h>
 
 #include <global_vars.h>
 #include <log.h>

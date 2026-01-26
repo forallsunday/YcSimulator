@@ -3,8 +3,8 @@
 
 #include <ICD/ICDB_ENUM_STRUCT_IRRM.H>
 #include <ICD/ICDB_TOPIC_STRUCT_IRRM.H>
-#include <yc/YC_Controller_Constant_Define.h>
-#include <yc/YC_Controller_globalVal_Ext.h>
+#include <YC_Controller_Constant_Define.h>
+#include <YC_Controller_globalVal_Ext.h>
 
 #include <fpga_sim.h>
 #include <global_vars.h>

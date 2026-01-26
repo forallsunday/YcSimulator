@@ -1,7 +1,7 @@
 #include <fpga_sim.h>
 #include <global_vars.h>
-#include <yc/YC_Controller_Computer.h>
-#include <yc/YC_Controller_globalVal_Ext.h>
+#include <YC_Controller_Computer.h>
+#include <YC_Controller_globalVal_Ext.h>
 
 #include <log_def.h>
 

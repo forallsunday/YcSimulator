@@ -8,7 +8,6 @@
 #include <map>
 #include <string>
 
-// #include <yc/YC_Controller_Constant_Define.h>
 #ifndef V_TOPIC_NEIBU_MESS
 #define V_TOPIC_NEIBU_MESS 0xEB01 // 持久化存储消息
 #endif
