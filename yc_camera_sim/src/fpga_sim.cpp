@@ -30,6 +30,11 @@ bool FpgaSimulator::init() {
 
     // 速度位置信号计时器
     timer_switch_.init(milliseconds(50), [this]() { onSwitchSpeedOrLocate(); });
+    // 初始化默认温度值 (室温环境: 约20℃)
+    setPrimaryMirrorTemp(200);   // 主镜温度 20.0℃
+    setSecondaryMirrorTemp(200); // 次镜温度 20.0℃
+    setTempID(1);                // 温度ID初始为1
+
 
     return true;
 }
@@ -247,6 +252,7 @@ void FpgaSimulator::simulatingPCS() {
 void FpgaSimulator::simulatingExposure() {
     static int cnt_i         = 0; // 中断次数计数
     static int num_in_stripe = 0; // 条带内曝光次数
+    static bool focal_pos_initialized = false; // 焦面位置初始化标志
 
     // 计算帧间隔时间
     switch (mess_To_FPGA.irst_form_mode) {
@@ -268,6 +274,12 @@ void FpgaSimulator::simulatingExposure() {
 
     switch (mess_To_FPGA.cmd) {
     case FPGA_START_PHOTO:
+        // 首次拍照时设置焦面位置默认值
+        if (!focal_pos_initialized) {
+            setVisibleFocalPlanePosition(0);  // 可见光焦面位置默认0mm
+            setInfraredFocalPlanePosition(0); // 红外焦面位置默认0mm
+            focal_pos_initialized = true;
+        }
         switch (mess_To_FPGA.irst_form_mode) {
         case FPGA_GY_PHOTO:
         case FPGA_QY_PHOTO: // 区域成像帧频 15hz
@@ -656,4 +668,102 @@ void FpgaSimulator::setTargetPixelCoor(int index, const TargetPixelCoor &coor) {
 
 void FpgaSimulator::setTrackingTargetCount(uint8_t count) {
     tracking_target_count_ = count;
+}
+
+// ===== 曝光时间设置接口实现 =====
+void FpgaSimulator::setElecOptiExposureTime(int32_t exp_time_ms) {
+    // 范围限制: 5-150 ms
+    
+    if (exp_time_ms < KJEXPTIME_MIN) {
+        exp_time_ms = KJEXPTIME_MIN;
+        log_warn("可见光曝光时间过小,已限制为最小值 %d ms", KJEXPTIME_MIN);
+    } else if (exp_time_ms > KJEXPTIME_MAX) {
+        exp_time_ms = KJEXPTIME_MAX;
+        log_warn("可见光曝光时间过大,已限制为最大值 %d ms", KJEXPTIME_MAX);
+    }
+    
+    tg_Param.KJ_ExpTime = exp_time_ms;
+    tg_Param.KJ_ExpTime_float = (float)exp_time_ms;
+    // 拆分为高低8位
+    tg_Param.KJ_ExpTimeH8 = ((uint16_t)exp_time_ms >> 8) & 0x00FF;
+    tg_Param.KJ_ExpTimeL8 = (uint16_t)exp_time_ms & 0x00FF;
+    
+    log_info("设置可见光曝光时间: %d ms", exp_time_ms);
+}
+
+void FpgaSimulator::setInfraredExposureTime(uint16_t exp_time_us) {
+    // 范围限制: 2000-16000 μs
+    
+    if (exp_time_us < HWEXPTIME_MIN) {
+        exp_time_us = HWEXPTIME_MIN;
+        log_warn("红外曝光时间过小,已限制为最小值 %d μs", HWEXPTIME_MIN);
+    } else if (exp_time_us > HWEXPTIME_MAX) {
+        exp_time_us = HWEXPTIME_MAX;
+        log_warn("红外曝光时间过大,已限制为最大值 %d μs", HWEXPTIME_MAX);
+    }
+    
+    tg_Param.HW_ExpTime = exp_time_us;
+    tg_Param.HW_ExpTime_float = (float)exp_time_us;
+    // 拆分为高低8位
+    tg_Param.HW_ExpTimeH8 = (exp_time_us >> 8) & 0x00FF;
+    tg_Param.HW_ExpTimeL8 = exp_time_us & 0x00FF;
+    
+    log_info("设置红外曝光时间: %d μs", exp_time_us);
+}
+
+int32_t FpgaSimulator::getVisibleExposureTime() const {
+    return tg_Param.KJ_ExpTime;
+}
+
+uint16_t FpgaSimulator::getInfraredExposureTime() const {
+    return tg_Param.HW_ExpTime;
+}
+
+// ===== 温度与焦面位置设置接口实现 =====
+void FpgaSimulator::setPrimaryMirrorTemp(int16_t temp) {
+    mess_From_QNSJ.zjwdxx = temp;
+    log_info("设置主镜温度: %.1f℃", temp * 0.1f);
+}
+
+void FpgaSimulator::setSecondaryMirrorTemp(int16_t temp) {
+    mess_From_QNSJ.cjwdxx = temp;
+    log_info("设置次镜温度: %.1f℃", temp * 0.1f);
+}
+
+void FpgaSimulator::setTempID(uint8_t id) {
+    if (id < 1 || id > 10) {
+        log_warn("温度ID超出范围(1-10), 已限制为: %d", id < 1 ? 1 : 10);
+        id = (id < 1) ? 1 : 10;
+    }
+    mess_From_QNSJ.tem_ID = id;
+}
+
+void FpgaSimulator::setVisibleFocalPlanePosition(int16_t pos_mm) {
+    mess_From_TJ.jmwz_kj_real = pos_mm;
+    log_info("设置可见光焦面位置: %.3f mm", pos_mm * 0.001f);
+}
+
+void FpgaSimulator::setInfraredFocalPlanePosition(int16_t pos_mm) {
+    mess_From_TJ.jmwz_hw_real = pos_mm;
+    log_info("设置红外焦面位置: %.3f mm", pos_mm * 0.001f);
+}
+
+int16_t FpgaSimulator::getPrimaryMirrorTemp() const {
+    return mess_From_QNSJ.zjwdxx;
+}
+
+int16_t FpgaSimulator::getSecondaryMirrorTemp() const {
+    return mess_From_QNSJ.cjwdxx;
+}
+
+uint8_t FpgaSimulator::getTempID() const {
+    return mess_From_QNSJ.tem_ID;
+}
+
+int16_t FpgaSimulator::getVisibleFocalPlanePosition() const {
+    return mess_From_TJ.jmwz_kj_real;
+}
+
+int16_t FpgaSimulator::getInfraredFocalPlanePosition() const {
+    return mess_From_TJ.jmwz_hw_real;
 }

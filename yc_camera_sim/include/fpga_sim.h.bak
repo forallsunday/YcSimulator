@@ -71,39 +71,6 @@ class FpgaSimulator {
     // 设置跟踪目标数量
     void setTrackingTargetCount(uint8_t count);
 
-    // ===== 曝光时间设置接口 =====
-    // 设置可见光曝光时间 (单位: ms, 范围: 5-150)
-    void setElecOptiExposureTime(int32_t exp_time_ms);
-    // 设置红外曝光时间 (单位: μs, 范围: 2000-16000)
-    void setInfraredExposureTime(uint16_t exp_time_us);
-    // 获取可见光曝光时间 (单位: ms)
-    int32_t getVisibleExposureTime() const;
-    // 获取红外曝光时间 (单位: μs)
-    uint16_t getInfraredExposureTime() const;
-
-    // ===== 温度与焦面位置设置接口 =====
-    // 设置主镜温度 (单位: 0.1℃, 例如: 250表示25.0℃)
-    void setPrimaryMirrorTemp(int16_t temp);
-    // 设置次镜温度 (单位: 0.1℃, 例如: 250表示25.0℃)
-    void setSecondaryMirrorTemp(int16_t temp);
-    // 设置温度ID (1-10循环)
-    void setTempID(uint8_t id);
-    // 设置可见光焦面位置 (单位: 0.001mm, 例如: 1000表示1.0mm)
-    void setVisibleFocalPlanePosition(int16_t pos_mm);
-    // 设置红外焦面位置 (单位: 0.001mm, 例如: 1000表示1.0mm)
-    void setInfraredFocalPlanePosition(int16_t pos_mm);
-    
-    // 获取主镜温度 (单位: 0.1℃)
-    int16_t getPrimaryMirrorTemp() const;
-    // 获取次镜温度 (单位: 0.1℃)
-    int16_t getSecondaryMirrorTemp() const;
-    // 获取温度ID
-    uint8_t getTempID() const;
-    // 获取可见光焦面位置 (单位: 0.001mm)
-    int16_t getVisibleFocalPlanePosition() const;
-    // 获取红外焦面位置 (单位: 0.001mm)
-    int16_t getInfraredFocalPlanePosition() const;
-
   private:
     TargetPixelCoor target_pixel_coor_[5]; // 5个跟踪目标像素坐标
     uint8_t         tracking_target_count_ = 0;

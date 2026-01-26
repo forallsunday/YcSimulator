@@ -60,20 +60,23 @@ void main_Control_And_Mess_Process_Act_req_task() {
             continue;
         }
 
+        bool has_work = false;
+
         PtrUdpPacket p_packet;
 
-        if (sim::queue_IRST_act_req.tryPop(p_packet)) {
-            log_proc("处理IRST_act_req消息");
+        // todo: 这里waitForPop 100us 会不会对5ms中断有影响?
+        // if (sim::queue_IRST_act_req.tryPop(p_packet)) {
+        if (sim::queue_IRST_act_req.waitForAndPop(p_packet, 100us)) {
+            has_work = true;
             localUpdate(cmd_From_FC.current_IRST_ACT_REQ, p_packet.get());
             // 发送消息——回复响应ECHO
             send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_ECHO, V_ACT_REFUSED_REASON_NA);
             act_req_mess_Process(); // 活动请求指令判断
         }
 
-        // sleep_ms(2000);
-
         // 如果收到FPGA中断，或者5ms时间到，正常流程，每5ms处理主控工作流程、计算
         if (flag_Fpga_Interrupt == 1) {
+            has_work = true;
             make_Mess_To_PCS_DATA(0); // 给pos发送数据
 
             // ACoreOs_clock_get_timestamp(&time_start);
@@ -104,13 +107,18 @@ void main_Control_And_Mess_Process_Act_req_task() {
             // 标志位清零
             flag_Fpga_Interrupt = 0;
         }
-        // fpga不中断时 下面再接一遍 但是是阻塞的 避免空转
-        else if (sim::queue_IRST_act_req.waitForAndPop(p_packet, 1ms)) {
-            localUpdate(cmd_From_FC.current_IRST_ACT_REQ, p_packet.get());
-            // 发送消息——回复响应ECHO
-            send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_ECHO, V_ACT_REFUSED_REASON_NA);
-            act_req_mess_Process(); // 活动请求指令判断
-        }
+
+        //     // fpga不中断时 或者没消息时 避免空转
+        //     if (!has_work) {
+        //         if (sim::queue_IRST_act_req.waitForAndPop(p_packet, 100us)) {
+        //             has_work = true;
+        //             localUpdate(cmd_From_FC.current_IRST_ACT_REQ, p_packet.get());
+        //             // 发送消息——回复响应ECHO
+        //             send_Mess_IRST_ACT_REQ_REPORT(V_ACTIVITY_STATE_ECHO, V_ACT_REFUSED_REASON_NA);
+        //             act_req_mess_Process(); // 活动请求指令判断
+        //         }
+        //     }
+        // }
 
         // 如果fpga掉线,错误处理，异常流程，
         // if (ACoreOs_atomic32_get(&flag_Fpga_down_times) > 5) // 如果掉线超过五次，进行异常处理
