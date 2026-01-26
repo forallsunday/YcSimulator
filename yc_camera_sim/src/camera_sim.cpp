@@ -3,6 +3,7 @@
 #include <Def/MyTopicIdDef.h>
 
 #include <camera_sim.h>
+#include <fpga_sim.h>
 
 #include <global_vars.h>
 #include <log_def.h>
@@ -153,13 +154,24 @@ void CameraSimulator::updateSharedMemoryInput() {
     // 0-NA；1-初始化；2-快速启动；3-常规启动；4-冻结；5-停止
     operation_mode_ = shm_input_.m_SecSimulatorControlMsg.St_SimulatorStatusControl.U1_OperationMode;
 
-    // 动目标像素坐标参数
-    target_pixel_coor.up_left_x    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara->U2_Tgt1UpleftX;
-    target_pixel_coor.up_left_y    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara->U2_Tgt1UpleftY;
-    target_pixel_coor.down_right_x = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara->U2_Tgt1DownrightX;
-    target_pixel_coor.down_right_y = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara->U2_Tgt1DownrightY;
+    // 动目标像素坐标参数 - 从成像仿真获取，直接设置给fpga_sim
+    if (main_Control_State_Param.track_state == V_TGT_TRACK_STATE_TRACK_ING ||
+        main_Control_State_Param.track_state == V_TGT_TRACK_STATE_MATCH_ING) {
+        // 图像跟踪数量
+        fpga_sim_.setTrackingTargetCount(1); // todo: 目前仅支持单目标跟踪
+    } else {
+        fpga_sim_.setTrackingTargetCount(0);
+    }
+    // 读取5个目标的像素坐标并传递给fpga_sim
+    for (int i = 0; i < 5; i++) {
+        FpgaSimulator::TargetPixelCoor tpc;
+        tpc.up_left_x    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1UpleftX;
+        tpc.up_left_y    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1UpleftY;
+        tpc.down_right_x = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1DownrightX;
+        tpc.down_right_y = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1DownrightY;
+        fpga_sim_.setTargetPixelCoor(i, tpc);
+    }
 }
-
 void CameraSimulator::updateSharedMemoryOutput() {
 
     static SM_MessageHeader St_MessageHeader;
@@ -306,12 +318,28 @@ void CameraSimulator::updateSharedMemoryOutput() {
     // === EOImageModifyPara 光电图像调节参数 === END
 
     // === EOTgtPara 动目标检测成像参数 ===
-    // 暂时填充默认值，后续可根据目标跟踪信息填充
-    for (int i = 0; i < 5; i++) {
+    // 从相机控制器获取跟踪目标ID，发送给成像仿真
+    // 当处于跟踪状态时，将目标ID填充到输出
+    if (main_Control_State_Param.track_state == V_TGT_TRACK_STATE_TRACK_ING ||
+        main_Control_State_Param.track_state == V_TGT_TRACK_STATE_MATCH_ING) {
+        // Note: 当前仅支持单目标跟踪
         EntityID St_EntityID;
-        St_EntityID.U4_EntityID      = 0; // todo: 都是什么意义？
-        St_EntityID.U2_GenID         = 0;
-        Arr_EOTgtPara[i].St_EntityID = St_EntityID;
+        // 填充跟踪目标ID (从ICP发来的跟踪请求中获取)
+        St_EntityID.U4_EntityID      = cmd_From_FC.irst_cmd_param_IR_TGT_TRACK_INFO.TGT_TRACK_ID;
+        St_EntityID.U2_GenID         = 0; // todo: 确认GenID填充规则
+        Arr_EOTgtPara[0].St_EntityID = St_EntityID;
+        // 清空其他目标
+        for (int i = 1; i < 5; i++) {
+            Arr_EOTgtPara[i].St_EntityID.U4_EntityID = 0;
+            Arr_EOTgtPara[i].St_EntityID.U2_GenID    = 0;
+        }
+    } else {
+        for (int i = 0; i < 5; i++) {
+            EntityID St_EntityID;
+            St_EntityID.U4_EntityID      = 0;
+            St_EntityID.U2_GenID         = 0;
+            Arr_EOTgtPara[i].St_EntityID = St_EntityID;
+        }
     }
 
     shm_output_.m_SecEOImageDriveMsg.St_SMMessageHeader   = St_MessageHeader;

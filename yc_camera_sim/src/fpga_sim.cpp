@@ -346,19 +346,119 @@ void FpgaSimulator::simulatingDY() {
 
 void FpgaSimulator::simulatingTXCL() {
     // 根据命令设置状态
+    // 参考 make_Mess_To_TXCL_CMD 中设置的命令和参数
     switch (mess_To_TXCL_CMD.cmd) {
-    case 0x00: // 空指令
+    case TX_CMD_EMPTY: // 空指令
         break;
-    // 添加其他命令的处理
+    case TX_CMD_TRACK:                        // 跟踪
+        mess_From_TXCL.state1_trackstate = 1; // 稳定跟踪
+        // 填充跟踪目标像素坐标 - 从共享内存输入获取
+        mess_From_TXCL.tg_valid = 1; // 跟踪有效
+        mess_From_TXCL.tg_count = tracking_target_count_;
+        // 目标1像素坐标
+        mess_From_TXCL.tgt1_upleft_x    = target_pixel_coor_[0].up_left_x;
+        mess_From_TXCL.tgt1_upleft_Y    = target_pixel_coor_[0].up_left_y;
+        mess_From_TXCL.tgt1_downright_x = target_pixel_coor_[0].down_right_x;
+        mess_From_TXCL.tgt1_downright_y = target_pixel_coor_[0].down_right_y;
+        // 目标2像素坐标
+        mess_From_TXCL.tgt2_upleft_x    = target_pixel_coor_[1].up_left_x;
+        mess_From_TXCL.tgt2_upleft_Y    = target_pixel_coor_[1].up_left_y;
+        mess_From_TXCL.tgt2_downright_x = target_pixel_coor_[1].down_right_x;
+        mess_From_TXCL.tgt2_downright_y = target_pixel_coor_[1].down_right_y;
+        // 目标3像素坐标
+        mess_From_TXCL.tgt3_upleft_x    = target_pixel_coor_[2].up_left_x;
+        mess_From_TXCL.tgt3_upleft_Y    = target_pixel_coor_[2].up_left_y;
+        mess_From_TXCL.tgt3_downright_x = target_pixel_coor_[2].down_right_x;
+        mess_From_TXCL.tgt3_downright_y = target_pixel_coor_[2].down_right_y;
+        // 目标4像素坐标
+        mess_From_TXCL.tgt4_upleft_x    = target_pixel_coor_[3].up_left_x;
+        mess_From_TXCL.tgt4_upleft_Y    = target_pixel_coor_[3].up_left_y;
+        mess_From_TXCL.tgt4_downright_x = target_pixel_coor_[3].down_right_x;
+        mess_From_TXCL.tgt4_downright_y = target_pixel_coor_[3].down_right_y;
+        // 目标5像素坐标
+        mess_From_TXCL.tgt5_upleft_x    = target_pixel_coor_[4].up_left_x;
+        mess_From_TXCL.tgt5_upleft_Y    = target_pixel_coor_[4].up_left_y;
+        mess_From_TXCL.tgt5_downright_x = target_pixel_coor_[4].down_right_x;
+        mess_From_TXCL.tgt5_downright_y = target_pixel_coor_[4].down_right_y;
+        break;
+    case TX_CMD_STOP_TRACK:                   // 停止跟踪
+        mess_From_TXCL.state1_trackstate = 0; // 未跟踪
+        // 清除跟踪目标像素坐标
+        mess_From_TXCL.tg_valid         = 0;
+        mess_From_TXCL.tg_count         = 0;
+        mess_From_TXCL.tgt1_upleft_x    = 0;
+        mess_From_TXCL.tgt1_upleft_Y    = 0;
+        mess_From_TXCL.tgt1_downright_x = 0;
+        mess_From_TXCL.tgt1_downright_y = 0;
+        mess_From_TXCL.tgt2_upleft_x    = 0;
+        mess_From_TXCL.tgt2_upleft_Y    = 0;
+        mess_From_TXCL.tgt2_downright_x = 0;
+        mess_From_TXCL.tgt2_downright_y = 0;
+        mess_From_TXCL.tgt3_upleft_x    = 0;
+        mess_From_TXCL.tgt3_upleft_Y    = 0;
+        mess_From_TXCL.tgt3_downright_x = 0;
+        mess_From_TXCL.tgt3_downright_y = 0;
+        mess_From_TXCL.tgt4_upleft_x    = 0;
+        mess_From_TXCL.tgt4_upleft_Y    = 0;
+        mess_From_TXCL.tgt4_downright_x = 0;
+        mess_From_TXCL.tgt4_downright_y = 0;
+        mess_From_TXCL.tgt5_upleft_x    = 0;
+        mess_From_TXCL.tgt5_upleft_Y    = 0;
+        mess_From_TXCL.tgt5_downright_x = 0;
+        mess_From_TXCL.tgt5_downright_y = 0;
+        break;
+    case TX_CMD_IMAGE_GY:                  // 广域成像
+        mess_From_TXCL.state1_kjtxchs = 1; // 可见图像正在传输
+        mess_From_TXCL.state1_hwtxchs = 1; // 红外图像正在传输
+        break;
+    case TX_CMD_IMAGE_VIEW: // 区域监视
+        mess_From_TXCL.state1_kjtxchs = 1;
+        mess_From_TXCL.state1_hwtxchs = 1;
+        break;
+    case TX_CMD_IMAGE_QY: // 区域成像
+        mess_From_TXCL.state1_kjtxchs = 1;
+        mess_From_TXCL.state1_hwtxchs = 1;
+        break;
+    case TX_CMD_IMAGE_TRANS:            // 传输图像/视频
+        mess_From_TXCL.state3_kjsc = 1; // 可见输出
+        mess_From_TXCL.state3_hwsc = 1; // 红外输出
+        break;
+    case TX_CMD_IMAGE_TRANS_STOP: // 停传图像/视频
+        mess_From_TXCL.state3_kjsc = 0;
+        mess_From_TXCL.state3_hwsc = 0;
+        break;
+    case TX_CMD_DJ: // 冻结
+        break;
+    case TX_CMD_SENSOR_SET: // 传感器设置
+        // 根据 mess_To_TXCL_CMD.mode_IR_SENSOR 设置跟踪图像类型
+        // 1=可见光，2=红外，3=可见+红外，4=红外+可见
+        if (mess_To_TXCL_CMD.mode_IR_SENSOR == 1) {
+            mess_From_TXCL.state1_trackvideo = 0; // 可见
+        } else if (mess_To_TXCL_CMD.mode_IR_SENSOR == 2) {
+            mess_From_TXCL.state1_trackvideo = 1; // 红外
+        }
+        break;
+    case TX_CMD_VIDEO_BAND_SET: // 视频带宽设置
+        // 视频带宽: 0=NA, 1=低(1.6M), 2=中(3.2M), 3=高(4.8M)
+        // mess_To_TXCL_CMD.Video_BAND 由 cmd_From_FC.irst_cmd_param_IRST_Video_BAND 设置
+        // 模拟：确认命令接收，回显命令字
+        mess_From_TXCL.cmd = TX_CMD_VIDEO_BAND_SET;
+        break;
     default:
         break;
     }
 
-    // 设置故障
-    mess_From_TXCL.fault_bit0 = 0; // 正常
-    mess_From_TXCL.fault_bit1 = 0;
-    mess_From_TXCL.fault_bit2 = 0;
-    mess_From_TXCL.fault_bit3 = 0;
+    // 设置故障状态 - 正常
+    mess_From_TXCL.fault_bit0 = 0; // 图像处理模块内部电路正常
+    mess_From_TXCL.fault_bit1 = 0; // 图像处理模块存储单元正常
+    mess_From_TXCL.fault_bit2 = 0; // 输入可见图像信号正常
+    mess_From_TXCL.fault_bit3 = 0; // 输入红外图像信号正常
+    mess_From_TXCL.fault_bit4 = 0; // 存储单元未满
+    mess_From_TXCL.fault_bit5 = 0; // 定位功能正常
+    mess_From_TXCL.fault_bit6 = 0; // 识别功能正常
+
+    // 设置剩余存储容量 - 未占用
+    mess_From_TXCL.state3_txcckj = 0; // 存储空间未占用(余100%)
 }
 
 void FpgaSimulator::simulatingKJ() {
@@ -545,4 +645,15 @@ void FpgaSimulator::simulatingGCWK() {
     mess_From_GCWK.cmd       = mess_To_GCWK.cmd; // 回显指令状态
     mess_From_GCWK.temp      = 250;              // 模拟温度 25.0℃
     mess_From_GCWK.tem_error = 0;                // 温度传感器正常
+}
+
+// ===== 跟踪目标像素坐标接口实现 =====
+void FpgaSimulator::setTargetPixelCoor(int index, const TargetPixelCoor &coor) {
+    if (index >= 0 && index < 5) {
+        target_pixel_coor_[index] = coor;
+    }
+}
+
+void FpgaSimulator::setTrackingTargetCount(uint8_t count) {
+    tracking_target_count_ = count;
 }

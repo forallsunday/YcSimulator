@@ -3,6 +3,7 @@
 #define GLOBAL_VARS_H
 
 #include <atomic>
+#include <mutex>
 #include <thread_safe_queue.hpp>
 #include <udp_packet.h>
 

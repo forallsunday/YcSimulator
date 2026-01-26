@@ -53,9 +53,25 @@ class FpgaSimulator {
     std::chrono::milliseconds period_switcher_{100}; // 速度位置信号周期
 
     std::mutex mutex_period_;
-
-    std::atomic<bool> running_timer_speed_locate_{false};
-
     // 图像帧之间的时间间隔
     float frame_interval;
+
+  public:
+    // ===== 跟踪目标像素坐标接口 =====
+    // 目标像素坐标结构体
+    struct TargetPixelCoor {
+        uint16_t up_left_x    = 0;
+        uint16_t up_left_y    = 0;
+        uint16_t down_right_x = 0;
+        uint16_t down_right_y = 0;
+    };
+
+    // 设置跟踪目标像素坐标 (由camera_sim在共享内存更新时调用)
+    void setTargetPixelCoor(int index, const TargetPixelCoor &coor);
+    // 设置跟踪目标数量
+    void setTrackingTargetCount(uint8_t count);
+
+  private:
+    TargetPixelCoor target_pixel_coor_[5]; // 5个跟踪目标像素坐标
+    uint8_t         tracking_target_count_ = 0;
 };

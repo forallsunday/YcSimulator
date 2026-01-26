@@ -107,14 +107,6 @@ class CameraSimulator {
     char    facility_power_supply_status_ = 0; // 设备供电状态参数 - 设备供电状态
     uint8_t operation_mode_               = 0; // 模拟器运行控制 - 控制模式
 
-    struct TargetPixelCoordinates {
-        uint16_t up_left_x;    // 左上角像素横坐标
-        uint16_t up_left_y;    // 左上角像素纵坐标
-        uint16_t down_right_x; // 右下角像素横坐标
-        uint16_t down_right_y; // 右下角像素纵坐标
-    };
-    TargetPixelCoordinates target_pixel_coor; // 目标像素坐标参数 - 目标像素坐标
-
     int member_status_ = 0; // 成员状态参数 - 成员状态 FunctionalUnitStatusMsg.St_UnitStatusData.U1_MemberStatus
 
     // 更新共享内存输入

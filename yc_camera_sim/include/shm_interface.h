@@ -633,7 +633,7 @@ typedef struct FlightNavigationStatus_S {
 } FlightNavigationStatus_S;                     // @Extensibility(EXTENSIBLE)
 
 typedef struct UnitStatusData {
-    char          ArrI1_UnitID[20];     // @ID(0) 
+    char          ArrI1_UnitID[20];     // @ID(0)
     char          ArrI1_UnitVersion[9]; // @ID(1)
     unsigned int  U4_UnitHeartbeat;     // @ID(2)
     unsigned char U1_MemberStatus;      // @ID(3)
@@ -1390,7 +1390,7 @@ typedef struct EOImageParasIS {
     Longlat            St_ImgCenter;           // @ID(23) // 成像中心经纬度
     EntityPosVelAccAtt St_AcParas;             // @ID(24) // 载机信息
     // std::vector<char>  Seq_Mission;            // @ID(25) // 图像任务信息 /* maximum length = (20) */
-} EOImageParasIS;                              // @Extensibility(EXTENSIBLE)
+} EOImageParasIS; // @Extensibility(EXTENSIBLE)
 
 // 标识：EOImageModifyPara - 光电图像调节参数数据定义
 typedef struct EOImageModifyPara {
@@ -1406,7 +1406,7 @@ typedef struct EOImageModifyPara {
 
 // 标识：EOTgtPara - 动目标检测成像参数数据定义
 typedef struct EOTgtPara {
-    EntityID St_EntityID; // @ID(0) // 检测目标编号，可检测目标的编号
+    EntityID St_EntityID; // @ID(0) // 可检测目标的编号
 } EOTgtPara;              // @Extensibility(EXTENSIBLE)
 
 typedef struct TeamMemberInfo {

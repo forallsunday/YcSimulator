@@ -7,7 +7,7 @@
 #pragma once
 
 /*************************************************************/
-/*           ´ËÎÄ¼şÓÉ±àÒëÆ÷Éú³É£¬ÇëÎğËæÒâĞŞ¸Ä                */
+/*           æ­¤æ–‡ä»¶ç”±ç¼–è¯‘å™¨ç”Ÿæˆï¼Œè¯·å‹¿éšæ„ä¿®æ”¹                */
 /*************************************************************/
 // #include <string>
 // #include <vector>
@@ -20,7 +20,7 @@ extern "C" {
 
 #pragma pack(1)
 
-// -------------------- »ù´¡½á¹¹Ìå -------------------- //
+// -------------------- åŸºç¡€ç»“æ„ä½“ -------------------- //
 typedef struct EntityID {
     unsigned int   U4_EntityID;
     unsigned short U2_GenID;
@@ -42,7 +42,7 @@ typedef struct Timestamp {
     unsigned short U2_Millisecond;
 } Timestamp;
 
-// -------------------- ¹«¹²ÏûÏ¢Í· -------------------- //
+// -------------------- å…¬å…±æ¶ˆæ¯å¤´ -------------------- //
 typedef struct SM_MessageHeader {
     unsigned int   U4_Heartbeat;
     unsigned short U2_EffectiveLength;
@@ -50,7 +50,7 @@ typedef struct SM_MessageHeader {
     Timestamp      St_GenerateTime;
 } SM_MessageHeader;
 
-// -------------------- Éè±¸/ÊµÌåĞÅÏ¢ -------------------- //
+// -------------------- è®¾å¤‡/å®ä½“ä¿¡æ¯ -------------------- //
 typedef struct EntityAttribute {
     EntityID       St_EntityID;
     unsigned char  U1_EntityCamp;
@@ -85,7 +85,7 @@ typedef struct EntityPosVelAccAtt {
     Attitude           St_EntityAttitude;
 } EntityPosVelAccAtt;
 
-// -------------------- ÏûÏ¢Êı¾İ -------------------- //
+// -------------------- æ¶ˆæ¯æ•°æ® -------------------- //
 typedef struct FacilitiesPowerSupplyStatusData {
     char ArrU1_FacilitiesPowerSupplyStatus[25];
 } FacilitiesPowerSupplyStatusData;
@@ -95,7 +95,7 @@ typedef struct FacilitiesPowerSupplyStatusParasMsg {
     FacilitiesPowerSupplyStatusData St_FacilitiesPowerSupplyStatusData;
 } FacilitiesPowerSupplyStatusParasMsg;
 
-// -------------------- Ä£ÄâÆ÷¿ØÖÆ -------------------- //
+// -------------------- æ¨¡æ‹Ÿå™¨æ§åˆ¶ -------------------- //
 typedef struct SimulatorStatusControl {
     unsigned char U1_OperationMode;
 } SimulatorStatusControl;
@@ -105,7 +105,7 @@ typedef struct SecSimulatorControlMsg {
     SimulatorStatusControl St_SimulatorStatusControl;
 } SecSimulatorControlMsg;
 
-// -------------------- ÊµÌåTSPI -------------------- //
+// -------------------- å®ä½“TSPI -------------------- //
 typedef struct SecEntityTSPIMsg {
     SM_MessageHeader   St_MessageHeader;
     EntityAttribute    St_EntityAttribute;
@@ -140,7 +140,7 @@ typedef struct SecVFTSPIMsg {
     SingleVFTSPI     Arr_SecVFTSPI[200];
 } SecVFTSPIMsg;
 
-// -------------------- ¹¦ÄÜµ¥Ôª×´Ì¬ -------------------- //
+// -------------------- åŠŸèƒ½å•å…ƒçŠ¶æ€ -------------------- //
 typedef struct UnitStatusData {
     char          ArrI1_UnitID[20];
     char          ArrI1_UnitVersion[9];
@@ -153,7 +153,7 @@ typedef struct FunctionalUnitStatusMsg {
     UnitStatusData   St_UnitStatusData;
 } FunctionalUnitStatusMsg;
 
-// -------------------- ¹¤×÷²ÎÊı -------------------- //
+// -------------------- å·¥ä½œå‚æ•° -------------------- //
 typedef struct DeviceAttribute {
     EntityID       St_DeviceEntityID;
     unsigned char  U1_DeviceType;
@@ -176,38 +176,38 @@ typedef struct SecElecOptDeteWorkingParasMsg {
     ElecOptDeteWorkingParas St_ElecOptDeteWorkingParas;
 } SecElecOptDeteWorkingParasMsg;
 
-// -------------------- Í¼ÏñÇı¶¯ -------------------- //
+// -------------------- å›¾åƒé©±åŠ¨ -------------------- //
 typedef struct EOImageModePara {
-    unsigned char U1_ImageMode; // 0-NA£¬1-ÇøÓò³ÉÏñ£¬2-×·×Ù³ÉÏñ£¬3-»Ø·Å³ÉÏñ£¬4-×ÅÂ½³ÉÏñ£¬5-Ä£ÄâÆ½ÏÔ³ÉÏñ
+    unsigned char U1_ImageMode; // 0-NAï¼Œ1-åŒºåŸŸæˆåƒï¼Œ2-è¿½è¸ªæˆåƒï¼Œ3-å›æ”¾æˆåƒï¼Œ4-ç€é™†æˆåƒï¼Œ5-æ¨¡æ‹Ÿå¹³æ˜¾æˆåƒ
 } EOImageModePara;
 
 typedef struct EOImageEffect {
-    unsigned char U1_VideoSource; // ÏñÔ´Ñ¡Ôñ 0-NA£¬1-ÖĞ²¨£¬2-³¤²¨£¬3-¿É¼û¹â
-    unsigned char U1_VideoPolar;  // ÊÓÆµ¼«»¯ 0-NA£¬1-ºÚÈÈ£¬2-°×ÈÈ£¨¹âÀ×½öÔÚÖĞ²¨/³¤²¨ÏÂ¿É½øĞĞÊÓÆµ¼«»¯£©
-    unsigned char U1_Contrast;    // ¶Ô±È¶È DAS×¨ÓÃ£¬0-NA£¬´Ó1¿ªÊ¼£¬¸ù¾İ¾ßÌåĞÍºÅÈ·¶¨¼¶Êı
-    unsigned char U1_Gray;        // »Ò¶È DAS×¨ÓÃ£¬0-NA£¬´Ó1¿ªÊ¼£¬¸ù¾İ¾ßÌåĞÍºÅÈ·¶¨¼¶Êı
-    unsigned char U1_DigitalZoom; // Êı×Ö±ä½¹ 0-NA,1-1x,2-2x,3-4x
+    unsigned char U1_VideoSource; // åƒæºé€‰æ‹© 0-NAï¼Œ1-ä¸­æ³¢ï¼Œ2-é•¿æ³¢ï¼Œ3-å¯è§å…‰
+    unsigned char U1_VideoPolar;  // è§†é¢‘æåŒ– 0-NAï¼Œ1-é»‘çƒ­ï¼Œ2-ç™½çƒ­ï¼ˆå…‰é›·ä»…åœ¨ä¸­æ³¢/é•¿æ³¢ä¸‹å¯è¿›è¡Œè§†é¢‘æåŒ–ï¼‰
+    unsigned char U1_Contrast;    // å¯¹æ¯”åº¦ DASä¸“ç”¨ï¼Œ0-NAï¼Œä»1å¼€å§‹ï¼Œæ ¹æ®å…·ä½“å‹å·ç¡®å®šçº§æ•°
+    unsigned char U1_Gray;        // ç°åº¦ DASä¸“ç”¨ï¼Œ0-NAï¼Œä»1å¼€å§‹ï¼Œæ ¹æ®å…·ä½“å‹å·ç¡®å®šçº§æ•°
+    unsigned char U1_DigitalZoom; // æ•°å­—å˜ç„¦ 0-NA,1-1x,2-2x,3-4x
 } EOImageEffect;
 
 typedef struct EOImageTrackPara {
-    EntityID       St_EntityID;     // ×·×ÙÄ¿±ê±àºÅ Í¬Õ½³¡
-    float          F4_TargetDis;    // ÏÔÊ¾Ä¿±ê¾àÀë ÈÚºÏ¾àÀë£¬µ¥Î»km£¬±£ÁôĞ¡ÊıµãºóÒ»Î»
-    unsigned short U2_ShowEntityID; // ÏÔÊ¾Ä¿±ê±àºÅ ÈÚºÏID¡£¹âÀ×¿É¸ú×Ù4¸öÄ¿±ê£¬ÓÅÏÈÏÔÊ¾¸ú×Ù×´Ì¬Ç°Á½Î»£¬ÓĞ¶ªÊ§Çé¿ö£¬×Ô¶¯²¹Æë
+    EntityID       St_EntityID;     // è¿½è¸ªç›®æ ‡ç¼–å· åŒæˆ˜åœº
+    float          F4_TargetDis;    // æ˜¾ç¤ºç›®æ ‡è·ç¦» èåˆè·ç¦»ï¼Œå•ä½kmï¼Œä¿ç•™å°æ•°ç‚¹åä¸€ä½
+    unsigned short U2_ShowEntityID; // æ˜¾ç¤ºç›®æ ‡ç¼–å· èåˆIDã€‚å…‰é›·å¯è·Ÿè¸ª4ä¸ªç›®æ ‡ï¼Œä¼˜å…ˆæ˜¾ç¤ºè·Ÿè¸ªçŠ¶æ€å‰ä¸¤ä½ï¼Œæœ‰ä¸¢å¤±æƒ…å†µï¼Œè‡ªåŠ¨è¡¥é½
 } EOImageTrackPara;
 
 typedef struct EOImageShowArea {
-    float F4_AZLOS_deg_BODY;      // ÊÓÏß·½Î»½Ç [-180,180]
-    float F4_ELLOS_deg_BODY;      // ÊÓÏß¸©Ñö½Ç [-90,90]
-    float F4_horizontalCover_deg; // Ë®Æ½·¶Î§ [0,180]
-    float F4_verticalCover_deg;   // ´¹Ö±·¶Î§ [0,180]
+    float F4_AZLOS_deg_BODY;      // è§†çº¿æ–¹ä½è§’ [-180,180]
+    float F4_ELLOS_deg_BODY;      // è§†çº¿ä¿¯ä»°è§’ [-90,90]
+    float F4_horizontalCover_deg; // æ°´å¹³èŒƒå›´ [0,180]
+    float F4_verticalCover_deg;   // å‚ç›´èŒƒå›´ [0,180]
 } EOImageShowArea;
 
 typedef struct SecIRSTImageDriveMsg {
     SM_MessageHeader St_SMMessageHeader;
-    EOImageModePara  St_EOImageModePara;      // ³ÉÏñÄ£Ê½²ÎÊı
-    EOImageEffect    Arr_EOImageEffect[3];    // ¹âµçÍ¼ÏñÌØĞ§
-    EOImageTrackPara Arr_EOImageTrackPara[3]; // ¹âµç×·×Ù³ÉÏñ²ÎÊı
-    EOImageShowArea  St_EOImageShowArea;      // ÏÔÊ¾ÇøÓò²ÎÊı
+    EOImageModePara  St_EOImageModePara;      // æˆåƒæ¨¡å¼å‚æ•°
+    EOImageEffect    Arr_EOImageEffect[3];    // å…‰ç”µå›¾åƒç‰¹æ•ˆ
+    EOImageTrackPara Arr_EOImageTrackPara[3]; // å…‰ç”µè¿½è¸ªæˆåƒå‚æ•°
+    EOImageShowArea  St_EOImageShowArea;      // æ˜¾ç¤ºåŒºåŸŸå‚æ•°
 } SecIRSTImageDriveMsg;
 
 typedef struct Longlat {
@@ -215,204 +215,204 @@ typedef struct Longlat {
     double latitude;
 } LongLat;
 
-// ±í2£º³ÉÏñ×´Ì¬Êı¾İ¶¨Òå
-// ±êÊ¶£ºEOImageState
+// è¡¨2ï¼šæˆåƒçŠ¶æ€æ•°æ®å®šä¹‰
+// æ ‡è¯†ï¼šEOImageState
 typedef struct EOImageState {
-    // ´«¸ĞÆ÷×´Ì¬ (U1_IRSensor)
-    // Êı¾İ³¤¶È: 1 Byte (Octet)
-    // 0-NA£¬1-¿É¼û¹â£¬2-ºìÍâ£¬3-¿É¼û+ºìÍâ£¬4-ºìÍâ+¿É¼û
+    // ä¼ æ„Ÿå™¨çŠ¶æ€ (U1_IRSensor)
+    // æ•°æ®é•¿åº¦: 1 Byte (Octet)
+    // 0-NAï¼Œ1-å¯è§å…‰ï¼Œ2-çº¢å¤–ï¼Œ3-å¯è§+çº¢å¤–ï¼Œ4-çº¢å¤–+å¯è§
     uint8_t U1_IRSensor;
 
-    // ÊÓÆµ×´Ì¬ (U1_TVState)
-    // Êı¾İ³¤¶È: 1 Byte (Octet)
-    // ÊÓÆµ/Í¼Ïñ±êÊ¶Î»£ºÓÃÓÚÇøÓò¼àÊÓÇø·ÖÊÓÆµÏÂ´«ÓëÍ¼ÏñÏÂ´«
-    // 0-NA£¬1-Í¼Ïñ£¬2-ÊÓÆµ
+    // è§†é¢‘çŠ¶æ€ (U1_TVState)
+    // æ•°æ®é•¿åº¦: 1 Byte (Octet)
+    // è§†é¢‘/å›¾åƒæ ‡è¯†ä½ï¼šç”¨äºåŒºåŸŸç›‘è§†åŒºåˆ†è§†é¢‘ä¸‹ä¼ ä¸å›¾åƒä¸‹ä¼ 
+    // 0-NAï¼Œ1-å›¾åƒï¼Œ2-è§†é¢‘
     uint8_t U1_TVState;
 
-    // ³ÉÏñÄ£Ê½ (U1_ImageMode)
-    // Êı¾İ³¤¶È: 1 Byte (Octet)
-    // 0-NA£¬1-¹ãÓò³ÉÏñ£¬2-ÇøÓò³ÉÏñ£¬3-ÇøÓò¼àÊÓ
+    // æˆåƒæ¨¡å¼ (U1_ImageMode)
+    // æ•°æ®é•¿åº¦: 1 Byte (Octet)
+    // 0-NAï¼Œ1-å¹¿åŸŸæˆåƒï¼Œ2-åŒºåŸŸæˆåƒï¼Œ3-åŒºåŸŸç›‘è§†
     uint8_t U1_ImageMode;
 } EOImageState;
 
 typedef struct EOImageParasIS {
-    // Í¼ÏñÊ±¼ä (8 bytes)
+    // å›¾åƒæ—¶é—´ (8 bytes)
     Timestamp St_ImageTime;
 
-    // Í¼ÏñÖ¡ĞòºÅ (4 bytes)
+    // å›¾åƒå¸§åºå· (4 bytes)
     uint32_t U4_ImgId;
 
-    // ¹âµçÖÜÆÚºÅ (2 bytes)
+    // å…‰ç”µå‘¨æœŸå· (2 bytes)
     uint16_t U2_EOCycleNo;
 
-    // Ìõ´øºÅ (2 bytes)
+    // æ¡å¸¦å· (2 bytes)
     uint16_t U2_LineNo;
 
-    // Ìõ´øÄÚĞòºÅ (2 bytes)
+    // æ¡å¸¦å†…åºå· (2 bytes)
     uint16_t U2_EO_LineNo;
 
-    // Í¼ÏñĞĞÊı (4 bytes)
+    // å›¾åƒè¡Œæ•° (4 bytes)
     uint32_t U4_ImageLineNum;
 
-    // Í¼ÏñÁĞÊı (4 bytes)
+    // å›¾åƒåˆ—æ•° (4 bytes)
     uint32_t U4_ImageColumnNum;
 
-    // ÊÕÈİ¿í¶È (m£¬4 bytes)
+    // æ”¶å®¹å®½åº¦ (mï¼Œ4 bytes)
     uint32_t U4_WideCover;
 
-    // ÊÓ³¡ÖĞĞÄ¸©Ñö (deg£¬float, 4 bytes)
+    // è§†åœºä¸­å¿ƒä¿¯ä»° (degï¼Œfloat, 4 bytes)
     float F4_ELLOS_deg_BODY;
 
-    // ÊÓ³¡ÖĞĞÄ·½Î» (deg£¬float, 4 bytes)
+    // è§†åœºä¸­å¿ƒæ–¹ä½ (degï¼Œfloat, 4 bytes)
     float F4_AZLOS_deg_BODY;
 
-    // ÊÓ³¡´óĞ¡¸©Ñö (deg£¬float)
+    // è§†åœºå¤§å°ä¿¯ä»° (degï¼Œfloat)
     float F4_verticalCover_deg;
 
-    // ÊÓ³¡´óĞ¡·½Î» (deg£¬float)
+    // è§†åœºå¤§å°æ–¹ä½ (degï¼Œfloat)
     float F4_horizontalCover_deg;
 
-    // º½ÏòÖØµşÂÊ (1 byte)
+    // èˆªå‘é‡å ç‡ (1 byte)
     uint8_t U1_CouseTgtCover;
 
-    // °øÏòÖØµşÂÊ (1 byte)
+    // å‚å‘é‡å ç‡ (1 byte)
     uint8_t U1_BesideTgtCover;
 
-    // ÏñÔª·Ö±æÂÊ (m£¬LSB=0.01, 2 bytes)
+    // åƒå…ƒåˆ†è¾¨ç‡ (mï¼ŒLSB=0.01, 2 bytes)
     uint16_t U2_CurResolution;
 
-    // µØÃæÉãÓ°·Ö±æÂÊ (m£¬LSB=0.01, 2 bytes)
+    // åœ°é¢æ‘„å½±åˆ†è¾¨ç‡ (mï¼ŒLSB=0.01, 2 bytes)
     uint16_t U2_GroundResolution;
 
-    // Í¼ÏñÖĞĞÄ¾­Î³¸ß (20 bytes)
+    // å›¾åƒä¸­å¿ƒç»çº¬é«˜ (20 bytes)
     Position St_ImgCenterPosition;
 
-    // Í¼Ïñ×óÉÏ½Ç¾­Î³¶È (16 bytes)
+    // å›¾åƒå·¦ä¸Šè§’ç»çº¬åº¦ (16 bytes)
     Longlat St_ImgLeftUp;
 
-    // Í¼Ïñ×óÏÂ½Ç¾­Î³¶È (16 bytes)
+    // å›¾åƒå·¦ä¸‹è§’ç»çº¬åº¦ (16 bytes)
     Longlat St_ImgLeftDown;
 
-    // Í¼ÏñÓÒÉÏ½Ç¾­Î³¶È (16 bytes)
+    // å›¾åƒå³ä¸Šè§’ç»çº¬åº¦ (16 bytes)
     Longlat St_ImgRightUp;
 
-    // Í¼ÏñÓÒÏÂ½Ç¾­Î³¶È (16 bytes)
+    // å›¾åƒå³ä¸‹è§’ç»çº¬åº¦ (16 bytes)
     Longlat St_ImgRightDown;
 
-    // ÕÕÏà´ÎÊı (2 bytes)
+    // ç…§ç›¸æ¬¡æ•° (2 bytes)
     uint16_t U2_TakeTimes;
 
-    // Ïà»ú½¹¾à (mm, 2 bytes)
+    // ç›¸æœºç„¦è· (mm, 2 bytes)
     uint16_t U2_FocalLength;
 
-    // ÆØ¹âÊ±¼ä (us, 2 bytes)
+    // æ›å…‰æ—¶é—´ (us, 2 bytes)
     uint16_t U2_ExposureTime;
 
-    // ÖØÒªÄ¿±ê±êÊ¶ (1 byte)
+    // é‡è¦ç›®æ ‡æ ‡è¯† (1 byte)
     uint8_t U1_ImpotentTag;
 
-    // ³ÉÏñÖĞĞÄ¾­Î³¶È (16 bytes)
+    // æˆåƒä¸­å¿ƒç»çº¬åº¦ (16 bytes)
     Longlat St_ImgCenter;
 
-    // ÔØ»úĞÅÏ¢ (56 bytes)
+    // è½½æœºä¿¡æ¯ (56 bytes)
     EntityPosVelAccAtt St_AcParas;
 
-    // Í¼ÏñÈÎÎñĞÅÏ¢ (20 bytes)
+    // å›¾åƒä»»åŠ¡ä¿¡æ¯ (20 bytes)
     char Seq_Mission[20];
 } EOImageParasIS;
 
-// ±í 3£º¹âµçÍ¼Ïñµ÷½Ú²ÎÊıÊı¾İ¶¨Òå
-// ±êÊ¶£ºEOImageModifyPara
+// è¡¨ 3ï¼šå…‰ç”µå›¾åƒè°ƒèŠ‚å‚æ•°æ•°æ®å®šä¹‰
+// æ ‡è¯†ï¼šEOImageModifyPara
 typedef struct EOImageModifyPara {
-    // ¿É¼û¹âµ÷¹âÖµ [-127, 127]
+    // å¯è§å…‰è°ƒå…‰å€¼ [-127, 127]
     char I1_LightValueLight;
 
-    // ¿É¼û¹âµ÷½¹Öµ [-127, 127]
+    // å¯è§å…‰è°ƒç„¦å€¼ [-127, 127]
     char I1_FocusValueLight;
 
-    // ¿É¼û¹âÈ¥Îí£º0-NA£¬1-ON£¬2-OFF
+    // å¯è§å…‰å»é›¾ï¼š0-NAï¼Œ1-ONï¼Œ2-OFF
     uint8_t U1_LightMistEliminate;
 
-    // ¿É¼û¹âÔöÇ¿£º0-NA£¬1-ON£¬2-OFF
+    // å¯è§å…‰å¢å¼ºï¼š0-NAï¼Œ1-ONï¼Œ2-OFF
     uint8_t U1_LightEnhance_Mode;
 
-    // ºìÍâµ÷¹âÖµ [-127, 127]
+    // çº¢å¤–è°ƒå…‰å€¼ [-127, 127]
     char I1_LightValueInfrared;
 
-    // ºìÍâµ÷½¹Öµ [-127, 127]
+    // çº¢å¤–è°ƒç„¦å€¼ [-127, 127]
     char I1_FocusValueInfrared;
 
-    // ¼«»¯£º0-NA£¬1-ºÚÈÈ£¬2-°×ÈÈ
+    // æåŒ–ï¼š0-NAï¼Œ1-é»‘çƒ­ï¼Œ2-ç™½çƒ­
     uint8_t U1_VideoPolar;
 
-    // ºìÍâÔöÇ¿£º0-NA£¬1-ON£¬2-OFF
+    // çº¢å¤–å¢å¼ºï¼š0-NAï¼Œ1-ONï¼Œ2-OFF
     uint8_t U1_InfraredEnhanceMode;
 
 } EOImageModifyPara;
 
-// ±í 4£º¶¯Ä¿±ê¼ì²â³ÉÏñ²ÎÊıÊı¾İ¶¨Òå
-// ±êÊ¶£ºEOTgtPara
+// è¡¨ 4ï¼šåŠ¨ç›®æ ‡æ£€æµ‹æˆåƒå‚æ•°æ•°æ®å®šä¹‰
+// æ ‡è¯†ï¼šEOTgtPara
 typedef struct EOTgtPara {
-    // ¼ì²âÄ¿±ê±àºÅ
-    // ÀàĞÍ£ºEntityID£¨ÓÃ»§×Ô¶¨ÒåÀàĞÍ£©
+    // æ£€æµ‹ç›®æ ‡ç¼–å·
+    // ç±»å‹ï¼šEntityIDï¼ˆç”¨æˆ·è‡ªå®šä¹‰ç±»å‹ï¼‰
     EntityID St_EntityID;
 
 } EOTgtPara;
 
-// ±í 5£º¶¯Ä¿±êÏñËØ×ø±ê²ÎÊıÊı¾İ¶¨Òå
-// ±êÊ¶£ºEOTgtPositionPara
+// è¡¨ 5ï¼šåŠ¨ç›®æ ‡åƒç´ åæ ‡å‚æ•°æ•°æ®å®šä¹‰
+// æ ‡è¯†ï¼šEOTgtPositionPara
 typedef struct EOTgtPositionPara {
-    // Ä¿±ê×óÉÏ½ÇºáÏòÏñËØ×ø±ê [10, 65535]£»ÎŞÓĞĞ§Ä¿±êÊ±Ä¬ÈÏÌî 0
-    // 2 ×Ö½Ú unsigned short
+    // ç›®æ ‡å·¦ä¸Šè§’æ¨ªå‘åƒç´ åæ ‡ [0, 65535]ï¼›æ— æœ‰æ•ˆç›®æ ‡æ—¶é»˜è®¤å¡« 0
+    // 2 å­—èŠ‚ unsigned short
     uint16_t U2_Tgt1UpleftX;
 
-    // Ä¿±ê×óÉÏ½Ç×İÏòÏñËØ×ø±ê [10, 65535]£»ÎŞÓĞĞ§Ä¿±êÊ±Ä¬ÈÏÌî 0
+    // ç›®æ ‡å·¦ä¸Šè§’çºµå‘åƒç´ åæ ‡ [0, 65535]ï¼›æ— æœ‰æ•ˆç›®æ ‡æ—¶é»˜è®¤å¡« 0
     uint16_t U2_Tgt1UpleftY;
 
-    // Ä¿±êÓÒÏÂ½ÇºáÏòÏñËØ×ø±ê [10, 65535]£»ÎŞÓĞĞ§Ä¿±êÊ±Ä¬ÈÏÌî 0
+    // ç›®æ ‡å³ä¸‹è§’æ¨ªå‘åƒç´ åæ ‡ [0, 65535]ï¼›æ— æœ‰æ•ˆç›®æ ‡æ—¶é»˜è®¤å¡« 0
     uint16_t U2_Tgt1DownrightX;
 
-    // Ä¿±êÓÒÏÂ½Ç×İÏòÏñËØ×ø±ê [10, 65535]£»ÎŞÓĞĞ§Ä¿±êÊ±Ä¬ÈÏÌî 0
+    // ç›®æ ‡å³ä¸‹è§’çºµå‘åƒç´ åæ ‡ [0, 65535]ï¼›æ— æœ‰æ•ˆç›®æ ‡æ—¶é»˜è®¤å¡« 0
     uint16_t U2_Tgt1DownrightY;
 
 } EOTgtPositionPara;
 
-/********************¹²ÏíÄÚ´æÊäÈë½Ó¿Ú*********************/
+/********************å…±äº«å†…å­˜è¾“å…¥æ¥å£*********************/
 typedef struct SharedMemoryInput {
-    // Éè±¸¹©µç×´Ì¬²ÎÊı
+    // è®¾å¤‡ä¾›ç”µçŠ¶æ€å‚æ•°
     FacilitiesPowerSupplyStatusParasMsg m_FacilitiesPowerSupplyStatusParasMsg;
-    // Ä£ÄâÆ÷ÔËĞĞ¿ØÖÆ - ³¡¾°¿ØÖÆÖ¸Áî
+    // æ¨¡æ‹Ÿå™¨è¿è¡Œæ§åˆ¶ - åœºæ™¯æ§åˆ¶æŒ‡ä»¤
     SecSimulatorControlMsg m_SecSimulatorControlMsg;
-    // ÊµÌåÊ±¿ÕÎ»ÖÃ×´Ì¬ - ±¾»úĞÅÏ¢
+    // å®ä½“æ—¶ç©ºä½ç½®çŠ¶æ€ - æœ¬æœºä¿¡æ¯
     SecEntityTSPIMsg m_SecEntityTSPIMsg;
-    // ÊµÌåÊ±¿ÕÎ»ÖÃ×´Ì¬ - ÊµÌåÄ¿±êĞÅÏ¢£¨ÆäËûÄ£ÄâÆ÷£©
+    // å®ä½“æ—¶ç©ºä½ç½®çŠ¶æ€ - å®ä½“ç›®æ ‡ä¿¡æ¯ï¼ˆå…¶ä»–æ¨¡æ‹Ÿå™¨ï¼‰
     SecAllEntityTSPIMsg m_SecAllEntityTSPIMsg;
-    // ĞéÄâ±øÁ¦Ê±¿ÕÎ»ÖÃ×´Ì¬ - ĞéÄâÄ¿±êĞÅÏ¢£¨ÑµÁ·¿ØÖÆÖĞÉèÖÃµÄÄ¿±ê£©
+    // è™šæ‹Ÿå…µåŠ›æ—¶ç©ºä½ç½®çŠ¶æ€ - è™šæ‹Ÿç›®æ ‡ä¿¡æ¯ï¼ˆè®­ç»ƒæ§åˆ¶ä¸­è®¾ç½®çš„ç›®æ ‡ï¼‰
     SecVFTSPIMsg m_SecVFTSPIMsg;
-    // ¶¯Ä¿±êÏñËØ×ø±ê²ÎÊıÊı¾İ¶¨Òå
+    // åŠ¨ç›®æ ‡åƒç´ åæ ‡å‚æ•°æ•°æ®å®šä¹‰
     EOTgtPositionPara m_EOTgtPositionPara;
 } SharedMemoryInput;
-/********************¹²ÏíÄÚ´æÊäÈë½Ó¿Ú:End*********************/
+/********************å…±äº«å†…å­˜è¾“å…¥æ¥å£:End*********************/
 
-/********************¹²ÏíÄÚ´æÊä³ö½Ó¿Ú*********************/
+/********************å…±äº«å†…å­˜è¾“å‡ºæ¥å£*********************/
 typedef struct SharedMemoryOutput {
-    // ¹¦ÄÜµ¥Ôª×´Ì¬
+    // åŠŸèƒ½å•å…ƒçŠ¶æ€
     FunctionalUnitStatusMsg m_FunctionalUnitStatusMsg;
-    // ¹âµçÌ½²âÏµÍ³²ÎÊı
+    // å…‰ç”µæ¢æµ‹ç³»ç»Ÿå‚æ•°
     SecElecOptDeteWorkingParasMsg m_SecElecOptDeteWorkingParasMsg;
-    // ¹âµç³ÉÏñÇı¶¯²ÎÊı
+    // å…‰ç”µæˆåƒé©±åŠ¨å‚æ•°
     SecIRSTImageDriveMsg m_SecIRSTImageDriveMsg;
-    // ³ÉÏñ×´Ì¬Êı¾İ¶¨Òå
+    // æˆåƒçŠ¶æ€æ•°æ®å®šä¹‰
     EOImageState m_EOImageState;
-    // ¹âµçÍ¼Ïñ²ÎÊı ×¢ÊÍĞÅÏ¢
+    // å…‰ç”µå›¾åƒå‚æ•° æ³¨é‡Šä¿¡æ¯
     EOImageParasIS m_EOImageParasIS;
-    // ¹âµçÍ¼Ïñµ÷½Ú²ÎÊıÊı¾İ¶¨Òå
+    // å…‰ç”µå›¾åƒè°ƒèŠ‚å‚æ•°æ•°æ®å®šä¹‰
     EOImageModifyPara m_EOImageModifyPara;
-    // ¶¯Ä¿±ê¼ì²â³ÉÏñ²ÎÊıÊı¾İ¶¨Òå
+    // åŠ¨ç›®æ ‡æ£€æµ‹æˆåƒå‚æ•°æ•°æ®å®šä¹‰
     EOTgtPara m_EOTgtPara;
 
 } SharedMemoryOutput;
-/********************¹²ÏíÄÚ´æÊä³ö½Ó¿Ú:End*********************/
+/********************å…±äº«å†…å­˜è¾“å‡ºæ¥å£:End*********************/
 
 #pragma pack()
 
