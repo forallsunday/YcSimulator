@@ -1,7 +1,7 @@
-#include <fpga_sim.h>
-#include <global_vars.h>
 #include <YC_Controller_Computer.h>
 #include <YC_Controller_globalVal_Ext.h>
+#include <fpga_sim.h>
+#include <global_vars.h>
 
 #include <log_def.h>
 
@@ -34,7 +34,6 @@ bool FpgaSimulator::init() {
     setPrimaryMirrorTemp(200);   // 主镜温度 20.0℃
     setSecondaryMirrorTemp(200); // 次镜温度 20.0℃
     setTempID(1);                // 温度ID初始为1
-
 
     return true;
 }
@@ -82,6 +81,7 @@ void FpgaSimulator::onSwitchSpeedOrLocate() {
 }
 
 void FpgaSimulator::simulatingTimerSpeedOrLocate() {
+    static int cnt = 0;
     // 如果是拍照命令且成像模式为广域成像或区域成像 则启动速度位置信号定时器
     if (mess_To_FPGA.cmd == FPGA_START_PHOTO &&
         (mess_To_FPGA.irst_form_mode == FPGA_GY_PHOTO || mess_To_FPGA.irst_form_mode == FPGA_QY_PHOTO)) {
@@ -89,37 +89,43 @@ void FpgaSimulator::simulatingTimerSpeedOrLocate() {
         if (!timer_switch_.isRunning()) {
             speed_or_locate  = 1;
             period_switcher_ = milliseconds(666); // 等待一小段时间以正常计时
-            timer_switch_.changePeriod(period_switcher_);
-            timer_switch_.start();
+            // timer_switch_.changePeriod(period_switcher_);
+            // timer_switch_.start();
             log_proc("开始速度位置信号计时器");
+            cnt = 0;
         }
     } else {
         // 停止定时器
         this->timer_switch_.stop();
+        cnt = 0;
     }
 
     // 如果定时器在运行
     if (timer_switch_.isRunning()) {
-        std::lock_guard<std::mutex> lock(mutex_period_);
+        // std::lock_guard<std::mutex> lock(mutex_period_);
         // 处理速度位置信号切换请求
-        if (timer_switch_.elapsedTimeMs() >= period_switcher_.count())
+        // if (timer_switch_.elapsedTimeMs() >= period_switcher_.count())
+        // Note: 再容器中发现有时钟漂移现象较为严重，改为计数方式
+        // todo: 验证 此时timer_switch_的周期切换没有意义了
+        if (5 * cnt >= period_switcher_.count())
         // 如果走过的时间超过周期了
         {
             if (speed_or_locate == 0) {
                 // 当前为速度信号
                 period_switcher_ = milliseconds((int)param_Compute_Output.toFPGA_time_location);
-                timer_switch_.changePeriod(period_switcher_);
-                timer_switch_.start();
+                // timer_switch_.changePeriod(period_switcher_);
+                // timer_switch_.start();
                 speed_or_locate = 1;
                 log_proc("切换到位置信号, 周期=%d ms", period_switcher_.count());
             } else {
                 // 当前为位置信号
                 period_switcher_ = milliseconds((int)param_Compute_Output.toFPGA_time_speed);
-                timer_switch_.changePeriod(period_switcher_);
-                timer_switch_.start();
+                // timer_switch_.changePeriod(period_switcher_);
+                // timer_switch_.start();
                 speed_or_locate = 0;
                 log_proc("切换到速度信号, 周期=%d ms", period_switcher_.count());
             }
+            cnt = 0;
         }
     }
 }
@@ -250,8 +256,8 @@ void FpgaSimulator::simulatingPCS() {
 }
 
 void FpgaSimulator::simulatingExposure() {
-    static int cnt_i         = 0; // 中断次数计数
-    static int num_in_stripe = 0; // 条带内曝光次数
+    static int  cnt_i                 = 0;     // 中断次数计数
+    static int  num_in_stripe         = 0;     // 条带内曝光次数
     static bool focal_pos_initialized = false; // 焦面位置初始化标志
 
     // 计算帧间隔时间
@@ -673,7 +679,7 @@ void FpgaSimulator::setTrackingTargetCount(uint8_t count) {
 // ===== 曝光时间设置接口实现 =====
 void FpgaSimulator::setElecOptiExposureTime(int32_t exp_time_ms) {
     // 范围限制: 5-150 ms
-    
+
     if (exp_time_ms < KJEXPTIME_MIN) {
         exp_time_ms = KJEXPTIME_MIN;
         log_warn("可见光曝光时间过小,已限制为最小值 %d ms", KJEXPTIME_MIN);
@@ -681,19 +687,19 @@ void FpgaSimulator::setElecOptiExposureTime(int32_t exp_time_ms) {
         exp_time_ms = KJEXPTIME_MAX;
         log_warn("可见光曝光时间过大,已限制为最大值 %d ms", KJEXPTIME_MAX);
     }
-    
-    tg_Param.KJ_ExpTime = exp_time_ms;
+
+    tg_Param.KJ_ExpTime       = exp_time_ms;
     tg_Param.KJ_ExpTime_float = (float)exp_time_ms;
     // 拆分为高低8位
     tg_Param.KJ_ExpTimeH8 = ((uint16_t)exp_time_ms >> 8) & 0x00FF;
     tg_Param.KJ_ExpTimeL8 = (uint16_t)exp_time_ms & 0x00FF;
-    
+
     log_info("设置可见光曝光时间: %d ms", exp_time_ms);
 }
 
 void FpgaSimulator::setInfraredExposureTime(uint16_t exp_time_us) {
     // 范围限制: 2000-16000 μs
-    
+
     if (exp_time_us < HWEXPTIME_MIN) {
         exp_time_us = HWEXPTIME_MIN;
         log_warn("红外曝光时间过小,已限制为最小值 %d μs", HWEXPTIME_MIN);
@@ -701,13 +707,13 @@ void FpgaSimulator::setInfraredExposureTime(uint16_t exp_time_us) {
         exp_time_us = HWEXPTIME_MAX;
         log_warn("红外曝光时间过大,已限制为最大值 %d μs", HWEXPTIME_MAX);
     }
-    
-    tg_Param.HW_ExpTime = exp_time_us;
+
+    tg_Param.HW_ExpTime       = exp_time_us;
     tg_Param.HW_ExpTime_float = (float)exp_time_us;
     // 拆分为高低8位
     tg_Param.HW_ExpTimeH8 = (exp_time_us >> 8) & 0x00FF;
     tg_Param.HW_ExpTimeL8 = exp_time_us & 0x00FF;
-    
+
     log_info("设置红外曝光时间: %d μs", exp_time_us);
 }
 

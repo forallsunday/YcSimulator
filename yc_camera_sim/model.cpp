@@ -110,8 +110,9 @@ void usrmode_init() {
     readUdpAddr(rua, socket_data);
 
     if (!cam_sim) {
+        // CameraSimulator(int port, int port_send, std::string ip_control, int port_dst);
         cam_sim = std::make_unique<CameraSimulator>(
-            rua.port_cam_listen_ctrl, rua.ip_control, rua.port_ctrl_listen_cam);
+            rua.port_cam_listen_ctrl, rua.port_cam_send2_ctrl, rua.ip_control, rua.port_ctrl_listen_cam);
     }
 
     cam_sim->init();
@@ -119,9 +120,6 @@ void usrmode_init() {
 
     // 调试时设置周期发送间隔
     // cam_sim->setPeriodicInterval(2000);
-
-    // Note: 测试直接执行拍照模式
-    // cam_sim->testPhotoing();
 
     return;
 }

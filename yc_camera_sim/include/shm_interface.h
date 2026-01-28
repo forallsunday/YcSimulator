@@ -15,8 +15,8 @@ extern "C" {
 #pragma pack(1)
 
 typedef struct EntityID {
-    unsigned int   U4_EntityID; // @ID(0)
-    unsigned short U2_GenID;    // @ID(1)
+    unsigned int   U4_EntityID; // @ID(0) 转发TSPI
+    unsigned short U2_GenID;    // @ID(1) 同上
 } EntityID;                     // @Extensibility(EXTENSIBLE)
 
 typedef struct Timestamp {
@@ -611,7 +611,7 @@ typedef struct ElectromagneticElementSetting {
 
 typedef struct SM_MessageHeader {
     unsigned int   U4_Heartbeat;       // @ID(0) // 心跳计数器
-    unsigned short U2_EffectiveLength; // @ID(1) // 有效数据长度(字节)
+    unsigned short U2_EffectiveLength; // @ID(1) // 有效数据长度(字节) 代表了有几个虚拟兵力是有效的 比如说是5 就是200个中的前5个是有效的
     Timestamp      St_PubTime;         // @ID(2) // 发布时间戳
     Timestamp      St_GenerateTime;    // @ID(3) // 生成时间戳
 } SM_MessageHeader;                    // @Extensibility(EXTENSIBLE)
@@ -1389,8 +1389,8 @@ typedef struct EOImageParasIS {
     unsigned char      U1_ImpotentTag;         // @ID(22) // 重要目标标识 0-不重要目标，1-重要目标，2-未知
     Longlat            St_ImgCenter;           // @ID(23) // 成像中心经纬度
     EntityPosVelAccAtt St_AcParas;             // @ID(24) // 载机信息
-    // std::vector<char>  Seq_Mission;            // @ID(25) // 图像任务信息 /* maximum length = (20) */
-} EOImageParasIS; // @Extensibility(EXTENSIBLE)
+    char               Seq_Mission[20];        // @ID(25) // 图像任务信息 /* maximum length = (20) */
+} EOImageParasIS;                              // @Extensibility(EXTENSIBLE)
 
 // 标识：EOImageModifyPara - 光电图像调节参数数据定义
 typedef struct EOImageModifyPara {
@@ -2533,8 +2533,8 @@ typedef struct SecAllEntityAppearanceMsg {
 
 typedef struct SecAllEntityTSPIMsg {
     SM_MessageHeader St_SMMessageHeader;     // @ID(0)
-    MessageValid     Arr_MessageValid[200];  // @ID(1)
-    SecEnAttrPVAA    Arr_SecEnAttrPVAA[200]; // @ID(2)
+    MessageValid     Arr_MessageValid[200];  // @ID(1) // 先读取有效性
+    SecEnAttrPVAA    Arr_SecEnAttrPVAA[200]; // @ID(2) // 实体位置数据有效的才读取
 } SecAllEntityTSPIMsg;                       // @Extensibility(EXTENSIBLE)
 
 typedef struct SecAllIFFEmitFlagParasMsg {

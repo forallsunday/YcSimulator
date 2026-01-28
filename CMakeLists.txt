@@ -16,15 +16,17 @@ add_subdirectory("lib")
 # 静态库: CameraSimulator
 # ==================================================
 # yc设备主控代码静态库
-add_subdirectory("yc_camera_sim/lib/yc_con")
 # 相机仿真库
 set(CAMSIM_NAME "cam_sim")
 aux_source_directory("yc_camera_sim/src" SRCS_CAMSIM)
-add_library(${CAMSIM_NAME} STATIC ${SRCS_CAMSIM})
+aux_source_directory("yc_camera_sim/src/yc" SRCS_CAMSIM_YC)
+add_library(${CAMSIM_NAME} STATIC ${SRCS_CAMSIM} ${SRCS_CAMSIM_YC})
 set_target_properties(${CAMSIM_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set(INCLUDE_CAMSIM "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/include")
+set(INCLUDE_CAMSIM 
+"${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/include" 
+"${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/include/yc")
 target_include_directories(${CAMSIM_NAME} PUBLIC ${INCLUDE_CAMSIM})
-target_link_libraries(${CAMSIM_NAME} PUBLIC deps yc_con)
+target_link_libraries(${CAMSIM_NAME} PUBLIC deps)
 
 # ==================================================
 # 库: 相机仿真模型 
@@ -37,8 +39,8 @@ if(${TARGET_PLATFORM} STREQUAL "linux-aarch64")
   add_library(${LIB_NAME} SHARED "${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/model.cpp")
   target_link_libraries(${LIB_NAME} PUBLIC ${CAMSIM_NAME})
   # 链接共享内存库
-  target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/include)
-  target_link_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cadi_user/lib)
+  target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/cadi_user/include)
+  target_link_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/yc_camera_sim/cadi_user/lib)
   target_link_libraries(${LIB_NAME} PRIVATE cadi_user rt)
 endif()
 
