@@ -60,13 +60,16 @@ class ObjectDetectionSim {
      * @param heading_deg   载机航向角 (deg)
      * @param pitch_deg     载机俯仰角 (deg), 抬头为正
      * @param roll_deg      载机横滚角 (deg), 右滚为正
+     * @param image_scale    图像缩放因子 (默认1.0, 无缩放)
+     *                       当可见光(5120×4096)缩放至1280×1024输出时, 传入4.0
+     *                       有效像元数 = 传感器像元数 / image_scale
      * @return true  目标可被识别
      * @return false 目标不可识别（像元数不足或未知目标类型）
      */
     bool canDetect(uint16_t entity_type, double flight_height, OpticalType optical_type,
                    double dep_body_deg, double az_body_deg,
                    double heading_deg = 0.0, double pitch_deg = 0.0,
-                   double roll_deg = 0.0) const;
+                   double roll_deg = 0.0, double image_scale = 1.0) const;
 
     /**
      * @brief 计算目标最小投影尺寸在探测器上所占的像元数

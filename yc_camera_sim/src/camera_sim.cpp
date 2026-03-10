@@ -330,29 +330,38 @@ void CameraSimulator::updateSharedMemoryOutput() {
     // === EOImageModifyPara 光电图像调节参数 === END
 
     // === EOTgtPara 动目标检测成像参数 ===
-    // Arr_EOTgtPara
-    int tar_count_max    = 5; // 最大目标数量
-    int tar_count        = 0; // 已经添加的目标数量
-    int effective_length = shm_input_.m_SecAllEntityTSPIMsg.St_SMMessageHeader.U2_EffectiveLength;
 
     // 确定当前光学类型: 由传感器模式(EO/IR)和焦距(大/小视场)决定
     // mode_IR_SENSOR: 1-可见光, 2-红外, 3-可见+红外, 4-红外+可见
-    //  (mess_To_TXCL_CMD.mode_IR_SENSOR >= 2);
+    // 图像缩放因子:
+    // EO传感器 5120×4096, IR传感器 1280×1024
+    // mode 1: EO全分辨率输出 → scale=1
+    // mode 2: IR全分辨率输出 → scale=1
+    // mode 3: 可见+红外, 输出1280×1024, EO缩放4倍 → scale=4
+    // mode 4: 红外+可见, 输出1280×1024, 主画面IR → scale=1
     // Note: 目前为止不考虑大小视场的事情
     OpticalType cur_optical_type;
+    double      cur_image_scale = 1.0;
     switch (mess_To_TXCL_CMD.mode_IR_SENSOR) {
-    case 1:
+    case 1: // 可见光
         cur_optical_type = OpticalType::EO_WIDE;
+        cur_image_scale  = 1.0;
         break;
-    case 2:
+    case 2: // 红外
         cur_optical_type = OpticalType::IR_WIDE;
+        cur_image_scale  = 1.0;
         break;
-    case 3: // todo: 可见+红外 是按照主画面的来的
+    case 3: // 可见+红外, 主画面为可见光, 输出缩放至1280×1024
+        cur_optical_type = OpticalType::EO_WIDE;
+        cur_image_scale  = 4.0; // 5120/1280 = 4
         break;
-    case 4:
+    case 4: // 红外+可见, 主画面为红外
+        cur_optical_type = OpticalType::IR_WIDE;
+        cur_image_scale  = 1.0; // IR原生1280×1024, 无缩放
         break;
     default:
         cur_optical_type = OpticalType::EO_WIDE;
+        cur_image_scale  = 1.0;
         break;
     }
 
@@ -366,34 +375,67 @@ void CameraSimulator::updateSharedMemoryOutput() {
     double cur_pitch   = St_EntityAttitude.F4_Theta_deg;
     double cur_roll    = St_EntityAttitude.F4_Phi_deg;
 
+    int tar_count_max = 5; // 最大目标数量
+    int tar_count     = 0; // 已经添加的目标数量
+    // todo: 有效长度对于实体TSPI是这样用的吗？需要确认一下
+    int effective_length = shm_input_.m_SecAllEntityTSPIMsg.St_SMMessageHeader.U2_EffectiveLength;
+
+    // 实体时空位置状态 shm_input_.m_SecAllEntityTSPIMsg
     for (int i = 0; i < effective_length; i++) {
         // 最多只处理前5个有效目标，超过部分不处理
+        // todo: 确认超过的部分是不是不处理
         if (tar_count >= tar_count_max) {
             break;
         }
         // 检查目标数据有效性
         if (shm_input_.m_SecAllEntityTSPIMsg.Arr_MessageValid[i].B1_MessageDataValid) { // 有效目标
-            const auto     &entity        = shm_input_.m_SecAllEntityTSPIMsg.Arr_SecEnAttrPVAA[i];
-            const Position *tpsi_position = &entity.St_EntityPosVelAccAtt.St_EntityPosition;
+            const auto     &entity_attr_PVAA = shm_input_.m_SecAllEntityTSPIMsg.Arr_SecEnAttrPVAA[i];
+            const Position *tpsi_position    = &entity_attr_PVAA.St_EntityPosVelAccAtt.St_EntityPosition;
             // 判断目标是否在图像内
             if (this->isTargetInImage(*tpsi_position)) {
                 // 目标检测模拟判断能否识别
-                uint16_t entity_type = entity.St_EntityAttribute.U2_EntityType;
+                uint16_t entity_type = entity_attr_PVAA.St_EntityAttribute.U2_EntityType;
                 bool     detected    = obj_detect_sim_.canDetect(
                     entity_type, cur_flight_height, cur_optical_type,
                     cur_dep_deg, cur_az_deg,
-                    cur_heading, cur_pitch, cur_roll);
+                    cur_heading, cur_pitch, cur_roll, cur_image_scale);
                 if (detected) {
-                    Arr_EOTgtPara[tar_count].St_EntityID = entity.St_EntityAttribute.St_EntityID; // 目标ID
+                    Arr_EOTgtPara[tar_count].St_EntityID = entity_attr_PVAA.St_EntityAttribute.St_EntityID; // 目标ID
                     tar_count++;
                 }
             }
         }
     }
 
-    // 实体时空位置状态 shm_input_.m_SecAllEntityTSPIMsg
-
+// todo: 确认什么时候是实体 什么时候是实体兵力？
+#define TARGET_IN_IMAGE_CHECK_FROM_VF 0
+#if TARGET_IN_IMAGE_CHECK_FROM_VF
     // 虚拟兵力时空位置状态 shm_input_.m_SecVFTSPIMsg
+    int vf_effective_length = shm_input_.m_SecVFTSPIMsg.St_SMMessageHeader.U2_EffectiveLength;
+    for (int i = 0; i < vf_effective_length; i++) {
+        if (tar_count >= tar_count_max) {
+            break;
+        }
+        const auto &vf = shm_input_.m_SecVFTSPIMsg.Arr_SecVFTSPI[i];
+        // 用 U1_EntityLive 判断虚拟兵力是否存活有效
+        // todo 确认对吗？
+        if (vf.VFAttribute.U1_EntityLive == 0) {
+            continue;
+        }
+        const Position *vf_position = &vf.VFPosVelAccAtt.St_EntityPosition;
+        if (this->isTargetInImage(*vf_position)) {
+            uint16_t entity_type = vf.VFAttribute.U2_EntityType;
+            bool     detected    = obj_detect_sim_.canDetect(
+                entity_type, cur_flight_height, cur_optical_type,
+                cur_dep_deg, cur_az_deg,
+                cur_heading, cur_pitch, cur_roll, cur_image_scale);
+            if (detected) {
+                Arr_EOTgtPara[tar_count].St_EntityID = vf.VFAttribute.St_EntityID;
+                tar_count++;
+            }
+        }
+    }
+#endif
 
     shm_output_.m_SecEOImageDriveMsg.St_SMMessageHeader   = St_MessageHeader;
     shm_output_.m_SecEOImageDriveMsg.St_EOImageState      = St_EOImageState;

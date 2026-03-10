@@ -149,7 +149,7 @@ bool ObjectDetectionSim::canDetect(uint16_t entity_type, double flight_height,
                                       OpticalType optical_type,
                                       double dep_body_deg, double az_body_deg,
                                       double heading_deg, double pitch_deg,
-                                      double roll_deg) const {
+                                      double roll_deg, double image_scale) const {
     const double pixels = calcTargetPixels(entity_type, flight_height, optical_type,
                                             dep_body_deg, az_body_deg,
                                             heading_deg, pitch_deg, roll_deg);
@@ -157,5 +157,9 @@ bool ObjectDetectionSim::canDetect(uint16_t entity_type, double flight_height,
         return false; // 未知目标类型
     }
 
-    return pixels >= getJohnsonThreshold(optical_type);
+    // 有效像元数 = 传感器像元数 / 图像缩放因子
+    // 例如: EO 5120×4096 缩放到 1280×1024 时, image_scale=4.0
+    const double effective_pixels = pixels / image_scale;
+
+    return effective_pixels >= getJohnsonThreshold(optical_type);
 }
