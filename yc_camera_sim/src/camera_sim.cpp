@@ -7,6 +7,7 @@
 
 #include <global_vars.h>
 #include <log_def.h>
+#include <object_detection_sim.h>
 #include <udp_trans.h>
 #include <utils.h>
 
@@ -154,23 +155,23 @@ void CameraSimulator::updateSharedMemoryInput() {
     // 0-NA；1-初始化；2-快速启动；3-常规启动；4-冻结；5-停止
     operation_mode_ = shm_input_.m_SecSimulatorControlMsg.St_SimulatorStatusControl.U1_OperationMode;
 
-    // 动目标像素坐标参数 - 从成像仿真获取，直接设置给fpga_sim
-    if (main_Control_State_Param.track_state == V_TGT_TRACK_STATE_TRACK_ING ||
-        main_Control_State_Param.track_state == V_TGT_TRACK_STATE_MATCH_ING) {
-        // 图像跟踪数量
-        fpga_sim_.setTrackingTargetCount(1); // todo: 目前仅支持单目标跟踪
-    } else {
-        fpga_sim_.setTrackingTargetCount(0);
-    }
-    // 读取5个目标的像素坐标并传递给fpga_sim
-    for (int i = 0; i < 5; i++) {
-        FpgaSimulator::TargetPixelCoor tpc;
-        tpc.up_left_x    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1UpleftX;
-        tpc.up_left_y    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1UpleftY;
-        tpc.down_right_x = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1DownrightX;
-        tpc.down_right_y = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1DownrightY;
-        fpga_sim_.setTargetPixelCoor(i, tpc);
-    }
+    // // 动目标像素坐标参数 - 从成像仿真获取，直接设置给fpga_sim
+    // if (main_Control_State_Param.track_state == V_TGT_TRACK_STATE_TRACK_ING ||
+    //     main_Control_State_Param.track_state == V_TGT_TRACK_STATE_MATCH_ING) {
+    //     // 图像跟踪数量
+    //     fpga_sim_.setTrackingTargetCount(1);
+    // } else {
+    //     fpga_sim_.setTrackingTargetCount(0);
+    // }
+    // // 读取5个目标的像素坐标并传递给fpga_sim
+    // for (int i = 0; i < 5; i++) {
+    //     FpgaSimulator::TargetPixelCoor tpc;
+    //     tpc.up_left_x    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1UpleftX;
+    //     tpc.up_left_y    = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1UpleftY;
+    //     tpc.down_right_x = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1DownrightX;
+    //     tpc.down_right_y = shm_input_.m_SecTgtPositionParaMsg.Arr_EOTgtPositionPara[i].U2_Tgt1DownrightY;
+    //     fpga_sim_.setTargetPixelCoor(i, tpc);
+    // }
 }
 void CameraSimulator::updateSharedMemoryOutput() {
 
@@ -212,7 +213,19 @@ void CameraSimulator::updateSharedMemoryOutput() {
     }
 
     St_EOImageState.U1_ImageMode = main_Control_State_Param.irst_form_mode; // @ID(2) // 成像模式 0-NA，1-广域成像，2-区域成像，3-区域监视
-    St_EOImageState.U1_Channel   = 1;                                       // todo: 确认通道填充规则
+    switch (mess_To_TXCL_CMD.mode_IR_SENSOR) {
+    case 1: // 可见光
+        St_EOImageState.U1_Channel = 1;
+        break;
+    case 2: // 红外
+    case 3: // 可见+红外
+    case 4: // 红外+可见
+        St_EOImageState.U1_Channel = 2;
+
+    default:
+        St_EOImageState.U1_Channel = 0;
+        break;
+    }
 
     // 指针以减少代码字数
     auto image_paras_transit = mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit; // 图像参数_下传
@@ -265,7 +278,7 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageParasIS.U2_FocalLength  = image_paras_transit.A818_EO_FocalLength;  // 相机焦距(mm)
     St_EOImageParasIS.U2_ExposureTime = image_paras_transit.A818_EO_ExposureTime; // 曝光时间(us)
 
-    St_EOImageParasIS.U1_ImpotentTag = 2; // 重要目标标识 0-不重要 //todo: 确认填充规则
+    St_EOImageParasIS.U1_ImpotentTag = 2; // 重要目标标识
 
     St_EOImageParasIS.St_ImgCenter.D8_Longitude_deg_CGCS = image_paras_transit.REGION_CENTER_X._longitude * 0.00001 * mrad_to_deg;
     St_EOImageParasIS.St_ImgCenter.D8_Latitude_deg_CGCS  = image_paras_transit.REGION_CENTER_Y._latitude * 0.00001 * mrad_to_deg;
@@ -288,7 +301,6 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EntityLinearAcceleratio.F4_AccelerationEast_mDs2_NED  = ac_ins_info.AC_data_start.ac_accel_East._acceleration * 0.0001;
     St_EntityLinearAcceleratio.F4_AccelerationUp_mDs2_NED    = ac_ins_info.AC_data_start.ac_accel_Up._acceleration * 0.0001;
     // 载机姿态
-    // todo:确认 航向、俯仰、横滚 对应共享内存中的哪个变量
     St_EntityAttitude.F4_Psi_deg   = ac_ins_info.AC_data_start.ac_true_heading._angle_mrad * 0.001 * mrad_to_deg; // 航向角
     St_EntityAttitude.F4_Theta_deg = ac_ins_info.AC_data_start.ac_pitch._angle_mrad * 0.001 * mrad_to_deg;        // 俯仰角
     St_EntityAttitude.F4_Phi_deg   = ac_ins_info.AC_data_start.ac_roll._angle_mrad * 0.001 * mrad_to_deg;         // 横滚角
@@ -300,13 +312,13 @@ void CameraSimulator::updateSharedMemoryOutput() {
     // todo: 改成数组
     // // 图像任务信息
     // St_EOImageParasIS.Seq_Mission.resize(sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
-    // memcpy(St_EOImageParasIS.Seq_Mission.data(), &mess_To_TXCL_ZSXX.to_Txcl_A818_Image_common_paras,
-    //        sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
+    memset(St_EOImageParasIS.Seq_Mission, 0, sizeof(St_EOImageParasIS.Seq_Mission));
+    memcpy(St_EOImageParasIS.Seq_Mission, &mess_To_TXCL_ZSXX.to_Txcl_A818_Image_common_paras,
+           sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
     // log_once("[CameraSimulator] A818_IMAGE_COMMON_PARAS_TYPE_DEF size: %zu bytes.", sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
     // === EOImageParasIS 图像注释信息 === End
 
     // === EOImageModifyPara 光电图像调节参数 ===
-    // todo: 确认填充内容是否正确
     St_EOImageModifyPara.I1_LightValueLight     = static_cast<char>(cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_value); // 可见光调光值
     St_EOImageModifyPara.I1_FocusValueLight     = static_cast<char>(cmd_From_FC.irst_cmd_param_IR_image_paras_light.focus_value); // 可见光调焦值
     St_EOImageModifyPara.U1_LightMistEliminate  = mess_From_TG.KJImg_ReMoveMist_back == 0 ? 2 : 1;                                // 可见光去雾 0-NA，1-ON，2-OFF
@@ -318,29 +330,70 @@ void CameraSimulator::updateSharedMemoryOutput() {
     // === EOImageModifyPara 光电图像调节参数 === END
 
     // === EOTgtPara 动目标检测成像参数 ===
-    // 从相机控制器获取跟踪目标ID，发送给成像仿真
-    // 当处于跟踪状态时，将目标ID填充到输出
-    if (main_Control_State_Param.track_state == V_TGT_TRACK_STATE_TRACK_ING ||
-        main_Control_State_Param.track_state == V_TGT_TRACK_STATE_MATCH_ING) {
-        // Note: 当前仅支持单目标跟踪
-        EntityID St_EntityID;
-        // 填充跟踪目标ID (从ICP发来的跟踪请求中获取)
-        St_EntityID.U4_EntityID      = cmd_From_FC.irst_cmd_param_IR_TGT_TRACK_INFO.TGT_TRACK_ID;
-        St_EntityID.U2_GenID         = 0; // todo: 确认GenID填充规则
-        Arr_EOTgtPara[0].St_EntityID = St_EntityID;
-        // 清空其他目标
-        for (int i = 1; i < 5; i++) {
-            Arr_EOTgtPara[i].St_EntityID.U4_EntityID = 0;
-            Arr_EOTgtPara[i].St_EntityID.U2_GenID    = 0;
+    // Arr_EOTgtPara
+    int tar_count_max    = 5; // 最大目标数量
+    int tar_count        = 0; // 已经添加的目标数量
+    int effective_length = shm_input_.m_SecAllEntityTSPIMsg.St_SMMessageHeader.U2_EffectiveLength;
+
+    // 确定当前光学类型: 由传感器模式(EO/IR)和焦距(大/小视场)决定
+    // mode_IR_SENSOR: 1-可见光, 2-红外, 3-可见+红外, 4-红外+可见
+    //  (mess_To_TXCL_CMD.mode_IR_SENSOR >= 2);
+    // Note: 目前为止不考虑大小视场的事情
+    OpticalType cur_optical_type;
+    switch (mess_To_TXCL_CMD.mode_IR_SENSOR) {
+    case 1:
+        cur_optical_type = OpticalType::EO_WIDE;
+        break;
+    case 2:
+        cur_optical_type = OpticalType::IR_WIDE;
+        break;
+    case 3: // todo: 可见+红外 是按照主画面的来的
+        break;
+    case 4:
+        break;
+    default:
+        cur_optical_type = OpticalType::EO_WIDE;
+        break;
+    }
+
+    // 当前载机高度 (m)
+    double cur_flight_height = St_EntityPosition.F4_AltitudeAsl_m_CGCS;
+    // 当前相机俯角和位角 (deg)
+    double cur_dep_deg = St_EOImageShowArea.F4_ELLOS_deg_BODY;
+    double cur_az_deg  = St_EOImageShowArea.F4_AZLOS_deg_BODY;
+    // 当前载机姿态 (deg)
+    double cur_heading = St_EntityAttitude.F4_Psi_deg;
+    double cur_pitch   = St_EntityAttitude.F4_Theta_deg;
+    double cur_roll    = St_EntityAttitude.F4_Phi_deg;
+
+    for (int i = 0; i < effective_length; i++) {
+        // 最多只处理前5个有效目标，超过部分不处理
+        if (tar_count >= tar_count_max) {
+            break;
         }
-    } else {
-        for (int i = 0; i < 5; i++) {
-            EntityID St_EntityID;
-            St_EntityID.U4_EntityID      = 0;
-            St_EntityID.U2_GenID         = 0;
-            Arr_EOTgtPara[i].St_EntityID = St_EntityID;
+        // 检查目标数据有效性
+        if (shm_input_.m_SecAllEntityTSPIMsg.Arr_MessageValid[i].B1_MessageDataValid) { // 有效目标
+            const auto     &entity        = shm_input_.m_SecAllEntityTSPIMsg.Arr_SecEnAttrPVAA[i];
+            const Position *tpsi_position = &entity.St_EntityPosVelAccAtt.St_EntityPosition;
+            // 判断目标是否在图像内
+            if (this->isTargetInImage(*tpsi_position)) {
+                // 目标检测模拟判断能否识别
+                uint16_t entity_type = entity.St_EntityAttribute.U2_EntityType;
+                bool     detected    = obj_detect_sim_.canDetect(
+                    entity_type, cur_flight_height, cur_optical_type,
+                    cur_dep_deg, cur_az_deg,
+                    cur_heading, cur_pitch, cur_roll);
+                if (detected) {
+                    Arr_EOTgtPara[tar_count].St_EntityID = entity.St_EntityAttribute.St_EntityID; // 目标ID
+                    tar_count++;
+                }
+            }
         }
     }
+
+    // 实体时空位置状态 shm_input_.m_SecAllEntityTSPIMsg
+
+    // 虚拟兵力时空位置状态 shm_input_.m_SecVFTSPIMsg
 
     shm_output_.m_SecEOImageDriveMsg.St_SMMessageHeader   = St_MessageHeader;
     shm_output_.m_SecEOImageDriveMsg.St_EOImageState      = St_EOImageState;
@@ -525,6 +578,66 @@ void CameraSimulator::close() {
 
 CameraSimulator::~CameraSimulator() {
     this->close();
+}
+
+bool CameraSimulator::isTargetInImage(
+    double lat_tgt_deg, double lon_tgt_deg, double alt_tgt_m) const {
+    // 利用图像四角经纬度构成凸四边形，判断目标是否在其内部。
+    // 四角顺序: 左上 -> 右上 -> 右下 -> 左下 (顺时针，构成凸多边形)
+    const auto &transit = mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit;
+
+    // 四角经纬度（与 updateSharedMemoryOutput 中相同的换算系数）
+    const double lat[4] = {
+        transit.upleft_latitude._latitude * 0.00001 * mrad_to_deg,    // 左上
+        transit.upright_latitude._latitude * 0.00001 * mrad_to_deg,   // 右上
+        transit.downright_latitude._latitude * 0.00001 * mrad_to_deg, // 右下
+        transit.downleft_latitude._latitude * 0.00001 * mrad_to_deg,  // 左下
+    };
+    const double lon[4] = {
+        transit.upleft_longitude._longitude * 0.00001 * mrad_to_deg,
+        transit.upright_longitude._longitude * 0.00001 * mrad_to_deg,
+        transit.downright_longitude._longitude * 0.00001 * mrad_to_deg,
+        transit.downleft_longitude._longitude * 0.00001 * mrad_to_deg,
+    };
+
+    // 四角数据无效（全为0）时直接返回false
+    bool all_zero = true;
+    for (int i = 0; i < 4; i++) {
+        if (std::abs(lat[i]) > 1e-9 || std::abs(lon[i]) > 1e-9) {
+            all_zero = false;
+            break;
+        }
+    }
+    if (all_zero)
+        return false;
+
+    // 叉积法判断点是否在凸四边形内：
+    // 对四条有向边依次计算 (edge × AP) 的 z 分量，符号一致则在内部。
+    // z = (B-A)×(P-A) = (Blon-Alon)*(Plat-Alat) - (Blat-Alat)*(Plon-Alon)
+    constexpr double eps  = 1e-12;
+    double           sign = 0.0;
+
+    for (int i = 0; i < 4; i++) {
+        int j = (i + 1) % 4;
+
+        double cross =
+            (lon[j] - lon[i]) * (lat_tgt_deg - lat[i]) -
+            (lat[j] - lat[i]) * (lon_tgt_deg - lon[i]);
+
+        if (std::abs(cross) < eps)
+            continue;
+
+        if (sign == 0.0)
+            sign = cross;
+        else if ((cross > 0) != (sign > 0))
+            return false;
+    }
+
+    return true;
+}
+
+bool CameraSimulator::isTargetInImage(const Position &pos) const {
+    return isTargetInImage(pos.D8_Latitude_deg_CGCS, pos.D8_Longitude_deg_CGCS, pos.F4_AltitudeAsl_m_CGCS);
 }
 
 void CameraSimulator::testPhotoing() {

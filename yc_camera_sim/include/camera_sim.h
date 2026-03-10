@@ -8,6 +8,7 @@
 
 #include <fpga_sim.h>
 #include <global_vars.h>
+#include <object_detection_sim.h>
 #include <shm_interface.h>
 #include <timer_period.h>
 #include <udp_packet.h>
@@ -46,6 +47,21 @@ class CameraSimulator {
 
     // 设置与检测仪连接 (udp进行工作模式请求判断)
     void setConnectToJCY(bool to_jcy) { sim::is_simulating = false; };
+
+    /**
+     * @brief 判断目标是否在相机视场内
+     *
+     * 利用图像四角经纬度（upleft/upright/downright/downleft）构成凸四边形，
+     * 用叉积法判断目标经纬度是否在四边形内。
+     *
+     * @param lat_tgt_deg  目标纬度 (deg, CGCS2000)
+     * @param lon_tgt_deg  目标经度 (deg, CGCS2000)
+     * @param alt_tgt_m    目标海拔高度 (m)，当前实现未使用，留作扩展
+     * @return true  目标在视场内
+     * @return false 目标不在视场内
+     */
+    bool isTargetInImage(double lat_tgt_deg, double lon_tgt_deg, double alt_tgt_m) const;
+    bool isTargetInImage(const Position &pos) const;
 
   private:
     // 模型状态
@@ -92,6 +108,9 @@ class CameraSimulator {
 
     // fpga 仿真
     FpgaSimulator fpga_sim_;
+
+    // 目标检测仿真
+    ObjectDetectionSim obj_detect_sim_;
 
     // 计算系数
     const double rad_to_deg  = 180.0 / PI;        // 弧度转度
