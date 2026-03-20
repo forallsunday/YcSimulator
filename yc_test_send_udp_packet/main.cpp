@@ -70,19 +70,28 @@ int main() {
 
     cam_sim.init();
 
-    cam_sim.setConnectToJCY(true);
+    // 连接检测仪测试
+    // cam_sim.setConnectToJCY(true);
 
     std::this_thread::sleep_for(3s);
 
     cam_sim.start();
 
     // Note: 测试直接拍照
-    // cam_sim.testPhotoing();
+    cam_sim.testPhotoing();
 
     SharedMemoryInput  shm_input;
     SharedMemoryOutput shm_output;
 
+    // 上电状态指针
     auto *power_supply_status = &shm_input.m_FacilitiesPowerSupplyStatusParasMsg.St_FacilitiesPowerSupplyStatusData.ArrU1_FacilitiesPowerSupplyStatus[5];
+    // 虚拟兵力设置
+    SecVFTSPIMsg t_SecVFTSPIMsg;
+    t_SecVFTSPIMsg.St_SMMessageHeader.U2_EffectiveLength                                 = 1;
+    t_SecVFTSPIMsg.Arr_SecVFTSPI->VFPosVelAccAtt.St_EntityPosition.D8_Longitude_deg_CGCS = 88.4924251;
+    t_SecVFTSPIMsg.Arr_SecVFTSPI->VFPosVelAccAtt.St_EntityPosition.D8_Latitude_deg_CGCS  = 41.8005042;
+    t_SecVFTSPIMsg.Arr_SecVFTSPI->VFPosVelAccAtt.St_EntityPosition.F4_AltitudeAsl_m_CGCS = 11;
+    shm_input.m_SecVFTSPIMsg = t_SecVFTSPIMsg;
 
     int64_t count = 0;
     while (true) {

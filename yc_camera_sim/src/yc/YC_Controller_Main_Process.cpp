@@ -35,6 +35,7 @@
 // #include "ioFcCfg.h"
 // #include "semYc.h"
 
+#include <flash_sim.h>
 #include <global_vars.h>
 #include <log_def.h>
 #include <udp_trans.h>
@@ -2608,6 +2609,10 @@ void wait_Model_WorkControl() {
     case 0:
         // // 20251128增加保存帧序号功能
         // my_flash_write(FLASH_ADDR + sizeof(MESS_FROMFC_HWINFO_FLASH), (void *)(&(main_Control_State_Param.totalNo)), sizeof(UINT32)); // 写回flash
+
+        // Note: lcy flash仿真
+        flashWrite(sizeof(MESS_FROMFC_HWINFO_FLASH), reinterpret_cast<char *>(&(main_Control_State_Param.totalNo)), sizeof(uint32_t));
+
         step = 1;
 
         // printf("flashwrite:%d\n", *(UINT32 *)(FLASH_ADDR + sizeof(MESS_FROMFC_HWINFO_FLASH)));

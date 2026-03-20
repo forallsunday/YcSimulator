@@ -3,6 +3,7 @@
 #include <YC_Controller_FPGA_Mess.h>
 #include <atomic>
 #include <timer_period.h>
+#include <vector>
 
 // 中断模拟
 int gpio0AIn(int code);
@@ -68,8 +69,12 @@ class FpgaSimulator {
 
     // 设置跟踪目标像素坐标 (由camera_sim在共享内存更新时调用)
     void setTargetPixelCoor(int index, const TargetPixelCoor &coor);
+    // 设置所有跟踪目标像素坐标 (由camera_sim在共享内存更新时调用)
+    void setFiveTargetPixelCoor(const std::vector<TargetPixelCoor> &coor_vec);
     // 设置跟踪目标数量
     void setTrackingTargetCount(uint8_t count);
+    // 重置目标像素坐标
+    void resetTargetPixelCoor();
 
     // ===== 曝光时间设置接口 =====
     // 设置可见光曝光时间 (单位: ms, 范围: 5-150)

@@ -38,7 +38,7 @@
 
 extern void param_Init(); // 参数初始化
 extern void mess_Init();  // 消息初始化
-// extern void flash_Data_Init();//持久化存储信息初始化
+extern void flash_Data_Init();//持久化存储信息初始化
 // extern void interrupt_Init();//中断初始化
 
 // void mess_Init();

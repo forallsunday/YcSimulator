@@ -1365,7 +1365,7 @@ typedef struct EOImageState {
 // 标识：EOImageParasIS - 光电图像注释信息图像参数数据定义
 typedef struct EOImageParasIS {
     Timestamp          St_ImageTime;           // @ID(0) // 图像时间
-    unsigned int       U4_ImgId;               // @ID(1) // 图像帧序号，图像总序号（可见光/红外分开计数）
+    unsigned int       U4_ImgId;               // @ID(1) // 图像帧序号
     unsigned short     U2_EOCycleNo;           // @ID(2) // 光电周期号 [0,65535]，完成一次规定收容宽度的摆扫定义为一个周期（从1开始）
     unsigned short     U2_LineNo;              // @ID(3) // 条带号 [0,65536]，一次摆扫（左到右或右到左）为一个条带
     unsigned short     U2_EO_LineNo;           // @ID(4) // 条带内序号 [0,65536]，表示一次摆扫过程每张图片的编号（从1开始）

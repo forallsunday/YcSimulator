@@ -1,6 +1,7 @@
 #include "object_detection_sim.h"
 #include <algorithm>
 #include <cmath>
+#include <log_def.h>
 
 ObjectDetectionSim::ObjectDetectionSim() {
     initDefaultTargets();
@@ -23,36 +24,47 @@ void ObjectDetectionSim::registerTarget(uint16_t entity_type, const TargetSizeIn
 
 double ObjectDetectionSim::getFocalLength(OpticalType type) const {
     switch (type) {
-    case OpticalType::EO_NARROW: return FOCAL_EO_NARROW;
-    case OpticalType::EO_WIDE:   return FOCAL_EO_WIDE;
-    case OpticalType::IR_NARROW: return FOCAL_IR_NARROW;
-    case OpticalType::IR_WIDE:   return FOCAL_IR_WIDE;
-    default:                     return FOCAL_EO_NARROW;
+    case OpticalType::EO_NARROW:
+        return FOCAL_EO_NARROW;
+    case OpticalType::EO_WIDE:
+        return FOCAL_EO_WIDE;
+    case OpticalType::IR_NARROW:
+        return FOCAL_IR_NARROW;
+    case OpticalType::IR_WIDE:
+        return FOCAL_IR_WIDE;
+    default:
+        return FOCAL_EO_NARROW;
     }
 }
 
 double ObjectDetectionSim::getPixelSize(OpticalType type) const {
     switch (type) {
     case OpticalType::EO_NARROW: // fall through
-    case OpticalType::EO_WIDE:   return PIXEL_SIZE_EO;
+    case OpticalType::EO_WIDE:
+        return PIXEL_SIZE_EO;
     case OpticalType::IR_NARROW: // fall through
-    case OpticalType::IR_WIDE:   return PIXEL_SIZE_IR;
-    default:                     return PIXEL_SIZE_EO;
+    case OpticalType::IR_WIDE:
+        return PIXEL_SIZE_IR;
+    default:
+        return PIXEL_SIZE_EO;
     }
 }
 
 double ObjectDetectionSim::getJohnsonThreshold(OpticalType type) const {
     switch (type) {
     case OpticalType::EO_NARROW:
-    case OpticalType::EO_WIDE:   return JOHNSON_THRESHOLD_EO;
+    case OpticalType::EO_WIDE:
+        return JOHNSON_THRESHOLD_EO;
     case OpticalType::IR_NARROW:
-    case OpticalType::IR_WIDE:   return JOHNSON_THRESHOLD_IR;
-    default:                     return JOHNSON_THRESHOLD_EO;
+    case OpticalType::IR_WIDE:
+        return JOHNSON_THRESHOLD_IR;
+    default:
+        return JOHNSON_THRESHOLD_EO;
     }
 }
 
 double ObjectDetectionSim::calcAngleFromVertical(double dep_body_deg, double az_body_deg,
-                                                  double pitch_deg, double roll_deg) const {
+                                                 double pitch_deg, double roll_deg) const {
     // 角度转弧度
     const double dep   = dep_body_deg * DEG2RAD;
     const double az    = az_body_deg * DEG2RAD;
@@ -86,7 +98,8 @@ double ObjectDetectionSim::calcAngleFromVertical(double dep_body_deg, double az_
 
     // 视轴与竖直向下方向的夹角
     double cos_alpha = ned_z;
-    if (cos_alpha > 1.0) cos_alpha = 1.0;
+    if (cos_alpha > 1.0)
+        cos_alpha = 1.0;
 
     return std::acos(cos_alpha);
 }
@@ -110,17 +123,23 @@ double ObjectDetectionSim::calcMinProjectedSize(const TargetSizeInfo &target, do
 }
 
 double ObjectDetectionSim::calcTargetPixels(uint16_t entity_type, double flight_height,
-                                             OpticalType optical_type,
-                                             double dep_body_deg, double az_body_deg,
-                                             double heading_deg, double pitch_deg,
-                                             double roll_deg) const {
+                                            OpticalType optical_type,
+                                            double dep_body_deg, double az_body_deg,
+                                            double heading_deg, double pitch_deg,
+                                            double roll_deg) const {
+
+    TargetSizeInfo target;
+
     // 查找目标尺寸
     auto it = target_db_.find(entity_type);
     if (it == target_db_.end()) {
-        return -1.0; // 未知目标类型
+        // 没找到 暂时使用舰船来默认的
+        target = {50, 50, 15};
+    } else {
+        // 找到了目标对应的
+        target = it->second;
     }
-
-    const TargetSizeInfo &target = it->second;
+    log_once("目标尺寸: [%f, %f, %f]", target.length, target.width, target.height);
 
     // 计算视轴在 NED 系下与竖直向下方向的夹角 (航向不影响此角)
     const double alpha = calcAngleFromVertical(dep_body_deg, az_body_deg, pitch_deg, roll_deg);
@@ -146,13 +165,13 @@ double ObjectDetectionSim::calcTargetPixels(uint16_t entity_type, double flight_
 }
 
 bool ObjectDetectionSim::canDetect(uint16_t entity_type, double flight_height,
-                                      OpticalType optical_type,
-                                      double dep_body_deg, double az_body_deg,
-                                      double heading_deg, double pitch_deg,
-                                      double roll_deg, double image_scale) const {
+                                   OpticalType optical_type,
+                                   double dep_body_deg, double az_body_deg,
+                                   double heading_deg, double pitch_deg,
+                                   double roll_deg, double image_scale) const {
     const double pixels = calcTargetPixels(entity_type, flight_height, optical_type,
-                                            dep_body_deg, az_body_deg,
-                                            heading_deg, pitch_deg, roll_deg);
+                                           dep_body_deg, az_body_deg,
+                                           heading_deg, pitch_deg, roll_deg);
     if (pixels < 0.0) {
         return false; // 未知目标类型
     }
@@ -161,5 +180,8 @@ bool ObjectDetectionSim::canDetect(uint16_t entity_type, double flight_height,
     // 例如: EO 5120×4096 缩放到 1280×1024 时, image_scale=4.0
     const double effective_pixels = pixels / image_scale;
 
-    return effective_pixels >= getJohnsonThreshold(optical_type);
+    // log_once("传感器像元数 %f", pixels);
+    // log_once("有效的像元数 %f", effective_pixels);
+
+    return effective_pixels >= getJohnsonThreshold(optical_type) / image_scale;
 }

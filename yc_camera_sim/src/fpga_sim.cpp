@@ -30,6 +30,9 @@ bool FpgaSimulator::init() {
 
     // 速度位置信号计时器
     timer_switch_.init(milliseconds(50), [this]() { onSwitchSpeedOrLocate(); });
+
+    // 目标像素初始值
+
     // 初始化默认温度值 (室温环境: 约20℃)
     setPrimaryMirrorTemp(200);   // 主镜温度 20.0℃
     setSecondaryMirrorTemp(200); // 次镜温度 20.0℃
@@ -81,7 +84,8 @@ void FpgaSimulator::onSwitchSpeedOrLocate() {
 }
 
 void FpgaSimulator::simulatingTimerSpeedOrLocate() {
-    static int cnt = 0;
+    static int cnt = 0; // 5ms 计数
+
     // 如果是拍照命令且成像模式为广域成像或区域成像 则启动速度位置信号定时器
     if (mess_To_FPGA.cmd == FPGA_START_PHOTO &&
         (mess_To_FPGA.irst_form_mode == FPGA_GY_PHOTO || mess_To_FPGA.irst_form_mode == FPGA_QY_PHOTO)) {
@@ -89,8 +93,8 @@ void FpgaSimulator::simulatingTimerSpeedOrLocate() {
         if (!timer_switch_.isRunning()) {
             speed_or_locate  = 1;
             period_switcher_ = milliseconds(666); // 等待一小段时间以正常计时
-            // timer_switch_.changePeriod(period_switcher_);
-            // timer_switch_.start();
+            timer_switch_.changePeriod(period_switcher_);
+            timer_switch_.start();
             log_proc("开始速度位置信号计时器");
             cnt = 0;
         }
@@ -102,26 +106,25 @@ void FpgaSimulator::simulatingTimerSpeedOrLocate() {
 
     // 如果定时器在运行
     if (timer_switch_.isRunning()) {
+        cnt++;
         // std::lock_guard<std::mutex> lock(mutex_period_);
         // 处理速度位置信号切换请求
         // if (timer_switch_.elapsedTimeMs() >= period_switcher_.count())
-        // Note: 再容器中发现有时钟漂移现象较为严重，改为计数方式
-        // todo: 验证 此时timer_switch_的周期切换没有意义了
         if (5 * cnt >= period_switcher_.count())
         // 如果走过的时间超过周期了
         {
             if (speed_or_locate == 0) {
                 // 当前为速度信号
                 period_switcher_ = milliseconds((int)param_Compute_Output.toFPGA_time_location);
-                // timer_switch_.changePeriod(period_switcher_);
-                // timer_switch_.start();
+                timer_switch_.changePeriod(period_switcher_);
+                timer_switch_.start();
                 speed_or_locate = 1;
                 log_proc("切换到位置信号, 周期=%d ms", period_switcher_.count());
             } else {
                 // 当前为位置信号
                 period_switcher_ = milliseconds((int)param_Compute_Output.toFPGA_time_speed);
-                // timer_switch_.changePeriod(period_switcher_);
-                // timer_switch_.start();
+                timer_switch_.changePeriod(period_switcher_);
+                timer_switch_.start();
                 speed_or_locate = 0;
                 log_proc("切换到速度信号, 周期=%d ms", period_switcher_.count());
             }
@@ -246,9 +249,10 @@ void FpgaSimulator::simulatingPCS() {
     mess_From_PCS_DATA.roll         = fused.ac_flight_vector.ac_roll._angle_mrad * 0.001 * 1e-3 / PI * pow(2, 31);
 
     // 速度
-    mess_From_PCS_DATA.north_speed  = fused.ac_flight_vector.ac_plat_vel.Vel_North._velocity * 0.0001 / 0.001;
-    mess_From_PCS_DATA.east_speed   = -1 * fused.ac_flight_vector.ac_plat_vel.Vel_West._velocity * 0.0001 / 0.001;
-    mess_From_PCS_DATA.ground_speed = fused.satellite_nav_data.ac_GNSS_ground_speed._velocity * 0.0001 / 0.001;
+    mess_From_PCS_DATA.north_speed = fused.ac_flight_vector.ac_plat_vel.Vel_North._velocity * 0.0001 / 0.001;
+    mess_From_PCS_DATA.east_speed  = -1 * fused.ac_flight_vector.ac_plat_vel.Vel_West._velocity * 0.0001 / 0.001;
+    // mess_From_PCS_DATA.ground_speed = fused.satellite_nav_data.ac_GNSS_ground_speed._velocity * 0.0001 / 0.001;
+    mess_From_PCS_DATA.ground_speed = -1 * fused.ac_flight_vector.ac_plat_vel.Vel_Up._velocity * 0.0001 / 0.001;
 
     // 设置状态
     mess_From_PCS_DATA.status_sbzt   = 0; // 正常
@@ -365,42 +369,41 @@ void FpgaSimulator::simulatingDY() {
 void FpgaSimulator::simulatingTXCL() {
     // 根据命令设置状态
     // 参考 make_Mess_To_TXCL_CMD 中设置的命令和参数
+    // todo: 动目标上报是只有跟踪状态才上报还是平时拍照都上报啊
+    // 填充目标像素坐标 - 从共享内存输入获取
+    mess_From_TXCL.tg_valid = 1; // 跟踪有效
+    mess_From_TXCL.tg_count = tracking_target_count_;
+    // 目标1像素坐标
+    mess_From_TXCL.tgt1_upleft_x    = target_pixel_coor_[0].up_left_x;
+    mess_From_TXCL.tgt1_upleft_Y    = target_pixel_coor_[0].up_left_y;
+    mess_From_TXCL.tgt1_downright_x = target_pixel_coor_[0].down_right_x;
+    mess_From_TXCL.tgt1_downright_y = target_pixel_coor_[0].down_right_y;
+    // 目标2像素坐标
+    mess_From_TXCL.tgt2_upleft_x    = target_pixel_coor_[1].up_left_x;
+    mess_From_TXCL.tgt2_upleft_Y    = target_pixel_coor_[1].up_left_y;
+    mess_From_TXCL.tgt2_downright_x = target_pixel_coor_[1].down_right_x;
+    mess_From_TXCL.tgt2_downright_y = target_pixel_coor_[1].down_right_y;
+    // 目标3像素坐标
+    mess_From_TXCL.tgt3_upleft_x    = target_pixel_coor_[2].up_left_x;
+    mess_From_TXCL.tgt3_upleft_Y    = target_pixel_coor_[2].up_left_y;
+    mess_From_TXCL.tgt3_downright_x = target_pixel_coor_[2].down_right_x;
+    mess_From_TXCL.tgt3_downright_y = target_pixel_coor_[2].down_right_y;
+    // 目标4像素坐标
+    mess_From_TXCL.tgt4_upleft_x    = target_pixel_coor_[3].up_left_x;
+    mess_From_TXCL.tgt4_upleft_Y    = target_pixel_coor_[3].up_left_y;
+    mess_From_TXCL.tgt4_downright_x = target_pixel_coor_[3].down_right_x;
+    mess_From_TXCL.tgt4_downright_y = target_pixel_coor_[3].down_right_y;
+    // 目标5像素坐标
+    mess_From_TXCL.tgt5_upleft_x    = target_pixel_coor_[4].up_left_x;
+    mess_From_TXCL.tgt5_upleft_Y    = target_pixel_coor_[4].up_left_y;
+    mess_From_TXCL.tgt5_downright_x = target_pixel_coor_[4].down_right_x;
+    mess_From_TXCL.tgt5_downright_y = target_pixel_coor_[4].down_right_y;
+
     switch (mess_To_TXCL_CMD.cmd) {
     case TX_CMD_EMPTY: // 空指令
         break;
     case TX_CMD_TRACK:                        // 跟踪
         mess_From_TXCL.state1_trackstate = 1; // 稳定跟踪
-        // 填充跟踪目标像素坐标 - 从共享内存输入获取
-        mess_From_TXCL.tg_valid = 1; // 跟踪有效
-        mess_From_TXCL.tg_count = tracking_target_count_;
-        // 目标1像素坐标
-        mess_From_TXCL.tgt1_upleft_x    = target_pixel_coor_[0].up_left_x;
-        mess_From_TXCL.tgt1_upleft_Y    = target_pixel_coor_[0].up_left_y;
-        mess_From_TXCL.tgt1_downright_x = target_pixel_coor_[0].down_right_x;
-        mess_From_TXCL.tgt1_downright_y = target_pixel_coor_[0].down_right_y;
-        // 目标2像素坐标
-        mess_From_TXCL.tgt2_upleft_x    = target_pixel_coor_[1].up_left_x;
-        mess_From_TXCL.tgt2_upleft_Y    = target_pixel_coor_[1].up_left_y;
-        mess_From_TXCL.tgt2_downright_x = target_pixel_coor_[1].down_right_x;
-        mess_From_TXCL.tgt2_downright_y = target_pixel_coor_[1].down_right_y;
-        // 目标3像素坐标
-        mess_From_TXCL.tgt3_upleft_x    = target_pixel_coor_[2].up_left_x;
-        mess_From_TXCL.tgt3_upleft_Y    = target_pixel_coor_[2].up_left_y;
-        mess_From_TXCL.tgt3_downright_x = target_pixel_coor_[2].down_right_x;
-        mess_From_TXCL.tgt3_downright_y = target_pixel_coor_[2].down_right_y;
-        // 目标4像素坐标
-        mess_From_TXCL.tgt4_upleft_x    = target_pixel_coor_[3].up_left_x;
-        mess_From_TXCL.tgt4_upleft_Y    = target_pixel_coor_[3].up_left_y;
-        mess_From_TXCL.tgt4_downright_x = target_pixel_coor_[3].down_right_x;
-        mess_From_TXCL.tgt4_downright_y = target_pixel_coor_[3].down_right_y;
-        // 目标5像素坐标
-        mess_From_TXCL.tgt5_upleft_x    = target_pixel_coor_[4].up_left_x;
-        mess_From_TXCL.tgt5_upleft_Y    = target_pixel_coor_[4].up_left_y;
-        mess_From_TXCL.tgt5_downright_x = target_pixel_coor_[4].down_right_x;
-        mess_From_TXCL.tgt5_downright_y = target_pixel_coor_[4].down_right_y;
-        break;
-    case TX_CMD_STOP_TRACK:                   // 停止跟踪
-        mess_From_TXCL.state1_trackstate = 0; // 未跟踪
         // 清除跟踪目标像素坐标
         mess_From_TXCL.tg_valid         = 0;
         mess_From_TXCL.tg_count         = 0;
@@ -424,6 +427,32 @@ void FpgaSimulator::simulatingTXCL() {
         mess_From_TXCL.tgt5_upleft_Y    = 0;
         mess_From_TXCL.tgt5_downright_x = 0;
         mess_From_TXCL.tgt5_downright_y = 0;
+        break;
+    case TX_CMD_STOP_TRACK:                   // 停止跟踪
+        mess_From_TXCL.state1_trackstate = 0; // 未跟踪
+        // // 清除跟踪目标像素坐标
+        // mess_From_TXCL.tg_valid         = 0;
+        // mess_From_TXCL.tg_count         = 0;
+        // mess_From_TXCL.tgt1_upleft_x    = 0;
+        // mess_From_TXCL.tgt1_upleft_Y    = 0;
+        // mess_From_TXCL.tgt1_downright_x = 0;
+        // mess_From_TXCL.tgt1_downright_y = 0;
+        // mess_From_TXCL.tgt2_upleft_x    = 0;
+        // mess_From_TXCL.tgt2_upleft_Y    = 0;
+        // mess_From_TXCL.tgt2_downright_x = 0;
+        // mess_From_TXCL.tgt2_downright_y = 0;
+        // mess_From_TXCL.tgt3_upleft_x    = 0;
+        // mess_From_TXCL.tgt3_upleft_Y    = 0;
+        // mess_From_TXCL.tgt3_downright_x = 0;
+        // mess_From_TXCL.tgt3_downright_y = 0;
+        // mess_From_TXCL.tgt4_upleft_x    = 0;
+        // mess_From_TXCL.tgt4_upleft_Y    = 0;
+        // mess_From_TXCL.tgt4_downright_x = 0;
+        // mess_From_TXCL.tgt4_downright_y = 0;
+        // mess_From_TXCL.tgt5_upleft_x    = 0;
+        // mess_From_TXCL.tgt5_upleft_Y    = 0;
+        // mess_From_TXCL.tgt5_downright_x = 0;
+        // mess_From_TXCL.tgt5_downright_y = 0;
         break;
     case TX_CMD_IMAGE_GY:                  // 广域成像
         mess_From_TXCL.state1_kjtxchs = 1; // 可见图像正在传输
@@ -672,8 +701,20 @@ void FpgaSimulator::setTargetPixelCoor(int index, const TargetPixelCoor &coor) {
     }
 }
 
+void FpgaSimulator::setFiveTargetPixelCoor(const std::vector<TargetPixelCoor> &coor_vec) {
+    for (size_t i = 0; i < 5; i++) {
+        target_pixel_coor_[i] = coor_vec[i];
+    }
+}
+
 void FpgaSimulator::setTrackingTargetCount(uint8_t count) {
     tracking_target_count_ = count;
+}
+
+void FpgaSimulator::resetTargetPixelCoor() {
+    for (size_t i = 0; i < 5; i++) {
+        target_pixel_coor_[i] = {0, 0, 0, 0};
+    }
 }
 
 // ===== 曝光时间设置接口实现 =====

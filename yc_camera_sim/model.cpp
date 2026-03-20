@@ -150,9 +150,14 @@ void step_calculate() {
                &(shm_input.m_FacilitiesPowerSupplyStatusParasMsg), 0);
     topic_read("SecSimulatorControlMsg",
                &(shm_input.m_SecSimulatorControlMsg), 0);
-    // topic_read("SecTgtPositionParaMsg",
-    //            &(shm_input.m_SecTgtPositionParaMsg), 0);
-    // 继续添加...
+    topic_read("SecAllEntityTSPIMsg",
+               &(shm_input.m_SecAllEntityTSPIMsg), 0);
+    topic_read("SecEntityTSPIMsg",
+               &(shm_input.m_SecEntityTSPIMsg), 0);
+    topic_read("SecVFTSPIMsg",
+               &(shm_input.m_SecVFTSPIMsg), 0);
+    topic_read("SecTgtPositionParaMsg",
+               &(shm_input.m_SecTgtPositionParaMsg), 0);
 
     /* 2. 添加模型单步运行逻辑 */
     cam_sim->step(&shm_input, &shm_output);
@@ -162,7 +167,6 @@ void step_calculate() {
                 &(shm_output.m_FunctionalUnitStatusMsg), 0);
     topic_write("SecEOImageDriveMsg",
                 &(shm_output.m_SecEOImageDriveMsg), 0);
-    // 继续添加...
 
     /* ************************************* */
 

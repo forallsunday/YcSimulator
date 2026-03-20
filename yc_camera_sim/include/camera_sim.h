@@ -111,6 +111,9 @@ class CameraSimulator {
 
     // 目标检测仿真
     ObjectDetectionSim obj_detect_sim_;
+    // 目标数量
+    int tar_count = 0;
+    int tar_count_out = 0;
 
     // 计算系数
     const double rad_to_deg  = 180.0 / PI;        // 弧度转度
