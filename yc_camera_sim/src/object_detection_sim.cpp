@@ -8,14 +8,48 @@ ObjectDetectionSim::ObjectDetectionSim() {
 }
 
 void ObjectDetectionSim::initDefaultTargets() {
+    // // 大型舰船 320×75×60 m
+    // target_db_[1] = {320.0, 75.0, 60.0};
+    // // 运输机 50×50×15 m
+    // target_db_[2] = {50.0, 50.0, 15.0};
+    // // 导弹发射车 6×3×3 m
+    // target_db_[3] = {6.0, 3.0, 3.0};
     // 预置目标尺寸数据库
-    // entity_type 值需根据实际 ICD 定义填写, 此处为示例值
-    // 大型舰船 320×75×60 m
-    target_db_[1] = {320.0, 75.0, 60.0};
-    // 运输机 50×50×15 m
-    target_db_[2] = {50.0, 50.0, 15.0};
-    // 导弹发射车 6×3×3 m
-    target_db_[3] = {6.0, 3.0, 3.0};
+    target_db_[51012] = {18.652, 13.363, 5.040};
+    target_db_[51033] = {18.652, 13.363, 5.040};
+    target_db_[51013] = {15.204, 10.254, 4.329};
+    target_db_[51014] = {15.729, 13.159, 5.223};
+    target_db_[51015] = {15.729, 13.159, 5.223};
+    target_db_[51049] = {18.318, 13.594, 4.895};
+    target_db_[51050] = {18.318, 13.594, 4.895};
+    target_db_[51061] = {21.035, 17.821, 3.563};
+    target_db_[51065] = {7.266, 5.238, 1.968};
+    target_db_[51064] = {53.009, 51.730, 16.778};
+    target_db_[51005] = {30.180, 40.180, 11.535};
+    target_db_[51004] = {31.538, 41.676, 11.661};
+    target_db_[51003] = {18.590, 12.923, 4.802};
+    target_db_[51060] = {47.533, 46.076, 15.340};
+    target_db_[51062] = {17.970, 24.582, 5.490};
+    target_db_[51066] = {46.630, 44.356, 12.596};
+    target_db_[51067] = {48.573, 47.652, 15.670};
+    target_db_[51068] = {35.627, 34.935, 11.488};
+    target_db_[51009] = {21.300, 52.098, 5.223};
+    target_db_[51010] = {16.131, 42.046, 4.664};
+    target_db_[51008] = {44.911, 41.772, 10.471};
+    target_db_[51007] = {47.696, 56.165, 12.294};
+    target_db_[51059] = {52.185, 47.340, 15.730};
+    target_db_[51069] = {55.449, 50.412, 18.920};
+    target_db_[51036] = {41.624, 39.852, 12.691};
+    target_db_[51070] = {41.624, 39.852, 12.691};
+    target_db_[51071] = {16.083, 21.583, 3.446};
+    target_db_[1067]  = {46.711, 50.617, 14.795};
+    target_db_[1004]  = {21.186, 13.018, 4.654};
+    target_db_[1090]  = {17.763, 12.939, 4.929};
+    target_db_[1003]  = {21.166, 14.880, 5.624};
+    target_db_[1020]  = {21.166, 14.880, 5.624};
+    target_db_[1030]  = {21.286, 13.526, 4.544};
+    target_db_[1073]  = {46.975, 44.877, 15.025};
+    target_db_[1086]  = {35.307, 31.887, 9.652};
 }
 
 void ObjectDetectionSim::registerTarget(uint16_t entity_type, const TargetSizeInfo &size) {
@@ -127,7 +161,6 @@ double ObjectDetectionSim::calcTargetPixels(uint16_t entity_type, double flight_
                                             double dep_body_deg, double az_body_deg,
                                             double heading_deg, double pitch_deg,
                                             double roll_deg) const {
-
     TargetSizeInfo target;
 
     // 查找目标尺寸

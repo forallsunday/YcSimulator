@@ -174,25 +174,43 @@ void CameraSimulator::updateSharedMemoryInput() {
 
 void CameraSimulator::updateSharedMemoryOutput() {
 
+    // 共享内存结构体
     static SM_MessageHeader St_MessageHeader;
-    St_MessageHeader.U4_Heartbeat       = this->heartbit_;
-    St_MessageHeader.U2_EffectiveLength = sizeof(SM_MessageHeader);
-    St_MessageHeader.St_GenerateTime    = getCurrentTimestamp();
-    St_MessageHeader.St_PubTime         = getCurrentTimestamp();
+    /// SecEOImageDriveMsg 综合光电成像驱动参数
+    static EOImageState      St_EOImageState;      ///< @ID(1) 成像状态
+    static EOImageShowArea   St_EOImageShowArea;   ///< @ID(2) 显示区域参数
+    static EOImageParasIS    St_EOImageParasIS;    ///< @ID(3) 图像注释信息
+    static EOImageModifyPara St_EOImageModifyPara; ///< @ID(4) 光电图像调节参数
+    static EOTgtPara         Arr_EOTgtPara[5];     ///< @ID(5) 动目标检测成像参数[5] (最多包含5个目标)
+    // 引用以减少代码字数
+    auto &image_paras_transit = mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit; // 图像参数_下传
+    auto &ac_ins_info         = mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info;         // 飞机惯导信息
 
-    // todo: 功能单元状态填充规则确认
+    uint32_t current_frame_id = image_paras_transit.IMG_ID; // 当前帧序号
+    // 如果当前帧序号等于上一次共享内存输出时的帧序号
+    // 则直接赋值return
+    if (current_frame_id == St_EOImageParasIS.U4_ImgId) {
+        shm_output_.m_SecEOImageDriveMsg.St_SMMessageHeader   = St_MessageHeader;
+        shm_output_.m_SecEOImageDriveMsg.St_EOImageState      = St_EOImageState;
+        shm_output_.m_SecEOImageDriveMsg.St_EOImageShowArea   = St_EOImageShowArea;
+        shm_output_.m_SecEOImageDriveMsg.St_EOImageParasIS    = St_EOImageParasIS;
+        shm_output_.m_SecEOImageDriveMsg.St_EOImageModifyPara = St_EOImageModifyPara;
+        memcpy(shm_output_.m_SecEOImageDriveMsg.Arr_EOTgtPara, Arr_EOTgtPara, sizeof(Arr_EOTgtPara));
+        return;
+    }
+
+    // 否则的话重新赋值
+
+    St_MessageHeader.U4_Heartbeat    = this->heartbit_;
+    St_MessageHeader.St_GenerateTime = getCurrentTimestamp();
+    St_MessageHeader.St_PubTime      = getCurrentTimestamp();
+
     // FunctionalUnitStatusMsg 功能单元状态
     shm_output_.m_FunctionalUnitStatusMsg.St_MessageHeader                       = St_MessageHeader;
     shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.ArrI1_UnitID[0]      = 6;
     shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.ArrI1_UnitVersion[0] = 6; // ?
     shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U1_MemberStatus      = 1;
     shm_output_.m_FunctionalUnitStatusMsg.St_UnitStatusData.U4_UnitHeartbeat     = this->heartbit_;
-
-    /// SecEOImageDriveMsg 综合光电成像驱动参数
-    static EOImageState      St_EOImageState;      ///< @ID(1) 成像状态
-    static EOImageShowArea   St_EOImageShowArea;   ///< @ID(2) 显示区域参数
-    static EOImageParasIS    St_EOImageParasIS;    ///< @ID(3) 图像注释信息
-    static EOImageModifyPara St_EOImageModifyPara; ///< @ID(4) 光电图像调节参数
 
     St_EOImageState.U1_IRSensor = mess_To_TXCL_CMD.mode_IR_SENSOR; // @ID(0) // 传感器状态 0-NA，1-可见光，2-红外，3-可见+红外，4-红外+可见
 
@@ -225,10 +243,6 @@ void CameraSimulator::updateSharedMemoryOutput() {
         break;
     }
 
-    // 指针以减少代码字数
-    auto image_paras_transit = mess_To_TXCL_ZSXX.to_Txcl_image_paras_transit; // 图像参数_下传
-    auto ac_ins_info         = mess_To_TXCL_ZSXX.to_Txcl_AC_ins_info;         // 飞机惯导信息
-
     // === EOImageShowArea 显示区域参数 ===
     St_EOImageShowArea.F4_AZLOS_deg_BODY      = image_paras_transit.fov_center_azimuth * 0.01f; // 视线方位角(deg)
     St_EOImageShowArea.F4_ELLOS_deg_BODY      = image_paras_transit.fov_center_el * 0.01f;      // 视线俯仰角(deg)
@@ -258,7 +272,6 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageParasIS.U2_CurResolution            = image_paras_transit.A818_CUR_RESOLUTION;    // 像元分辨率(m, LSB=0.01)
     St_EOImageParasIS.U2_GroundResolution         = image_paras_transit.A818_GROUND_RESOLUTION; // 地面摄影分辨率(m, LSB=0.01)
     // 图像中心经纬高 - 从注释信息获取
-    // todo: 确认单位
     St_EOImageParasIS.St_ImgCenterPosition.D8_Longitude_deg_CGCS = image_paras_transit.image_center_longitude._longitude * 0.00001 * mrad_to_deg;
     St_EOImageParasIS.St_ImgCenterPosition.D8_Latitude_deg_CGCS  = image_paras_transit.image_center_latitude._latitude * 0.00001 * mrad_to_deg;
     St_EOImageParasIS.St_ImgCenterPosition.F4_AltitudeAsl_m_CGCS = image_paras_transit.A818_ImageCenterHeight;
@@ -276,7 +289,7 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageParasIS.U2_FocalLength  = image_paras_transit.A818_EO_FocalLength;  // 相机焦距(mm)
     St_EOImageParasIS.U2_ExposureTime = image_paras_transit.A818_EO_ExposureTime; // 曝光时间(us)
 
-    St_EOImageParasIS.U1_ImpotentTag = 2; // 重要目标标识
+    St_EOImageParasIS.U1_ImpotentTag = 0; // 重要目标标识
 
     St_EOImageParasIS.St_ImgCenter.D8_Longitude_deg_CGCS = image_paras_transit.REGION_CENTER_X._longitude * 0.00001 * mrad_to_deg;
     St_EOImageParasIS.St_ImgCenter.D8_Latitude_deg_CGCS  = image_paras_transit.REGION_CENTER_Y._latitude * 0.00001 * mrad_to_deg;
@@ -308,7 +321,7 @@ void CameraSimulator::updateSharedMemoryOutput() {
     St_EOImageParasIS.St_AcParas.St_EntityLinearAcceleratio = St_EntityLinearAcceleratio;
     St_EOImageParasIS.St_AcParas.St_EntityAttitude          = St_EntityAttitude;
     // todo: 改成数组
-    // // 图像任务信息
+    // 图像任务信息
     // St_EOImageParasIS.Seq_Mission.resize(sizeof(A818_IMAGE_COMMON_PARAS_TYPE_DEF));
     memset(St_EOImageParasIS.Seq_Mission, 0, sizeof(St_EOImageParasIS.Seq_Mission));
     memcpy(St_EOImageParasIS.Seq_Mission, &mess_To_TXCL_ZSXX.to_Txcl_A818_Image_common_paras,
@@ -328,7 +341,6 @@ void CameraSimulator::updateSharedMemoryOutput() {
     // === EOImageModifyPara 光电图像调节参数 === END
 
     // === EOTgtPara 动目标检测成像参数 ===
-    EOTgtPara Arr_EOTgtPara[5]; ///< @ID(5) 动目标检测成像参数[5] (最多包含5个目标)
     memset(Arr_EOTgtPara, 0, sizeof(Arr_EOTgtPara));
     tar_count = 0;
 
@@ -443,15 +455,16 @@ void CameraSimulator::updateSharedMemoryOutput() {
                 continue;
 
             const Position *vf_position = &vf.VFPosVelAccAtt.St_EntityPosition;
-            log_once("共享内存中的目标的经纬高: (%f, %f, %d)",
-                     vf_position->D8_Longitude_deg_CGCS, vf_position->D8_Latitude_deg_CGCS, (int)vf_position->F4_AltitudeAsl_m_CGCS);
-            log_once("计算用的目标区域的经纬高: (%f, %f, %d)",
-                     param_Compute_Input_Fromfc.comp_area_monitor_paras.longitude * mrad_to_deg,
-                     param_Compute_Input_Fromfc.comp_area_monitor_paras.latitude * mrad_to_deg,
-                     (int)param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude);
+
+            // log_once("共享内存中的目标的经纬高: (%f, %f, %d)",
+            //          vf_position->D8_Longitude_deg_CGCS, vf_position->D8_Latitude_deg_CGCS, (int)vf_position->F4_AltitudeAsl_m_CGCS);
+            // log_once("计算用的目标区域的经纬高: (%f, %f, %d)",
+            //          param_Compute_Input_Fromfc.comp_area_monitor_paras.longitude * mrad_to_deg,
+            //          param_Compute_Input_Fromfc.comp_area_monitor_paras.latitude * mrad_to_deg,
+            //          (int)param_Compute_Input_Fromfc.comp_area_monitor_paras.altitude);
 
             if (this->isTargetInImage(*vf_position)) {
-                log_once("目标在图像内");
+                log_once("目标 [EntityID: %d, GenID: %d] 在图像内", (int)entity_id.U4_EntityID, (int)entity_id.U2_GenID);
                 uint16_t entity_type = vf.VFAttribute.U2_EntityType;
                 bool     detected    = obj_detect_sim_.canDetect(
                     entity_type, cur_flight_height, cur_optical_type,
