@@ -177,6 +177,9 @@ void make_Mess_IRST_OPERATIONAL_PARAS() {
     mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.light_value_infrared = cmd_From_FC.irst_cmd_param_IR_image_paras_infra.light_value; // 红外手动调光值
     // 名  称:可见光调光值,调光
     mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.light_value_light = cmd_From_FC.irst_cmd_param_IR_image_paras_light.light_value;
+    // 2025.05.08更新 数据版本1.1.1：新版 ICDB 增加焦面位置回报。
+    mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.light_focus_pos    = mess_From_TJ.jmwz_kj_real;
+    mess_ToFC_IRST_OPERATIONAL_PARAS.IR_image_paras.infrared_focus_pos = mess_From_TJ.jmwz_hw_real;
     // 名  称:光电成像参数
     // 名  称:IR广域成像范围参数
     mess_ToFC_IRST_OPERATIONAL_PARAS.image_volum_IR.IR_wide_image_paras.IR_range_lowline        = cmd_From_FC.irst_cmd_param_IR_wide_image_paras.IR_range_lowline;
@@ -214,6 +217,8 @@ void make_Mess_IRST_OPERATIONAL_PARAS() {
     mess_ToFC_IRST_OPERATIONAL_PARAS.image_volum_IR_actual.IR_wide_image_paras.IR_scan_start_angle     = param_Compute_Output.real_IR_wide_image_paras.IR_scan_start_angle * 10;
     mess_ToFC_IRST_OPERATIONAL_PARAS.image_volum_IR_actual.IR_wide_image_paras.IR_IMAGE_RANGE          = param_Compute_Output.real_IR_wide_image_paras.IR_IMAGE_RANGE * 100;
     mess_ToFC_IRST_OPERATIONAL_PARAS.image_volum_IR_actual.IR_wide_image_paras.IR_scan_end_angle       = param_Compute_Output.real_IR_wide_image_paras.IR_scan_end_angle * 10;
+    // 2025.05.08更新 数据版本1.1.1：新版 ICDB 增加广域实际成像状态。
+    mess_ToFC_IRST_OPERATIONAL_PARAS.image_volum_IR_actual.IR_wide_image_paras.IR_IMG_FLAG = param_Compute_Output.real_IR_wide_image_paras.IR_IMG_FLAG;
     // 名  称:光电区域成像范围参数
     for (i = 0; i < 3; i++) {
         mess_ToFC_IRST_OPERATIONAL_PARAS.image_volum_IR_actual.area_image_paras_IR[i].center_point_pos._altitude  = param_Compute_Output.real_area_image_paras[i].altitude * 100;
@@ -765,6 +770,10 @@ void send_Mess_RECONNAISED_AREA_TV_2GCS_EVENT_VIEW() {
 void send_Mess_ToFC_ID_DATA_TRANSMIT_STATE(ID_DATA_TRANS_FLAG trans_State) {
     mess_ToFC_ID_DATA_TRANSMIT_STATE.msg_publish_time.time_sys_RTC = fcSysRtcGet();
     mess_ToFC_ID_DATA_TRANSMIT_STATE.msg_publisher_ID.subdomain_ID = V_NODE_IRRM;
+    // 2025.05.08更新 数据版本1.1.1：情报数据传输标识扩展为 4 通道，先清空未使用通道。
+    for (unsigned int i = 0; i < sizeof(mess_ToFC_ID_DATA_TRANSMIT_STATE.ID_data_trans_flag) / sizeof(mess_ToFC_ID_DATA_TRANSMIT_STATE.ID_data_trans_flag[0]); ++i) {
+        mess_ToFC_ID_DATA_TRANSMIT_STATE.ID_data_trans_flag[i] = V_ID_DATA_TRANS_FLAG_NO;
+    }
 
     // 0是1通道，可见光
     // 1是2通道，红外、H.265视频

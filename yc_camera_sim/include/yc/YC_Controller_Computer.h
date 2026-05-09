@@ -102,6 +102,9 @@ typedef struct
     // 起始位:0
     float IR_scan_end_angle;
 
+    // 2025.05.08更新 数据版本1.1.1：广域实际成像参数新增光电成像状态。
+    IR_IMG_FLAG IR_IMG_FLAG;
+
 } COMP_IR_WIDE_IMAGE_PARAS;
 // 信 号 组 标 识 符: area_image_paras
 // 信 号 组 名    称: IR区域成像范围参数
@@ -519,4 +522,4 @@ void GetRevise();
 #ifdef __cplusplus
 }
 #endif
-#endif /* YC_CONTROLLER_COMPUTER_H_ */
+#endif 

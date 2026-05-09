@@ -318,6 +318,12 @@ UINT8 comp_GY_Dis_Normal() {
     ComptRange(); // 计算近距远距
 
     Out_GY_Dis(); // 距离优先广域返回参数
+    // 2025.05.08更新 数据版本1.1.1：按新版 ICDB 回报广域实际成像状态。
+    if (1 == overPara_flag_t) {
+        param_Compute_Output.real_IR_wide_image_paras.IR_IMG_FLAG = V_IR_IMG_FLAG_OVER_BONDS;
+    } else {
+        param_Compute_Output.real_IR_wide_image_paras.IR_IMG_FLAG = V_IR_IMG_FLAG_NORMAL;
+    }
     return overPara_flag_t;
 }
 // 2.根据量程和起始角结束角算——方位优先使用：检调光、正常工作使用
@@ -397,6 +403,12 @@ UINT8 comp_GY_Az_Normal() {
     ProcessOutPram(); // 输出参数处理
     ComptRange();     // 计算近距远距
     Out_GY_Az();      // 方位优先广域返回参数
+    // 2025.05.08更新 数据版本1.1.1：按新版 ICDB 回报广域实际成像状态。
+    if (1 == overPara_flag_t) {
+        param_Compute_Output.real_IR_wide_image_paras.IR_IMG_FLAG = V_IR_IMG_FLAG_OVER_BONDS;
+    } else {
+        param_Compute_Output.real_IR_wide_image_paras.IR_IMG_FLAG = V_IR_IMG_FLAG_NORMAL;
+    }
 
     return overPara_flag_t;
 }

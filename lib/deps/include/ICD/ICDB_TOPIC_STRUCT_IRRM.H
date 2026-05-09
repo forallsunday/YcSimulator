@@ -1,12 +1,12 @@
 /**
  * @Author: Chongyang Liu
- * @Date:   2025-10-14 11:18:22
+ * @Date:   2026-05-08 10:50:20
  * @Last Modified by:   Chongyang Liu
- * @Last Modified time: 2025-10-25 22:02:23
+ * @Last Modified time: 2026-05-08 15:28:17
  */
 //////////////////////////版本信息/////////////////////////
 // 软件版本：ICDB3.32
-// 数据版本：SE_A1.1.0版
+// 数据版本：SE_A1.1.1版
 // CPU类型：X86
 
 #ifndef ICDB_TOPIC_STRUCT_IRRM_H
@@ -14,28 +14,28 @@
 
 ///////////////////////////////////基本结构////////////////////////////////////
 #pragma pack(1)
-typedef void* VIDEO;
-typedef void* AUDIO;
-typedef void* IMAGE;
-typedef void* STREAM;
-typedef float float1750;
-typedef unsigned char BCD_8;
+typedef void              *VIDEO;
+typedef void              *AUDIO;
+typedef void              *IMAGE;
+typedef void              *STREAM;
+typedef float              float1750;
+typedef unsigned char      BCD_8;
 typedef unsigned short int BCD_16;
-typedef unsigned int BCD_32;
-typedef unsigned char BOOL_8;
-typedef unsigned int BOOL_32;
-typedef char char_8;
+typedef unsigned int       BCD_32;
+typedef unsigned char      BOOL_8;
+typedef unsigned int       BOOL_32;
+typedef char               char_8;
 typedef unsigned short int char_16;
-typedef unsigned int char_32;
-typedef unsigned int SPARE32;
-typedef unsigned char SPARE8;
-typedef signed char INT8, *PINT8;
-typedef signed short INT16, *PINT16;
-typedef signed int INT32, *PINT32;
-typedef signed long long INT64, *PINT64;
-typedef unsigned char UINT8, *PUINT8;
-typedef unsigned short UINT16, *PUINT16;
-typedef unsigned int UINT32, *PUINT32;
+typedef unsigned int       char_32;
+typedef unsigned int       SPARE32;
+typedef unsigned char      SPARE8;
+typedef signed char        INT8, *PINT8;
+typedef signed short       INT16, *PINT16;
+typedef signed int         INT32, *PINT32;
+typedef signed long long   INT64, *PINT64;
+typedef unsigned char      UINT8, *PUINT8;
+typedef unsigned short     UINT16, *PUINT16;
+typedef unsigned int       UINT32, *PUINT32;
 typedef unsigned long long UINT64, *PUINT64;
 
 ////////////////////////////////////////////分时信号数据区非信号组类型信号结构定义///////////////////////////////////////////
@@ -48,7 +48,7 @@ typedef unsigned long long UINT64, *PUINT64;
 // 信号说    明: 航管应答A/C模式码，4位数字组成
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
     UINT16 VMS1394_ATC_AC_code;
 } VMS1394_ATC_AC_CODE_TSTYPE_DEF;
 
@@ -63,8 +63,8 @@ typedef struct
 //         W3：机械故障，对应的A模式识别码为7700。
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 VMS1394_YK_ATC_crisis_code;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  VMS1394_YK_ATC_crisis_code;
 } VMS1394_YK_ATC_CRISIS_CODE_TSTYPE_DEF;
 
 // 信号标 识 符: VMS1394_ATC_S_code
@@ -87,8 +87,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 sat_antenna_work_mode_GCS;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  sat_antenna_work_mode_GCS;
 } SAT_ANTENNA_WORK_MODE_GCS_TSTYPE_DEF;
 
 // 信号标 识 符: IFFI_batch_mode
@@ -99,8 +99,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 IFFI_batch_mode;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  IFFI_batch_mode;
 } IFFI_BATCH_MODE_TSTYPE_DEF;
 
 // 信号标 识 符: IFFR_batch_mode
@@ -111,8 +111,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 IFFR_batch_mode;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  IFFR_batch_mode;
 } IFFR_BATCH_MODE_TSTYPE_DEF;
 
 // 信号标 识 符: IFFR_special_mode
@@ -123,8 +123,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 IFFR_special_mode;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  IFFR_special_mode;
 } IFFR_SPECIAL_MODE_TSTYPE_DEF;
 
 // 信号标 识 符: IFFIdCode
@@ -158,7 +158,7 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
     UINT16 pilot_no;
 } PILOT_NO_TSTYPE_DEF;
 
@@ -170,7 +170,7 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
     BOOL_8 select_flag;
 } SELECT_FLAG_TSTYPE_DEF;
 
@@ -182,8 +182,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 net_id;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  net_id;
 } NET_ID_TSTYPE_DEF;
 
 // 信号标 识 符: plane_id
@@ -194,8 +194,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 plane_id;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  plane_id;
 } PLANE_ID_TSTYPE_DEF;
 
 // 信号标 识 符: master_control
@@ -206,7 +206,7 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
     BOOL_8 master_control;
 } MASTER_CONTROL_TSTYPE_DEF;
 
@@ -218,8 +218,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 transmit_antenna;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  transmit_antenna;
 } TRANSMIT_ANTENNA_TSTYPE_DEF;
 
 // 信号标 识 符: local_train
@@ -230,7 +230,7 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
     BOOL_8 local_train;
 } LOCAL_TRAIN_TSTYPE_DEF;
 
@@ -243,8 +243,8 @@ typedef struct
 //         正常模式：[1,12]
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 hop_database_no;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  hop_database_no;
 } HOP_DATABASE_NO_TSTYPE_DEF;
 
 // 信号标 识 符: hop_serial_no
@@ -255,8 +255,8 @@ typedef struct
 // 信号说    明: [1,14]
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 hop_serial_no;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  hop_serial_no;
 } HOP_SERIAL_NO_TSTYPE_DEF;
 
 // 信号标 识 符: urgent_encrypt_req
@@ -267,8 +267,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 urgent_encrypt_req;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  urgent_encrypt_req;
 } URGENT_ENCRYPT_REQ_TSTYPE_DEF;
 
 // 信号标 识 符: FREQ_SELECT
@@ -279,8 +279,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 FREQ_SELECT;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  FREQ_SELECT;
 } FREQ_SELECT_TSTYPE_DEF;
 
 // 信号标 识 符: J_CHANNEL_no
@@ -291,7 +291,7 @@ typedef struct
 // 信号说    明: 1-255
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
     UINT16 J_CHANNEL_no;
 } J_CHANNEL_NO_TSTYPE_DEF;
 
@@ -303,8 +303,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 JMODE;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  JMODE;
 } JMODE_TSTYPE_DEF;
 
 // 信号标 识 符: fused_tgt_ID_of_ownship
@@ -315,21 +315,9 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
     UINT16 fused_tgt_ID_of_ownship;
 } FUSED_TGT_ID_OF_OWNSHIP_TSTYPE_DEF;
-
-// 信号标 识 符: target_class
-// 信号名    称: 目标类型
-// 信号长    度: 8
-// 信号数组长度: 1
-// 信号类    型: ENUM
-// 信号说    明: 注：ALL 普查，仅图像情报使用
-typedef struct
-{
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 target_class;
-} TARGET_CLASS_TSTYPE_DEF;
 
 // 信号标 识 符: IMG_Section_Compression_Level
 // 信号名    称: 图像切片压缩档位设置
@@ -340,8 +328,8 @@ typedef struct
 //         手动压缩档位：从1-4，对应的图像切片质量逐渐降低。相同档位针对不同类型的切片压缩比不同
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 IMG_Section_Compression_Level;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  IMG_Section_Compression_Level;
 } IMG_SECTION_COMPRESSION_LEVEL_TSTYPE_DEF;
 
 // 信号标 识 符: irst_form_mode
@@ -352,8 +340,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 irst_form_mode;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  irst_form_mode;
 } IRST_FORM_MODE_TSTYPE_DEF;
 
 // 信号标 识 符: IR_SENSOR
@@ -364,8 +352,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 IR_SENSOR;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  IR_SENSOR;
 } IR_SENSOR_TSTYPE_DEF;
 
 // 信号标 识 符: environmnet_type
@@ -376,8 +364,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 environmnet_type;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  environmnet_type;
 } ENVIRONMNET_TYPE_TSTYPE_DEF;
 
 // 信号标 识 符: rdr_freq_type
@@ -388,8 +376,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 rdr_freq_type;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  rdr_freq_type;
 } RDR_FREQ_TYPE_TSTYPE_DEF;
 
 // 信号标 识 符: rdr_freq_sel
@@ -400,8 +388,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 rdr_freq_sel;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  rdr_freq_sel;
 } RDR_FREQ_SEL_TSTYPE_DEF;
 
 // 信号标 识 符: rdr_gain_mode
@@ -412,8 +400,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 rdr_gain_mode;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  rdr_gain_mode;
 } RDR_GAIN_MODE_TSTYPE_DEF;
 
 // 信号标 识 符: rdr_env_height
@@ -424,8 +412,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
-    INT16 rdr_env_height;
+    SPARE8 spare1[2]; // 保留字段
+    INT16  rdr_env_height;
 } RDR_ENV_HEIGHT_TSTYPE_DEF;
 
 // 信号标 识 符: spotsar_res_reSet
@@ -436,8 +424,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 spotsar_res_reSet;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  spotsar_res_reSet;
 } SPOTSAR_RES_RESET_TSTYPE_DEF;
 
 // 信号标 识 符: rdr_LPI_strategy
@@ -448,8 +436,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 rdr_LPI_strategy;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  rdr_LPI_strategy;
 } RDR_LPI_STRATEGY_TSTYPE_DEF;
 
 // 信号标 识 符: EM_level
@@ -460,9 +448,21 @@ typedef struct
 // 信号说    明: 辐射级别控制参数。等级1配置为全静默等级，等级5配置为无限制辐射等级，中间级别可根据任务配置。
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 EM_level;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  EM_level;
 } EM_LEVEL_TSTYPE_DEF;
+
+// 信号标 识 符: COMP_priority
+// 信号名    称: 射频兼容优先级
+// 信号长    度: 8
+// 信号数组长度: 1
+// 信号类    型: ENUM
+// 信号说    明:
+typedef struct
+{
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  COMP_priority;
+} COMP_PRIORITY_TSTYPE_DEF;
 
 // 信号标 识 符: CRSM_CMD_Work_band
 // 信号名    称: 通侦侦察频段控制
@@ -472,8 +472,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 CRSM_CMD_Work_band;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  CRSM_CMD_Work_band;
 } CRSM_CMD_WORK_BAND_TSTYPE_DEF;
 
 // 信号标 识 符: CRSM_CMD_dwell_time
@@ -484,8 +484,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 CRSM_CMD_dwell_time;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  CRSM_CMD_dwell_time;
 } CRSM_CMD_DWELL_TIME_TSTYPE_DEF;
 
 // 信号标 识 符: CRSM_CMD_delete_datum_No
@@ -496,7 +496,7 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
     UINT16 CRSM_CMD_delete_datum_No;
 } CRSM_CMD_DELETE_DATUM_NO_TSTYPE_DEF;
 
@@ -508,7 +508,7 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
     UINT16 CRSM_Monitor_Tgt_No;
 } CRSM_MONITOR_TGT_NO_TSTYPE_DEF;
 
@@ -520,8 +520,8 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 IRST_Video_BAND;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  IRST_Video_BAND;
 } IRST_VIDEO_BAND_TSTYPE_DEF;
 
 // 信号标 识 符: network_plan_select_seq
@@ -532,9 +532,45 @@ typedef struct
 // 信号说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
-    UINT8 network_plan_select_seq;
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  network_plan_select_seq;
 } NETWORK_PLAN_SELECT_SEQ_TSTYPE_DEF;
+
+// 信号标 识 符: link_silent_control
+// 信号名    称: 链路静默控制
+// 信号长    度: 8
+// 信号数组长度: 1
+// 信号类    型: ENUM
+// 信号说    明:
+typedef struct
+{
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  link_silent_control;
+} LINK_SILENT_CONTROL_TSTYPE_DEF;
+
+// 信号标 识 符: pilot_code
+// 信号名    称: 飞行员代号
+// 信号长    度: 16
+// 信号数组长度: 1
+// 信号类    型: INT
+// 信号说    明:
+typedef struct
+{
+    SPARE8 spare1[2]; // 保留字段
+    UINT16 pilot_code;
+} PILOT_CODE_TSTYPE_DEF;
+
+// 信号标 识 符: data_source_select
+// 信号名    称: 网络链路数据源切换
+// 信号长    度: 8
+// 信号数组长度: 1
+// 信号类    型: ENUM
+// 信号说    明:
+typedef struct
+{
+    SPARE8 spare1[3]; // 保留字段
+    UINT8  data_source_select;
+} DATA_SOURCE_SELECT_TSTYPE_DEF;
 
 ////////////////////////////////////////////信号组结构定义///////////////////////////////////////////
 
@@ -665,7 +701,7 @@ typedef struct
     // 起始位:0
     INT16 irst_fly_course;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:irst_fly_roll
     // 名  称:IRST载机横滚姿态角
@@ -685,7 +721,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:irst_INS_valid
     // 名  称:IRST载机姿态有效标志
     // 说  明:
@@ -921,7 +957,7 @@ typedef struct
     // 起始位:0
     UINT16 sp_number;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:reverse_airport_num
     // 名  称:反向机场编号
@@ -1101,7 +1137,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:is_online_loading
     // 名  称:在线统一加载标识
     // 说  明:当加载类型为软件加载时，该信号有意义；
@@ -1224,7 +1260,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_baro_GNSS_alt
     // 名  称:有效性_卫星参考高度
@@ -1250,7 +1286,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_position;
 
-    SPARE8 spare2;  // 保留字段
+    SPARE8 spare2; // 保留字段
 
     // 标识符:validity_vel_up
     // 名  称:有效性_速度天向
@@ -1276,7 +1312,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_vel_north;
 
-    SPARE8 spare3;  // 保留字段
+    SPARE8 spare3; // 保留字段
 
     // 标识符:validity_CNI_GNSS_time
     // 名  称:有效性_卫星时间
@@ -2176,7 +2212,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_climbing_angle;
 
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_plat_to_body_matrix
     // 名  称:有效性_平台系到机体转换矩阵
@@ -3166,7 +3202,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:validity_pure_inertial_alt
     // 名  称:有效性_纯惯性高度
@@ -3482,7 +3518,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:validity_position
     // 名  称:有效性_位置
@@ -3782,7 +3818,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_pitch_angle;
 
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_heading_rate
     // 名  称:有效性_航向角速率
@@ -3808,7 +3844,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_pitch_rate;
 
-    SPARE8 spare2;  // 保留字段
+    SPARE8 spare2; // 保留字段
 
     // 标识符:validity_angle_rate_Z
     // 名  称:有效性_角速率Z轴
@@ -3834,7 +3870,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_angle_rate_X;
 
-    SPARE8 spare3;  // 保留字段
+    SPARE8 spare3; // 保留字段
 
     // 标识符:validity_accel_Z
     // 名  称:有效性_加速度Z轴
@@ -3860,7 +3896,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_accel_X;
 
-    SPARE8 spare4;  // 保留字段
+    SPARE8 spare4; // 保留字段
 
     // 标识符:validity_accel_up
     // 名  称:有效性_加速度天向
@@ -3886,7 +3922,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_accel_north;
 
-    SPARE8 spare5;  // 保留字段
+    SPARE8 spare5; // 保留字段
 
     // 标识符:validity_vel_Z
     // 名  称:有效性_速度Z轴
@@ -3912,7 +3948,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_vel_X;
 
-    SPARE8 spare6;  // 保留字段
+    SPARE8 spare6; // 保留字段
 
     // 标识符:validity_vel_up
     // 名  称:有效性_速度天向
@@ -4002,7 +4038,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_inertial_AOA;
 
-    SPARE8 spare7[2];  // 保留字段
+    SPARE8 spare7[2]; // 保留字段
 
     // 标识符:validity_plat_to_body_matrix
     // 名  称:有效性_平台系到机体转换矩阵
@@ -4020,7 +4056,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_earth_to_plat_matrix;
 
-    SPARE8 spare8;  // 保留字段
+    SPARE8 spare8; // 保留字段
 
     // 标识符:validity_wind_up
     // 名  称:有效性_风速天向
@@ -4570,7 +4606,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:yes_no
     // 名  称:YES_NO
@@ -4589,7 +4625,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:yes_no
     // 名  称:YES_NO
@@ -4796,7 +4832,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_pressure_alt;
 
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_true_static_pressure
     // 名  称:有效性_真实静压
@@ -4822,7 +4858,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_pressure_ratio;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:validity_cokpit_alt
     // 名  称:有效性_座舱高度
@@ -5255,7 +5291,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:yes_no
     // 名  称:YES_NO
@@ -5593,7 +5629,7 @@ typedef struct
     // 起始位:16
     UINT16 RDR_track_number;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:IR_track_number
     // 名  称:IR目标编号
@@ -5656,7 +5692,7 @@ typedef struct
     // 起始位:0
     IFDL_TRACK_NUMBER_TYPE_DEF IFDL_track_number[10];
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:IBS_tgt_ID
     // 名  称:IBS目标编号
@@ -5676,7 +5712,7 @@ typedef struct
     // 起始位:0
     UINT32 ADI_ID;
 
-    SPARE8 spare3[2];  // 保留字段
+    SPARE8 spare3[2]; // 保留字段
 
     // 标识符:CRSM_tgt_ID
     // 名  称:通侦目标编号
@@ -5687,7 +5723,7 @@ typedef struct
     // 起始位:0
     UINT16 CRSM_tgt_ID;
 
-    SPARE8 spare5[2];  // 保留字段
+    SPARE8 spare5[2]; // 保留字段
 
     // 标识符:DAS_tgt_no
     // 名  称:DAS目标编号
@@ -5698,9 +5734,9 @@ typedef struct
     // 起始位:8
     UINT8 DAS_tgt_no;
 
-    SPARE8 spare4;  // 保留字段
+    SPARE8 spare4; // 保留字段
 
-    SPARE8 spare6[2];  // 保留字段
+    SPARE8 spare6[2]; // 保留字段
 
     // 标识符:EWS2_tgt_no
     // 名  称:选装电子战目标编号
@@ -5720,7 +5756,7 @@ typedef struct
     // 起始位:16
     UINT16 IIPM_tgt_no;
 
-    SPARE8 spare7[2];  // 保留字段
+    SPARE8 spare7[2]; // 保留字段
 
     // 标识符:ais_target_id
     // 名  称:AIS目标编号
@@ -5731,7 +5767,7 @@ typedef struct
     // 起始位:0
     UINT32 ais_target_id;
 
-    SPARE8 spare8[2];  // 保留字段
+    SPARE8 spare8[2]; // 保留字段
 
     // 标识符:LOADING_tgt_ID
     // 名  称:加载目标编号
@@ -6087,7 +6123,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_CycleNo;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:A818_EO_LineNo
     // 名  称:条带内序号
@@ -6154,7 +6190,7 @@ typedef struct
     // 起始位:0
     INT16 fov_center_azimuth;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:A818_Beside_tgt_cover
     // 名  称:傍向重叠率
@@ -6193,7 +6229,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_CUR_RESOLUTION;
 
-    SPARE8 spare3[2];  // 保留字段
+    SPARE8 spare3[2]; // 保留字段
 
     // 标识符:A818_ImageCenterHeight
     // 名  称:图像中心高度
@@ -6292,7 +6328,7 @@ typedef struct
     // 起始位:0
     DOWNRIGHT_LATITUDE_TYPE_DEF downright_latitude;
 
-    SPARE8 spare4[2];  // 保留字段
+    SPARE8 spare4[2]; // 保留字段
 
     // 标识符:A818_FrequencyNo
     // 名  称:工作频点号
@@ -6389,7 +6425,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_EO_FocalLength;
 
-    SPARE8 spare5[3];  // 保留字段
+    SPARE8 spare5[3]; // 保留字段
 
     // 标识符:move_tgt_acount
     // 名  称:动目标数目
@@ -6641,7 +6677,7 @@ typedef struct
     // 起始位:0
     UINT32 A818_ACRelativeAltitude;
 
-    SPARE8 spare6[2];  // 保留字段
+    SPARE8 spare6[2]; // 保留字段
 
     // 标识符:A818_ViewNum
     // 名  称:视数
@@ -7152,7 +7188,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:A818_INS_NOW
     // 名  称:当前使用惯导
@@ -7164,7 +7200,7 @@ typedef struct
     // 起始位:0
     UINT8 A818_INS_NOW;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:A818_INS_GroupStatus
     // 名  称:惯导组合状态
@@ -7269,7 +7305,7 @@ typedef struct
     // 起始位:0
     UINT8 A818_AC_TYPE;
 
-    UINT32 spare2 : 10;  // 保留字段
+    UINT32 spare2 : 10; // 保留字段
     // 标识符:A818_SideViewDirection
     // 名  称:雷达侧视方向
     // 说  明:雷达专用，表示雷达侧视方向。条带SAR模式或SAR-GMTI模式下：1=左侧视、2=右侧视；其它模式填0
@@ -7318,7 +7354,7 @@ typedef struct
     // 起始位:8
     UINT32 Payload_Factory : 4;
 
-    UINT32 spare1 : 1;  // 保留字段
+    UINT32 spare1 : 1; // 保留字段
     // 标识符:Payload_type
     // 名  称:载荷类型
     // 说  明:载荷类型（雷达置3，光电按照枚举值定义分类填写）
@@ -7370,7 +7406,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:yes_no
     // 名  称:YES_NO
@@ -7569,7 +7605,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:yes_no
     // 名  称:YES_NO
@@ -7817,7 +7853,7 @@ typedef struct
     // 起始位:16
     UINT16 RDR_track_number;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:IR_track_number
     // 名  称:IR目标编号
@@ -7880,7 +7916,7 @@ typedef struct
     // 起始位:0
     IFDL_TRACK_NUMBER_TYPE_DEF IFDL_track_number[10];
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:IBS_tgt_ID
     // 名  称:IBS目标编号
@@ -7900,7 +7936,7 @@ typedef struct
     // 起始位:0
     UINT32 ADI_ID;
 
-    SPARE8 spare3[2];  // 保留字段
+    SPARE8 spare3[2]; // 保留字段
 
     // 标识符:CRSM_tgt_ID
     // 名  称:通侦目标编号
@@ -7911,7 +7947,7 @@ typedef struct
     // 起始位:0
     UINT16 CRSM_tgt_ID;
 
-    SPARE8 spare5[2];  // 保留字段
+    SPARE8 spare5[2]; // 保留字段
 
     // 标识符:DAS_tgt_no
     // 名  称:DAS目标编号
@@ -7922,9 +7958,9 @@ typedef struct
     // 起始位:8
     UINT8 DAS_tgt_no;
 
-    SPARE8 spare4;  // 保留字段
+    SPARE8 spare4; // 保留字段
 
-    SPARE8 spare6[2];  // 保留字段
+    SPARE8 spare6[2]; // 保留字段
 
     // 标识符:EWS2_tgt_no
     // 名  称:选装电子战目标编号
@@ -7944,7 +7980,7 @@ typedef struct
     // 起始位:16
     UINT16 IIPM_tgt_no;
 
-    SPARE8 spare7[2];  // 保留字段
+    SPARE8 spare7[2]; // 保留字段
 
     // 标识符:ais_target_id
     // 名  称:AIS目标编号
@@ -7955,7 +7991,7 @@ typedef struct
     // 起始位:0
     UINT32 ais_target_id;
 
-    SPARE8 spare8[2];  // 保留字段
+    SPARE8 spare8[2]; // 保留字段
 
     // 标识符:LOADING_tgt_ID
     // 名  称:加载目标编号
@@ -7966,9 +8002,9 @@ typedef struct
     // 起始位:0
     UINT16 LOADING_tgt_ID;
 
-    SPARE32 spare9[13];  // 保留字段
+    SPARE32 spare9[13]; // 保留字段
 
-    UINT32 spare10 : 24;  // 保留字段
+    UINT32 spare10 : 24; // 保留字段
     // 标识符:datalink_contribute_flag
     // 名  称:链路贡献标识
     // 说  明:按位定义各链路对射击列表目标的贡献，如：
@@ -7979,7 +8015,7 @@ typedef struct
     // 起始位:0
     UINT32 datalink_contribute_flag : 8;
 
-    SPARE8 spare11[3];  // 保留字段
+    SPARE8 spare11[3]; // 保留字段
 
     // 标识符:New_Target_ID
     // 名  称:新目标标识
@@ -8059,7 +8095,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_tgt_el
     // 名  称:有效性_目标俯仰
@@ -8265,7 +8301,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_accel_north;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:validity_mach
     // 名  称:有效性_马赫数
@@ -8424,7 +8460,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:tgt_type
     // 名  称:平台类型
     // 说  明:各类型的定义在ICD文件中用表格形式明确。
@@ -8506,7 +8542,7 @@ typedef struct
     // 起始位:0
     UINT32 tgt_model : 16;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:altitude_quality
     // 名  称:高度质量
@@ -8685,7 +8721,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:validity_location
     // 名  称:位置有效性
@@ -8802,7 +8838,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:data_valid
     // 名  称:数据有效性
@@ -8837,7 +8873,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:irst_tgt_acq_mode
     // 名  称:IRST目标获取方式
     // 说  明:
@@ -8872,7 +8908,7 @@ typedef struct
     // 起始位:0
     INT16 servo_azimuth;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:frame_end
     // 名  称:IRST场结束有效位
@@ -9114,7 +9150,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:validity_tgt_el
     // 名  称:有效性_目标俯仰
@@ -9217,7 +9253,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:ir_tgt_track_flag
     // 名  称:IR目标航迹标识
     // 说  明:
@@ -9293,7 +9329,7 @@ typedef struct
     // 起始位:16
     UINT16 platform_fused_tgt_ID;
 
-    SPARE8 spare2;  // 保留字段
+    SPARE8 spare2; // 保留字段
 
     // 标识符:validity_tgt_distance
     // 名  称:有效性_目标距离
@@ -9473,7 +9509,7 @@ typedef struct
     // 起始位:0
     UINT32 HWConfig_PD_Year;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:HWConfig_PD_Day
     // 名  称:生产日期-日
@@ -9511,7 +9547,7 @@ typedef struct
     // 起始位:0
     UINT32 HWConfig_PD_Year;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:HWConfig_PD_Day
     // 名  称:生产日期-日
@@ -9540,7 +9576,7 @@ typedef struct
 // 信 号 组 说    明: 硬件配置信息应包括每个设备或模块的详细配置信息，包括设备或模块的LCN编码(用于后勤保障和定货等)、名称、序列号、累计工作时间、硬件的版本、以及硬件的描述信息。
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:array_element_valid
     // 名  称:数组元素有效性
@@ -9565,7 +9601,7 @@ typedef struct
     // 起始位:0
     UINT32 equipment_LCN_code;
 
-    SPARE32 spare2[1];  // 保留字段
+    SPARE32 spare2[1]; // 保留字段
 
     // 标识符:hardware_serial_ID
     // 名  称:硬件序列号
@@ -9826,7 +9862,7 @@ typedef struct
 // 信 号 组 说    明: 以目标为中心的随动参数。
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:fused_tgt_ID
     // 名  称:融合目标编号
@@ -10027,7 +10063,7 @@ typedef struct
     // 起始位:0
     UINT32 FC_net_state : 8;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:PowOff_CMD_State
     // 名  称:下电指令状态
     // 说  明:
@@ -10093,7 +10129,7 @@ typedef struct
     // 起始位:0
     UINT16 RDR_track_number;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:IR_track_number
     // 名  称:IR目标编号
@@ -10114,7 +10150,7 @@ typedef struct
     // 起始位:0
     UINT8 suitor_member_no[4];
 
-    UINT32 spare2 : 24;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:TOI_rank
     // 名  称:目标关注等级
     // 说  明:
@@ -10133,7 +10169,7 @@ typedef struct
 //                    各探测器阵面按照9方格划分为9块。按照数组元素0--8的顺序，分别表示上左、上、上右、中左、中、中右、下左、下、下右各块的参数。
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:block_id
     // 名  称:分块ID
     // 说  明:
@@ -10186,7 +10222,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:altitude_quality
     // 名  称:高度质量
     // 说  明:[0,15]
@@ -10303,7 +10339,7 @@ typedef struct
     // 起始位:0
     UINT16 public_net_id;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:I_member_no
     // 名  称:I链成员编号
@@ -10472,7 +10508,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:mission_sequence_no
     // 名  称:任务序列号
@@ -10500,7 +10536,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:EM_level
     // 名  称:辐射等级
     // 说  明:辐射级别控制参数。等级1配置为全静默等级，等级5配置为无限制辐射等级，中间级别可根据任务配置。
@@ -10573,7 +10609,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:validity_event_para_2
     // 名  称:有效性_事件参数2
@@ -10601,7 +10637,7 @@ typedef struct
 //                    当导航事件类型为“状态持续时间”时，时间事件参数1填写持续时间，时间事件参数2填写对应的系统状态。不关注的系统状态置为NA。
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:time_event_type
     // 名  称:时间事件类型
     // 说  明:
@@ -10698,7 +10734,7 @@ typedef struct
 //                    若不关注前一状态，则参数1无效；不关注的系统状态置NA。
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:state_change_event_type
     // 名  称:状态转换事件类型
     // 说  明:
@@ -10760,7 +10796,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:tgt_source
     // 名  称:目标来源
     // 说  明:
@@ -10778,7 +10814,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:target_class
     // 名  称:目标类型
     // 说  明:注：ALL 普查，仅图像情报使用
@@ -10796,7 +10832,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:situation_event_type
     // 名  称:态势事件类型
     // 说  明:
@@ -10931,7 +10967,7 @@ typedef struct
 //                    当导航事件类型为“数据监测”时，导航事件参数1填写数据监控类型和范围，导航事件参数2填写速度或距离。
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:nav_event_type
     // 名  称:导航事件类型
     // 说  明:
@@ -10993,7 +11029,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:mission_event_type
     // 名  称:任务事件类型
     // 说  明:
@@ -11039,7 +11075,7 @@ typedef struct
     // 起始位:0
     STATE_CHANGE_EVENT_TYPE_DEF state_change_event;
 
-    UINT32 spare2 : 16;  // 保留字段
+    UINT32 spare2 : 16; // 保留字段
     // 标识符:member_mission_event
     // 名  称:编队成员任务事件
     // 说  明:
@@ -11142,7 +11178,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:validity_location
     // 名  称:位置有效性
@@ -11576,7 +11612,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:desired_command_types
     // 名  称:期望指令类型
     // 说  明:
@@ -11604,7 +11640,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:CDI_types
     // 名  称:航线偏差指引类型
     // 说  明:航线偏差指引类型，表示航线偏差指示符根据何种传感器数据指示。
@@ -11689,7 +11725,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:desired_command_types
     // 名  称:期望指令类型
     // 说  明:
@@ -11787,7 +11823,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_route_TTG;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:validity_steering_point_ground_distance
     // 名  称:有效性_操纵点地面距离
@@ -11970,7 +12006,7 @@ typedef struct
     // 起始位:0
     SPOI_NAV_INFO_VALIDITY_TYPE_DEF SPOI_nav_info_validity;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:sp_number
     // 名  称:操纵点编号
     // 说  明:
@@ -12454,7 +12490,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_heading_steer_direct_loc_dev;
 
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_ERF
     // 名  称:有效性_预计剩余燃油
@@ -12645,7 +12681,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_fast_climb_alt
     // 名  称:有效性_最速爬升高度
@@ -12895,7 +12931,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:init_location_ctrl_type
     // 名  称:初始位置控制方式
     // 说  明:
@@ -12923,7 +12959,7 @@ typedef struct
     // 起始位:0
     FAST_ALIGN_HEADING_TYPE_DEF fast_align_heading;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:align_remain_time
     // 名  称:时间_对准倒计时
@@ -13095,7 +13131,7 @@ typedef struct
 // 信 号 组 说    明: 描述当前传输的流数据文件信息
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:loading_type
     // 名  称:加载类型
     // 说  明:描述文件/数据在的场景类型：
@@ -13140,7 +13176,7 @@ typedef struct
     // 起始位:0
     char_8 file_name[12];
 
-    UINT32 spare2 : 24;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:secret_level
     // 名  称:密级
     // 说  明:目前只有非密/秘密两种密级，后续可能会增加更多的密级
@@ -13394,7 +13430,7 @@ typedef struct
     // 起始位:0
     UINT32 FC_net_state : 8;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:PowOff_CMD_State
     // 名  称:下电指令状态
     // 说  明:
@@ -13430,7 +13466,7 @@ typedef struct
     // 起始位:0
     UINT32 subdomain_ID : 32;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:subsys_work_state
     // 名  称:工作状态
     // 说  明:子系统可自行上报的工作状态有：正常，自检测，降级，失效，功能停止；
@@ -13487,7 +13523,7 @@ typedef struct
     // 起始位:0
     UINT32 subsys_electrify_amount;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:subsys_HMC_total_list_number
     // 名  称:子系统HMC_总条数
@@ -13514,7 +13550,7 @@ typedef struct
 //                    6、加载时间：软件加载到机上的日历时间的年月日和时间。
 typedef struct
 {
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:version_type
     // 名  称:版本类型
     // 说  明:描述各子系统上报的软件版本的类型
@@ -13532,7 +13568,7 @@ typedef struct
     UINT32 array_element_valid : 8;
 
     // 标识符:SW_CSCI_code
-    // 名  称:软件配置项代码
+    // 名  称:软件配置项代码_PBS码
     // 说  明:软件部件的工作单元代码，ASCII字符。
     // 单  位:
     // 起始字:1
@@ -13559,11 +13595,11 @@ typedef struct
     // 名  称:版本号
     // 说  明:软件、硬件、数据库、驱动的版本号均由24个字母数字组成。ASCII码。
     //        软件版本号包括：
-    //            1-2：机型识别码;
+    //            1-2：机型识别码;——SE
     //          3-10：部件代码;为软硬件的PBS编码，前对齐，不满补0;
     //             11：版本类型，S=应用软件版本，H=硬件版本，B=数据库版本，D=驱动版本，F=FPGA版本，O=其他类型版本，L＝基线版本
     //             12：字母“V”
-    //        13-18：软件标识符,其中13-14软件大版本号，15-16软件小版本号，17-18附加版本号;
+    //        13-18：软件标识符,其中13-14软件大版本号，15-16软件小版本号，17-18附加版本号;（000100）
     //        19-24：发布日期，YYMMDD
     // 单  位:
     // 起始字:15
@@ -13606,7 +13642,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:validity_vertical_integrity_protect_threshold
     // 名  称:有效性_垂直完好性保护门限
@@ -13668,7 +13704,7 @@ typedef struct
 // 信 号 组 说    明: CEP（95%）
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:valid_invalid
     // 名  称:有效_无效
@@ -13897,7 +13933,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:left_right
     // 名  称:左侧右侧
     // 说  明:描述风速的相对机身左右方向：
@@ -13971,7 +14007,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:validity_ac_climbing_angle_predicted_increment
     // 名  称:有效性_载机预测爬升角增量
@@ -14040,7 +14076,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:above_ground_height_type
     // 名  称:地形相对高度类型
     // 说  明:0：表示地形高度采用DTED来源；
@@ -14096,7 +14132,7 @@ typedef struct
 //                    与真北的夹角顺时针为正。
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:wind_data_source
     // 名  称:风速风向数据源
     // 说  明:描述风速风向的数据来源：
@@ -14165,7 +14201,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_pitch_angle;
 
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:validity_heading_rate
     // 名  称:有效性_航向角速率
@@ -14191,7 +14227,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_pitch_rate;
 
-    SPARE8 spare2;  // 保留字段
+    SPARE8 spare2; // 保留字段
 
     // 标识符:validity_angle_rate_Z
     // 名  称:有效性_角速率Z轴
@@ -14217,7 +14253,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_angle_rate_X;
 
-    SPARE8 spare3;  // 保留字段
+    SPARE8 spare3; // 保留字段
 
     // 标识符:validity_accel_Z
     // 名  称:有效性_加速度Z轴
@@ -14243,7 +14279,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_accel_X;
 
-    SPARE8 spare4;  // 保留字段
+    SPARE8 spare4; // 保留字段
 
     // 标识符:validity_accel_up
     // 名  称:有效性_加速度天向
@@ -14269,7 +14305,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_accel_north;
 
-    SPARE8 spare5;  // 保留字段
+    SPARE8 spare5; // 保留字段
 
     // 标识符:validity_vel_Z
     // 名  称:有效性_速度Z轴
@@ -14295,7 +14331,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_vel_X;
 
-    SPARE8 spare6;  // 保留字段
+    SPARE8 spare6; // 保留字段
 
     // 标识符:validity_vel_up
     // 名  称:有效性_速度天向
@@ -14385,7 +14421,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_inertial_AOA;
 
-    SPARE8 spare7[2];  // 保留字段
+    SPARE8 spare7[2]; // 保留字段
 
     // 标识符:validity_plat_to_body_matrix
     // 名  称:有效性_平台系到机体转换矩阵
@@ -14403,7 +14439,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_earth_to_plat_matrix;
 
-    SPARE8 spare8;  // 保留字段
+    SPARE8 spare8; // 保留字段
 
     // 标识符:validity_wind_up
     // 名  称:有效性_风速天向
@@ -14461,7 +14497,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_wind_direction_level;
 
-    SPARE8 spare9;  // 保留字段
+    SPARE8 spare9; // 保留字段
 
     // 标识符:validity_baro_reference_alt
     // 名  称:有效性_参考高度
@@ -14487,7 +14523,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_position;
 
-    SPARE8 spare10;  // 保留字段
+    SPARE8 spare10; // 保留字段
 
     // 标识符:validity_roz
     // 名  称:有效性_ROZ
@@ -14513,7 +14549,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_local_magnetic_variation;
 
-    SPARE8 spare11[3];  // 保留字段
+    SPARE8 spare11[3]; // 保留字段
 
     // 标识符:validity_flight_path_acc
     // 名  称:有效性_飞行加速度
@@ -14879,7 +14915,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:time_zone
     // 名  称:时间_时区
     // 说  明:
@@ -14906,7 +14942,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 23;  // 保留字段
+    UINT32 spare1 : 23; // 保留字段
     // 标识符:RNG_DIRECTION_CHG
     // 名  称:扫描方向修改标识
     // 说  明:
@@ -15005,7 +15041,7 @@ typedef struct
     // 起始位:16
     UINT32 IR_range_lowline : 16;
 
-    UINT32 spare1 : 10;  // 保留字段
+    UINT32 spare1 : 10; // 保留字段
     // 标识符:IR_WIDE_IMAGE_DIRECTION
     // 名  称:光电广域成像扫描方向
     // 说  明:
@@ -15044,7 +15080,7 @@ typedef struct
     // 名  称:光电扫描结束角
     // 说  明:
     // 单  位:mrad
-    // LSB  :0.01
+    // LSB  :0.1
     // 起始字:3
     // 起始位:16
     INT16 IR_scan_end_angle;
@@ -15053,7 +15089,7 @@ typedef struct
     // 名  称:光电扫描起始角
     // 说  明:
     // 单  位:mrad
-    // LSB  :0.01
+    // LSB  :0.1
     // 起始字:3
     // 起始位:0
     INT16 IR_scan_start_angle;
@@ -15159,7 +15195,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 20;  // 保留字段
+    UINT32 spare1 : 20; // 保留字段
     // 标识符:TGT_TRACK_ID
     // 名  称:动目标ID
     // 说  明:
@@ -15217,7 +15253,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 28;  // 保留字段
+    UINT32 spare1 : 28; // 保留字段
     // 标识符:ENHANCE_CHG
     // 名  称:增强修改标识
     // 说  明:
@@ -15292,7 +15328,7 @@ typedef struct
     // 起始位:8
     UINT32 light_dim_mode : 8;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
 
     // 标识符:light_enhance_mode
     // 名  称:可见光增强状态
@@ -15310,7 +15346,7 @@ typedef struct
     // 起始位:16
     UINT32 light_mist_eliminate_state : 8;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
     // 标识符:focus_value
     // 名  称:调焦值
     // 说  明:
@@ -15329,7 +15365,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 28;  // 保留字段
+    UINT32 spare1 : 28; // 保留字段
     // 标识符:video_polar_CHG
     // 名  称:视频极化修改标识
     // 说  明:
@@ -15379,7 +15415,7 @@ typedef struct
     // 起始位:0
     IMAGE_INFRA_MARK_TYPE_DEF image_infra_mark;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
     // 标识符:infrared_focus_mode
     // 名  称:红外调焦模式
     // 说  明:
@@ -15396,9 +15432,9 @@ typedef struct
     // 起始位:8
     UINT32 infrared_dim_mode : 8;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
 
-    SPARE8 spare3[2];  // 保留字段
+    SPARE8 spare3[2]; // 保留字段
 
     // 标识符:light_value
     // 名  称:调光值
@@ -15418,7 +15454,7 @@ typedef struct
     // 起始位:0
     INT8 focus_value;
 
-    UINT32 spare4 : 16;  // 保留字段
+    UINT32 spare4 : 16; // 保留字段
     // 标识符:infrared_enhance_mode
     // 名  称:红外增强状态
     // 说  明:
@@ -15483,7 +15519,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 29;  // 保留字段
+    UINT32 spare1 : 29; // 保留字段
     // 标识符:HEIGHT_CHG
     // 名  称:高度修改标识
     // 说  明:
@@ -15542,7 +15578,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 21;  // 保留字段
+    UINT32 spare1 : 21; // 保留字段
     // 标识符:IMG_MODE_CHG
     // 名  称:成像方式修改标识
     // 说  明:
@@ -15632,7 +15668,7 @@ typedef struct
     // 起始位:0
     CENTER_POINT_POS_TYPE_DEF center_point_pos;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:AREA_num
     // 名  称:区域编号
@@ -15652,7 +15688,7 @@ typedef struct
     // 起始位:0
     UINT8 IR_AREA_LENGTH;
 
-    UINT32 spare2 : 24;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:IR_IMG_MODE
     // 名  称:光电成像方式
     // 说  明:
@@ -15670,7 +15706,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:irst_work_state
     // 名  称:IRST工作状态
     // 说  明:
@@ -15695,7 +15731,7 @@ typedef struct
     // 起始位:0
     IR_IMAGE_PARAS_INFRA_TYPE_DEF IR_image_paras_infra;
 
-    UINT32 spare2 : 16;  // 保留字段
+    UINT32 spare2 : 16; // 保留字段
     // 标识符:irst_form_mode
     // 名  称:IRST成像模式
     // 说  明:
@@ -15720,7 +15756,7 @@ typedef struct
     // 起始位:0
     IR_WIDE_IMAGE_PARAS_REQ_TYPE_DEF IR_wide_image_paras_req;
 
-    SPARE32 spare3[1];  // 保留字段
+    SPARE32 spare3[1]; // 保留字段
 
     // 标识符:area_image_paras_req
     // 名  称:IR区域成像范围参数_请求
@@ -15730,9 +15766,9 @@ typedef struct
     // 起始位:0
     AREA_IMAGE_PARAS_REQ_TYPE_DEF area_image_paras_req;
 
-    SPARE32 spare4[1];  // 保留字段
+    SPARE32 spare4[1]; // 保留字段
 
-    UINT32 spare5 : 24;  // 保留字段
+    UINT32 spare5 : 24; // 保留字段
     // 标识符:IRST_Video_BAND
     // 名  称:IRST_区域监视视频带宽
     // 说  明:
@@ -15757,7 +15793,7 @@ typedef struct
     // 起始位:0
     IR_TGT_TRACK_INFO_TYPE_DEF IR_TGT_TRACK_INFO;
 
-    UINT32 spare7 : 8;  // 保留字段
+    UINT32 spare7 : 8; // 保留字段
     // 标识符:environmnet_type
     // 名  称:环境类型
     // 说  明:
@@ -15766,7 +15802,7 @@ typedef struct
     // 起始位:16
     UINT32 environmnet_type : 8;
 
-    UINT32 spare6 : 8;  // 保留字段
+    UINT32 spare6 : 8; // 保留字段
     // 标识符:IR_SENSOR
     // 名  称:光电传感器状态
     // 说  明:
@@ -15784,7 +15820,7 @@ typedef struct
 // 信 号 组 说    明: 该信号仅在“通用活动请求”枚举值不为“NA”或“特殊活动请求”时有效
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:MFL_operation
     // 名  称:MFL操作类型
     // 说  明:
@@ -15819,7 +15855,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:TrackMdfY
     // 名  称:跟踪修正偏差Y
     // 说  明:
@@ -15855,7 +15891,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:TrackMdfY
     // 名  称:跟踪修正偏差Y
     // 说  明:
@@ -15923,7 +15959,7 @@ typedef struct
     // 起始位:28
     UINT32 VMS1394_SCO : 1;
 
-    UINT32 spare3 : 1;  // 保留字段
+    UINT32 spare3 : 1; // 保留字段
     // 标识符:VMS1394_VMC_DPV
     // 名  称:VMS1394_本通道CPU_DPV
     // 说  明:
@@ -15932,7 +15968,7 @@ typedef struct
     // 起始位:26
     UINT32 VMS1394_VMC_DPV : 1;
 
-    UINT32 spare2 : 1;  // 保留字段
+    UINT32 spare2 : 1; // 保留字段
     // 标识符:VMS1394_CPU1_LCV
     // 名  称:VMS1394_有效性_本通道CPU1
     // 说  明:
@@ -15973,7 +16009,7 @@ typedef struct
     // 起始位:20
     UINT32 VMS1394_CPU2_MON : 1;
 
-    UINT32 spare1 : 20;  // 保留字段
+    UINT32 spare1 : 20; // 保留字段
 
 } VMS1394_VMC_STATE_TYPE_DEF;
 
@@ -15992,7 +16028,7 @@ typedef struct
     // 起始位:29
     UINT32 VMS1394_AC_CFG_ID : 3;
 
-    UINT32 spare3 : 1;  // 保留字段
+    UINT32 spare3 : 1; // 保留字段
     // 标识符:VMS1394_LRU_ID
     // 名  称:VMS1394_LRU_ID
     // 说  明:A通道：bit26~bit27  1 0
@@ -16003,7 +16039,7 @@ typedef struct
     // 起始位:26
     UINT32 VMS1394_LRU_ID : 2;
 
-    UINT32 spare2 : 1;  // 保留字段
+    UINT32 spare2 : 1; // 保留字段
     // 标识符:VMS1394_AC_ID
     // 名  称:VMS1394_飞机ID
     // 说  明:主机所自行定义使用，目前预留置0
@@ -16020,7 +16056,7 @@ typedef struct
     // 起始位:17
     UINT32 VMS1394_BUS_ID : 3;
 
-    UINT32 spare1 : 17;  // 保留字段
+    UINT32 spare1 : 17; // 保留字段
 
 } VMS1394_VMC_BRANCH_STATE_TYPE_DEF;
 
@@ -16143,7 +16179,7 @@ typedef struct
     // 起始位:18
     UINT32 VMS1394_WOW : 1;
 
-    UINT32 spare1 : 18;  // 保留字段
+    UINT32 spare1 : 18; // 保留字段
 
 } VMS1394_SYS_MODE_STATE_TYPE_DEF;
 
@@ -16285,7 +16321,7 @@ typedef struct
     // 起始位:0
     UINT32 IMG_ID;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:A818_CycleNo
     // 名  称:周期号
@@ -16299,7 +16335,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_CycleNo;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:A818_LineNo
     // 名  称:条带号
@@ -16386,7 +16422,7 @@ typedef struct
     // 起始位:0
     INT16 fov_center_el;
 
-    SPARE8 spare3[2];  // 保留字段
+    SPARE8 spare3[2]; // 保留字段
 
     // 标识符:A818_Beside_tgt_cover
     // 名  称:傍向重叠率
@@ -16425,7 +16461,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_CUR_RESOLUTION;
 
-    SPARE8 spare4[2];  // 保留字段
+    SPARE8 spare4[2]; // 保留字段
 
     // 标识符:A818_ImageCenterHeight
     // 名  称:图像中心高度
@@ -16524,7 +16560,7 @@ typedef struct
     // 起始位:0
     DOWNRIGHT_LATITUDE_TYPE_DEF downright_latitude;
 
-    UINT32 spare5 : 14;  // 保留字段
+    UINT32 spare5 : 14; // 保留字段
     // 标识符:A818_SideViewDirection
     // 名  称:雷达侧视方向
     // 说  明:雷达专用，表示雷达侧视方向。条带SAR模式或SAR-GMTI模式下：1=左侧视、2=右侧视；其它模式填0
@@ -16551,7 +16587,7 @@ typedef struct
     // 起始位:0
     UINT32 A818_SlantRange;
 
-    SPARE8 spare6[2];  // 保留字段
+    SPARE8 spare6[2]; // 保留字段
 
     // 标识符:fused_tgt_ID
     // 名  称:融合目标编号
@@ -16603,7 +16639,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_EO_TakeTimes;
 
-    SPARE8 spare7;  // 保留字段
+    SPARE8 spare7; // 保留字段
 
     // 标识符:A818_EO_ImpotentTag
     // 名  称:重要目标标识
@@ -16701,7 +16737,7 @@ typedef struct
     // 起始位:0
     UINT32 A818_ACRelativeAltitude;
 
-    SPARE8 spare8[2];  // 保留字段
+    SPARE8 spare8[2]; // 保留字段
 
     // 标识符:A818_ViewNum
     // 名  称:视数
@@ -16811,7 +16847,7 @@ typedef struct
     // 起始位:0
     UINT32 A818_DataRate;
 
-    SPARE8 spare9;  // 保留字段
+    SPARE8 spare9; // 保留字段
 
     // 标识符:A818_INS_GroupStatus
     // 名  称:惯导组合状态
@@ -17085,7 +17121,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:data_valid
     // 名  称:数据有效性
@@ -17392,7 +17428,7 @@ typedef struct
     // 起始位:0
     UINT16 fused_tgt_ID;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:IR_track_number
     // 名  称:IR目标编号
@@ -17470,7 +17506,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:security_login_flag
     // 名  称:系统安全_登录标识
@@ -17554,7 +17590,7 @@ typedef struct
     // 起始位:0
     UINT32 subdomain_ID : 32;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:security_State_Subsystem
     // 名  称:子系统保密状态
     // 说  明:
@@ -17588,7 +17624,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:security_level
     // 名  称:系统安全_密级
     // 说  明:目前只有非密/秘密两种密级，后续可能会增加更多的密级
@@ -17688,7 +17724,7 @@ typedef struct
 // 信 号 组 说    明: 描述3个权限表的状态
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:valid_invalid
     // 名  称:有效_无效
     // 说  明:
@@ -17746,7 +17782,7 @@ typedef struct
     // 起始位:0
     UINT32 subdomain_ID : 32;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:app_state
     // 名  称:应用软件状态
     // 说  明:正常运行时，应用软件状态仅为正常工作或非正常工作；
@@ -18236,7 +18272,7 @@ typedef struct
 //                    IR目标距离信息[1]表示IR协同定位距离信息
 typedef struct
 {
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:laser_range_memory_flag
     // 名  称:激光测距外推标识
     // 说  明:
@@ -18472,7 +18508,7 @@ typedef struct
     // 起始位:0
     IR_CHARACTER_TYPE_DEF IR_character;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:target_track_unstable_state
     // 名  称:目标跟踪不稳定状态
     // 说  明:跟踪目标上报不稳定情况，快出框架角时上报火控更改下发AOC判断状态
@@ -18974,7 +19010,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:validity_cue_tgt
     // 名  称:有效性_提示搜索目标参数
@@ -19077,7 +19113,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:Transom_temp
     // 名  称:光窗温度
     // 说  明:
@@ -19140,12 +19176,12 @@ typedef struct
 
 // 信 号 组 标 识 符: IR_image_paras
 // 信 号 组 名    称: IR图像参数
-// 信 号 组 字    数: 5
+// 信 号 组 字    数: 6
 // 信 号 组 数组长度: 1
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:light_focus_mode
     // 名  称:可见光调焦模式
     // 说  明:
@@ -19254,7 +19290,7 @@ typedef struct
     // 起始位:0
     UINT32 infrared_enhance_mode : 8;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
     // 标识符:non_uniform_correct_state
     // 名  称:非均匀校正状态
     // 说  明:
@@ -19281,6 +19317,24 @@ typedef struct
     // 起始位:0
     INT32 light_value_light : 8;
 
+    // 标识符:light_focus_pos
+    // 名  称:可见光焦面位置
+    // 说  明:
+    // 单  位:mm
+    // LSB  :0.001
+    // 起始字:5
+    // 起始位:16
+    INT16 light_focus_pos;
+
+    // 标识符:infrared_focus_pos
+    // 名  称:红外焦面位置
+    // 说  明:
+    // 单  位:mm
+    // LSB  :0.001
+    // 起始字:5
+    // 起始位:0
+    INT16 infrared_focus_pos;
+
 } IR_IMAGE_PARAS_TYPE_DEF;
 
 // 信 号 组 标 识 符: IR_wide_image_paras
@@ -19299,7 +19353,15 @@ typedef struct
     // 起始位:16
     UINT32 IR_range_lowline : 16;
 
-    UINT32 spare1 : 10;  // 保留字段
+    // 标识符:IR_IMG_FLAG
+    // 名  称:光电成像状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:8
+    UINT32 IR_IMG_FLAG : 8;
+
+    UINT32 spare1 : 2; // 保留字段
     // 标识符:IR_WIDE_IMAGE_DIRECTION
     // 名  称:光电广域成像扫描方向
     // 说  明:
@@ -19338,7 +19400,7 @@ typedef struct
     // 名  称:光电扫描结束角
     // 说  明:
     // 单  位:mrad
-    // LSB  :0.01
+    // LSB  :0.1
     // 起始字:2
     // 起始位:16
     INT16 IR_scan_end_angle;
@@ -19347,7 +19409,7 @@ typedef struct
     // 名  称:光电扫描起始角
     // 说  明:
     // 单  位:mrad
-    // LSB  :0.01
+    // LSB  :0.1
     // 起始字:2
     // 起始位:0
     INT16 IR_scan_start_angle;
@@ -19389,7 +19451,7 @@ typedef struct
     // 起始位:0
     CENTER_POINT_POS_TYPE_DEF center_point_pos;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:IR_IMG_FLAG
     // 名  称:光电成像状态
     // 说  明:
@@ -19415,7 +19477,7 @@ typedef struct
     // 起始位:0
     CENTER_POINT_POS_TYPE_DEF center_point_pos;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:Area_validity
     // 名  称:区域有效性
     // 说  明:
@@ -19474,7 +19536,7 @@ typedef struct
     // 起始位:0
     AREA_MONITOR_PARAS_IR_TYPE_DEF area_monitor_paras_IR;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:IR_IMG_MODE
     // 名  称:光电成像方式
     // 说  明:
@@ -19516,7 +19578,7 @@ typedef struct
     // 起始位:0
     AREA_MONITOR_PARAS_IR_TYPE_DEF area_monitor_paras_IR;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:IR_IMG_MODE
     // 名  称:光电成像方式
     // 说  明:
@@ -19526,6 +19588,586 @@ typedef struct
     UINT32 IR_IMG_MODE : 8;
 
 } IMAGE_VOLUM_IR_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_DLS_STATUS6
+// 信 号 组 名    称: VMS1394_遥控帧_指控链路状态6
+// 信 号 组 字    数: 1
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    // 标识符:VMS1394_YKZ_GCS_NUM
+    // 名  称:VMS1394_遥控帧_地面站编号
+    // 说  明:
+    // 单  位:
+    // LSB  :1
+    // 起始字:0
+    // 起始位:24
+    UINT8 VMS1394_YKZ_GCS_NUM;
+
+    // 标识符:VMS1394_YKZ_GCS_TYPE
+    // 名  称:VMS1394_遥控帧_地面站类型
+    // 说  明:
+    // 单  位:
+    // LSB  :1
+    // 起始字:0
+    // 起始位:16
+    UINT8 VMS1394_YKZ_GCS_TYPE;
+
+    // 标识符:VMS1394_YKZ_AC_NUM
+    // 名  称:VMS1394_遥控帧_飞行器编号
+    // 说  明:
+    // 单  位:
+    // LSB  :1
+    // 起始字:0
+    // 起始位:8
+    UINT8 VMS1394_YKZ_AC_NUM;
+
+    // 标识符:VMS1394_YKZ_AC_TYPE
+    // 名  称:VMS1394_遥控帧_飞行器类型
+    // 说  明:
+    // 单  位:
+    // LSB  :1
+    // 起始字:0
+    // 起始位:0
+    UINT8 VMS1394_YKZ_AC_TYPE;
+
+} VMS1394_YKZ_DLS_STATUS6_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_DLS_STATUS5
+// 信 号 组 名    称: VMS1394_遥控帧_指控链路状态5
+// 信 号 组 字    数: 1
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    UINT32 spare1 : 29; // 保留字段
+    // 标识符:VMS1394_YKZ_A_CHANNAL_STATUS
+    // 名  称:VMS1394_遥控帧_A通道状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:2
+    UINT32 VMS1394_YKZ_A_CHANNAL_STATUS : 1;
+
+    // 标识符:VMS1394_YKZ_B_CHANNAL_STATUS
+    // 名  称:VMS1394_遥控帧_B通道状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:1
+    UINT32 VMS1394_YKZ_B_CHANNAL_STATUS : 1;
+
+    // 标识符:VMS1394_YKZ_C_CHANNAL_STATUS
+    // 名  称:VMS1394_遥控帧_C通道状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:0
+    UINT32 VMS1394_YKZ_C_CHANNAL_STATUS : 1;
+
+} VMS1394_YKZ_DLS_STATUS5_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_DLS_STATUS34
+// 信 号 组 名    称: VMS1394_遥控帧_指控链路状态3/4
+// 信 号 组 字    数: 1
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    // 标识符:VMS1394_YKZ_KaDL_DOWN_BANDSTATUS
+    // 名  称:VMS1394_遥控帧_Ka链下行带宽状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:24
+    UINT32 VMS1394_YKZ_KaDL_DOWN_BANDSTATUS : 8;
+
+    // 标识符:VMS1394_YKZ_KuDL_DOWN_BANDSTATUS
+    // 名  称:VMS1394_遥控帧_Ku链下行带宽状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:16
+    UINT32 VMS1394_YKZ_KuDL_DOWN_BANDSTATUS : 8;
+
+    // 标识符:VMS1394_YKZ_CDL_DOWN_BANDSTATUS
+    // 名  称:VMS1394_遥控帧_C链下行带宽状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:0
+    UINT32 VMS1394_YKZ_CDL_DOWN_BANDSTATUS : 16;
+
+} VMS1394_YKZ_DLS_STATUS34_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_DLS_STATUS2
+// 信 号 组 名    称: VMS1394_遥控帧_指控链路状态2
+// 信 号 组 字    数: 1
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    UINT32 spare1 : 6; // 保留字段
+    // 标识符:VMS1394_YKZ_SDL_UP_SERVICE_STATUS
+    // 名  称:VMS1394_遥控帧_S链上行业务通道状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:25
+    UINT32 VMS1394_YKZ_SDL_UP_SERVICE_STATUS : 1;
+
+    // 标识符:VMS1394_YKZ_LDL_UP_SERVICE_STATUS2
+    // 名  称:VMS1394_遥控帧_L链上行业务通道状态2
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:24
+    UINT32 VMS1394_YKZ_LDL_UP_SERVICE_STATUS2 : 1;
+
+    // 标识符:VMS1394_YKZ_LDL_UP_SERVICE_STATUS1
+    // 名  称:VMS1394_遥控帧_L链上行业务通道状态1
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:23
+    UINT32 VMS1394_YKZ_LDL_UP_SERVICE_STATUS1 : 1;
+
+    // 标识符:VMS1394_YKZ_KDL_UP_SERVICE_STATUS2
+    // 名  称:VMS1394_遥控帧_K链上行业务通道状态2
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:22
+    UINT32 VMS1394_YKZ_KDL_UP_SERVICE_STATUS2 : 1;
+
+    // 标识符:VMS1394_YKZ_KDL_UP_SERVICE_STATUS1
+    // 名  称:VMS1394_遥控帧_K链上行业务通道状态1
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:21
+    UINT32 VMS1394_YKZ_KDL_UP_SERVICE_STATUS1 : 1;
+
+    // 标识符:VMS1394_YKZ_CDL_UP_SERVICE_STATUS2
+    // 名  称:VMS1394_遥控帧_C链上行业务通道状态2
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:20
+    UINT32 VMS1394_YKZ_CDL_UP_SERVICE_STATUS2 : 1;
+
+    // 标识符:VMS1394_YKZ_CDL_UP_SERVICE_STATUS1
+    // 名  称:VMS1394_遥控帧_C链上行业务通道状态1
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:19
+    UINT32 VMS1394_YKZ_CDL_UP_SERVICE_STATUS1 : 1;
+
+    // 标识符:VMS1394_YKZ_KuDL_DOWN_WROKSTATUS2
+    // 名  称:VMS1394_遥控帧_K链下行工作状态2
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:16
+    UINT32 VMS1394_YKZ_KuDL_DOWN_WROKSTATUS2 : 3;
+
+    // 标识符:VMS1394_YKZ_SDL_DOWN_WROKSTATUS
+    // 名  称:VMS1394_遥控帧_S链下行工作状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:13
+    UINT32 VMS1394_YKZ_SDL_DOWN_WROKSTATUS : 3;
+
+    // 标识符:VMS1394_YKZ_LDL_DOWN_WROKSTATUS
+    // 名  称:VMS1394_遥控帧_L链下行工作状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:10
+    UINT32 VMS1394_YKZ_LDL_DOWN_WROKSTATUS : 3;
+
+    // 标识符:VMS1394_YKZ_KaDL_DOWN_WROKSTATUS1
+    // 名  称:VMS1394_遥控帧_K链下行工作状态1
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:7
+    UINT32 VMS1394_YKZ_KaDL_DOWN_WROKSTATUS1 : 3;
+
+    // 标识符:VMS1394_YKZ_CDL_DOWN_WROKSTATUS
+    // 名  称:VMS1394_遥控帧_C链下行工作状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:4
+    UINT32 VMS1394_YKZ_CDL_DOWN_WROKSTATUS : 3;
+
+    // 标识符:VMS1394_YKZ_SDL_UP_LINKSTATUS
+    // 名  称:VMS1394_遥控帧_S链上行通断状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:3
+    UINT32 VMS1394_YKZ_SDL_UP_LINKSTATUS : 1;
+
+    // 标识符:VMS1394_YKZ_LDL_UP_LINKSTATUS
+    // 名  称:VMS1394_遥控帧_L链上行通断状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:2
+    UINT32 VMS1394_YKZ_LDL_UP_LINKSTATUS : 1;
+
+    // 标识符:VMS1394_YKZ_KDL_UP_LINKSTATUS
+    // 名  称:VMS1394_遥控帧_K链上行通断状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:1
+    UINT32 VMS1394_YKZ_KDL_UP_LINKSTATUS : 1;
+
+    // 标识符:VMS1394_YKZ_CDL_UP_LINKSTATUS
+    // 名  称:VMS1394_遥控帧_C链上行通断状态
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:0
+    UINT32 VMS1394_YKZ_CDL_UP_LINKSTATUS : 1;
+
+} VMS1394_YKZ_DLS_STATUS2_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_DLS_STATUS1
+// 信 号 组 名    称: VMS1394_遥控帧_指控链路状态1
+// 信 号 组 字    数: 1
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    UINT32 spare1 : 25; // 保留字段
+    // 标识符:VMS1394_YKZ_REFRESH
+    // 名  称:VMS1394_遥控帧_当前遥控帧刷新标志
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:5
+    UINT32 VMS1394_YKZ_REFRESH : 2;
+
+    // 标识符:VMS1394_YKZ_SOURCE
+    // 名  称:VMS1394_遥控帧_当前遥控帧来源
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:2
+    UINT32 VMS1394_YKZ_SOURCE : 3;
+
+    // 标识符:VMS1394_YKZ_VALID
+    // 名  称:VMS1394_遥控帧_当前遥控帧有效性
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:0
+    UINT32 VMS1394_YKZ_VALID : 2;
+
+} VMS1394_YKZ_DLS_STATUS1_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_DLS_STATUS
+// 信 号 组 名    称: VMS1394_遥控帧_指控链路状态
+// 信 号 组 字    数: 5
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    // 标识符:VMS1394_YKZ_DLS_STATUS1
+    // 名  称:VMS1394_遥控帧_指控链路状态1
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:0
+    VMS1394_YKZ_DLS_STATUS1_TYPE_DEF VMS1394_YKZ_DLS_STATUS1;
+
+    // 标识符:VMS1394_YKZ_DLS_STATUS2
+    // 名  称:VMS1394_遥控帧_指控链路状态2
+    // 说  明:
+    // 单  位:
+    // 起始字:1
+    // 起始位:0
+    VMS1394_YKZ_DLS_STATUS2_TYPE_DEF VMS1394_YKZ_DLS_STATUS2;
+
+    // 标识符:VMS1394_YKZ_DLS_STATUS34
+    // 名  称:VMS1394_遥控帧_指控链路状态3/4
+    // 说  明:
+    // 单  位:
+    // 起始字:2
+    // 起始位:0
+    VMS1394_YKZ_DLS_STATUS34_TYPE_DEF VMS1394_YKZ_DLS_STATUS34;
+
+    // 标识符:VMS1394_YKZ_DLS_STATUS5
+    // 名  称:VMS1394_遥控帧_指控链路状态5
+    // 说  明:
+    // 单  位:
+    // 起始字:3
+    // 起始位:0
+    VMS1394_YKZ_DLS_STATUS5_TYPE_DEF VMS1394_YKZ_DLS_STATUS5;
+
+    // 标识符:VMS1394_YKZ_DLS_STATUS6
+    // 名  称:VMS1394_遥控帧_指控链路状态6
+    // 说  明:
+    // 单  位:
+    // 起始字:4
+    // 起始位:0
+    VMS1394_YKZ_DLS_STATUS6_TYPE_DEF VMS1394_YKZ_DLS_STATUS6;
+
+} VMS1394_YKZ_DLS_STATUS_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_LDL_UP_CHANNEL_PARA
+// 信 号 组 名    称: VMS1394_遥控帧_L链上行波道参数
+// 信 号 组 字    数: 1
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    UINT32 spare2 : 10; // 保留字段
+    // 标识符:VMS1394_YKZ_LDL_UP_CHANNAL2_DS
+    // 名  称:VMS1394_遥控帧_L链上行波道2连续直扩
+    // 说  明:中心频点 = 2.5 *飞参频点+ 1667.5 MHz
+    // 单  位:
+    // 起始字:0
+    // 起始位:16
+    UINT32 VMS1394_YKZ_LDL_UP_CHANNAL2_DS : 6;
+
+    UINT32 spare1 : 10; // 保留字段
+    // 标识符:VMS1394_YKZ_LDL_UP_CHANNAL1_DS
+    // 名  称:VMS1394_遥控帧_L链上行波道1连续直扩
+    // 说  明:中心频点 = 2.5 *飞参频点+ 1667.5 MHz
+    // 单  位:
+    // 起始字:0
+    // 起始位:0
+    UINT32 VMS1394_YKZ_LDL_UP_CHANNAL1_DS : 6;
+
+} VMS1394_YKZ_LDL_UP_CHANNEL_PARA_TYPE_DEF;
+
+// 信 号 组 标 识 符: VMS1394_YKZ_DLS_CHANNEL_PARA
+// 信 号 组 名    称: VMS1394_遥控帧_指控链路波道参数
+// 信 号 组 字    数: 15
+// 信 号 组 数组长度: 1
+// 信 号 组 说    明:
+typedef struct
+{
+    // 标识符:VMS1394_YKZ_CDL_UP_CHANNEL2
+    // 名  称:VMS1394_遥控帧_C链上行波道2
+    // 说  明:中心频点 = C链上行波道2+ 6950 MHz
+    //
+    // 单  位:No_Unit
+    // LSB  :1
+    // 起始字:0
+    // 起始位:16
+    UINT16 VMS1394_YKZ_CDL_UP_CHANNEL2;
+
+    // 标识符:VMS1394_YKZ_CDL_UP_CHANNEL1
+    // 名  称:VMS1394_遥控帧_C链上行波道1
+    // 说  明:中心频点 = C链上行波道1+ 6950 MHz
+    //
+    // 单  位:No_Unit
+    // LSB  :1
+    // 起始字:0
+    // 起始位:0
+    UINT16 VMS1394_YKZ_CDL_UP_CHANNEL1;
+
+    // 标识符:VMS1394_YKZ_KDL_UP_CHANNEL1
+    // 名  称:VMS1394_遥控帧_K链上行波道1
+    // 说  明:Ka:17.7～21.2GHz
+    //        Ku:10.7～12.75GHz
+    //        K链通道1业务接收频率
+    // 单  位:KHz
+    // LSB  :1
+    // 起始字:1
+    // 起始位:0
+    UINT32 VMS1394_YKZ_KDL_UP_CHANNEL1;
+
+    // 标识符:VMS1394_YKZ_KDL_UP_CHANNEL2
+    // 名  称:VMS1394_遥控帧_K链上行波道2
+    // 说  明:Ka:17.7～21.2GHz
+    //        Ku:10.7～12.75GHz
+    //        K链通道2业务接收频率
+    // 单  位:KHz
+    // LSB  :1
+    // 起始字:2
+    // 起始位:0
+    UINT32 VMS1394_YKZ_KDL_UP_CHANNEL2;
+
+    // 标识符:VMS1394_YKZ_KDL_UP_Signal_CHANNEL
+    // 名  称:VMS1394_遥控帧_K链上行信令波道
+    // 说  明:Ka:17.7～21.2GHz
+    //        信令接收频率
+    // 单  位:KHz
+    // LSB  :1
+    // 起始字:3
+    // 起始位:0
+    UINT32 VMS1394_YKZ_KDL_UP_Signal_CHANNEL;
+
+    // 标识符:VMS1394_YKZ_LDL_UP_CHANNEL_PARA
+    // 名  称:VMS1394_遥控帧_L链上行波道参数
+    // 说  明:
+    // 单  位:
+    // 起始字:4
+    // 起始位:0
+    VMS1394_YKZ_LDL_UP_CHANNEL_PARA_TYPE_DEF VMS1394_YKZ_LDL_UP_CHANNEL_PARA;
+
+    // 标识符:VMS1394_YKZ_SDL_UP_CHANNEL
+    // 名  称:VMS1394_遥控帧_S链上行波道
+    // 说  明:2170MHz～2200MHz
+    //        S链前向业务信道频率
+    // 单  位:Hz
+    // LSB  :1
+    // 起始字:5
+    // 起始位:0
+    UINT32 VMS1394_YKZ_SDL_UP_CHANNEL;
+
+    // 标识符:VMS1394_YKZ_SDL_UP_SIGNAL_CHANNEL
+    // 名  称:VMS1394_遥控帧_S链上行信令波道
+    // 说  明:2170MHz～2200MHz
+    //        S链前向主TDM频率
+    // 单  位:Hz
+    // LSB  :1
+    // 起始字:6
+    // 起始位:0
+    UINT32 VMS1394_YKZ_SDL_UP_SIGNAL_CHANNEL;
+
+    UINT32 spare1 : 10; // 保留字段
+    // 标识符:VMS1394_YKZ_LDL_DOWN_CHANNAL_DS
+    // 名  称:VMS1394_遥控帧_L链下行波道连续直扩
+    // 说  明:中心频点 = 2.5 *飞参频点+ 1427.5 MHz
+    // 单  位:
+    // 起始字:7
+    // 起始位:16
+    UINT32 VMS1394_YKZ_LDL_DOWN_CHANNAL_DS : 6;
+
+    // 标识符:VMS1394_YKZ_CDL_DOWN_CHANNEL
+    // 名  称:VMS1394_遥控帧_C链下行波道
+    // 说  明:中心频率=C链下行波道+ 6000 MHz
+    // 单  位:No_Unit
+    // LSB  :1
+    // 起始字:7
+    // 起始位:0
+    UINT32 VMS1394_YKZ_CDL_DOWN_CHANNEL : 16;
+
+    // 标识符:VMS1394_YKZ_KDL_DOWN_CHANNEL1
+    // 名  称:VMS1394_遥控帧_K链下行波道1
+    // 说  明:K链通道1业务发射频率
+    // 单  位:KHz
+    // LSB  :1
+    // 起始字:8
+    // 起始位:0
+    UINT32 VMS1394_YKZ_KDL_DOWN_CHANNEL1;
+
+    // 标识符:VMS1394_YKZ_KDL_DOWN_CHANNEL2
+    // 名  称:VMS1394_遥控帧_K链下行波道2
+    // 说  明:K链通道2业务发射频率
+    // 单  位:KHz
+    // LSB  :1
+    // 起始字:9
+    // 起始位:0
+    UINT32 VMS1394_YKZ_KDL_DOWN_CHANNEL2;
+
+    // 标识符:VMS1394_YKZ_KDL_DOWN_SIGNAL_CHANNEL
+    // 名  称:VMS1394_遥控帧_K链下行信令波道
+    // 说  明:信令发射频率
+    // 单  位:KHz
+    // LSB  :1
+    // 起始字:10
+    // 起始位:0
+    UINT32 VMS1394_YKZ_KDL_DOWN_SIGNAL_CHANNEL;
+
+    // 标识符:VMS1394_YKZ_SDL_DOWN_CHANNEL
+    // 名  称:VMS1394_遥控帧_S链下行波道
+    // 说  明:1980MHz～2010MHz
+    //        S链返向业务信道频率
+    // 单  位:Hz
+    // LSB  :1
+    // 起始字:11
+    // 起始位:0
+    UINT32 VMS1394_YKZ_SDL_DOWN_CHANNEL;
+
+    // 标识符:VMS1394_YKZ_SDL_DOWN_SIGNAL_CHANNEL
+    // 名  称:VMS1394_遥控帧_S链下行信令波道
+    // 说  明:1980MHz～2010MHz
+    //        返向ALOHA频率
+    // 单  位:Hz
+    // LSB  :1
+    // 起始字:12
+    // 起始位:0
+    UINT32 VMS1394_YKZ_SDL_DOWN_SIGNAL_CHANNEL;
+
+    UINT32 spare2 : 16; // 保留字段
+    // 标识符:VMS1394_YKZ_SDL_DOWN_MODULATE_PARA
+    // 名  称:VMS1394_遥控帧_S链下行链路调制参数
+    // 说  明:
+    // 单  位:
+    // 起始字:13
+    // 起始位:12
+    UINT32 VMS1394_YKZ_SDL_DOWN_MODULATE_PARA : 4;
+
+    // 标识符:VMS1394_YKZ_SDL_UP_MODULATE_PARA
+    // 名  称:VMS1394_遥控帧_S链上行链路调制参数
+    // 说  明:
+    // 单  位:
+    // 起始字:13
+    // 起始位:8
+    UINT32 VMS1394_YKZ_SDL_UP_MODULATE_PARA : 4;
+
+    // 标识符:VMS1394_YKZ_LDL_DOWN_MODULATE_PARA
+    // 名  称:VMS1394_遥控帧_L链下行链路调制参数
+    // 说  明:
+    // 单  位:
+    // 起始字:13
+    // 起始位:4
+    UINT32 VMS1394_YKZ_LDL_DOWN_MODULATE_PARA : 4;
+
+    // 标识符:VMS1394_YKZ_LDL_UP_MODULATE_PARA
+    // 名  称:VMS1394_遥控帧_L链上行链路调制参数
+    // 说  明:
+    // 单  位:
+    // 起始字:13
+    // 起始位:0
+    UINT32 VMS1394_YKZ_LDL_UP_MODULATE_PARA : 4;
+
+    UINT32 spare3 : 24; // 保留字段
+    // 标识符:VMS1394_KDL_DOWN_Channal_Frequency
+    // 名  称:VMS1394_遥控帧_K链下行通道2工作频段
+    // 说  明:
+    // 单  位:
+    // 起始字:14
+    // 起始位:6
+    UINT32 VMS1394_KDL_DOWN_Channal_Frequency : 2;
+
+    // 标识符:VMS1394_KDL_DOWN_Channal1_Frequency
+    // 名  称:VMS1394_遥控帧_K链下行通道1工作频段
+    // 说  明:
+    // 单  位:
+    // 起始字:14
+    // 起始位:4
+    UINT32 VMS1394_KDL_DOWN_Channal1_Frequency : 2;
+
+    // 标识符:VMS1394_KDL_UP_Channal2_Frequency
+    // 名  称:VMS1394_遥控帧_K链上行通道2工作频段
+    // 说  明:
+    // 单  位:
+    // 起始字:14
+    // 起始位:2
+    UINT32 VMS1394_KDL_UP_Channal2_Frequency : 2;
+
+    // 标识符:VMS1394_KDL_UP_Channal1_Frequency
+    // 名  称:VMS1394_遥控帧_K链上行通道1工作频段
+    // 说  明:
+    // 单  位:
+    // 起始字:14
+    // 起始位:0
+    UINT32 VMS1394_KDL_UP_Channal1_Frequency : 2;
+
+} VMS1394_YKZ_DLS_CHANNEL_PARA_TYPE_DEF;
 
 // 信 号 组 标 识 符: VMS_usimKeyData_US
 // 信 号 组 名    称: VMS_机电关键参数_机电综合
@@ -19639,7 +20281,7 @@ typedef struct
     // 起始位:16
     INT32 VMS_value_LDCtemp : 16;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:VMS_valid_LDCTemp
     // 名  称:VMS_有效性_液冷温度
     // 说  明:
@@ -19657,7 +20299,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:VMS_valid_fuel_use
     // 名  称:VMS_有效性_余油_可用油量
     // 说  明:
@@ -19666,7 +20308,7 @@ typedef struct
     // 起始位:0
     UINT32 VMS_valid_fuel_use : 8;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:VMS_value_fuel_use
     // 名  称:VMS_数据值_余油_可用油量
@@ -19686,7 +20328,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
     // 标识符:VMS_REng_Mode
     // 名  称:VMS_右发_工作模式
     // 说  明:
@@ -19703,7 +20345,7 @@ typedef struct
     // 起始位:8
     UINT32 VMS_LEng_Mode : 8;
 
-    UINT32 spare1 : 4;  // 保留字段
+    UINT32 spare1 : 4; // 保留字段
     // 标识符:VMS_valid_REng_T1
     // 名  称:VMS_有效性_右发_T1
     // 说  明:
@@ -19783,7 +20425,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare4 : 21;  // 保留字段
+    UINT32 spare4 : 21; // 保留字段
     // 标识符:VMS_warning_REng_AfterburnOFF
     // 名  称:VMS_右发加力未接通
     // 说  明:
@@ -19824,7 +20466,7 @@ typedef struct
     // 起始位:6
     UINT32 VMS_valid_REng_T4 : 1;
 
-    UINT32 spare3 : 1;  // 保留字段
+    UINT32 spare3 : 1; // 保留字段
     // 标识符:VMS_valid_REng_N2
     // 名  称:VMS_有效性_右发_N2
     // 说  明:
@@ -19833,7 +20475,7 @@ typedef struct
     // 起始位:4
     UINT32 VMS_valid_REng_N2 : 1;
 
-    UINT32 spare2 : 1;  // 保留字段
+    UINT32 spare2 : 1; // 保留字段
     // 标识符:VMS_valid_LEng_T4
     // 名  称:VMS_有效性_左发_T4
     // 说  明:
@@ -19842,7 +20484,7 @@ typedef struct
     // 起始位:2
     UINT32 VMS_valid_LEng_T4 : 1;
 
-    UINT32 spare1 : 1;  // 保留字段
+    UINT32 spare1 : 1; // 保留字段
     // 标识符:VMS_valid_LEng_N2
     // 名  称:VMS_有效性_左发_N2
     // 说  明:
@@ -19851,7 +20493,7 @@ typedef struct
     // 起始位:0
     UINT32 VMS_valid_LEng_N2 : 1;
 
-    SPARE8 spare5[2];  // 保留字段
+    SPARE8 spare5[2]; // 保留字段
 
     // 标识符:VMS_value_LEng_N2
     // 名  称:VMS_数据值_左发_N2
@@ -19862,7 +20504,7 @@ typedef struct
     // 起始位:0
     INT16 VMS_value_LEng_N2;
 
-    SPARE8 spare6[2];  // 保留字段
+    SPARE8 spare6[2]; // 保留字段
 
     // 标识符:VMS_value_LEng_T4
     // 名  称:VMS_数据值_左发_T4
@@ -19873,7 +20515,7 @@ typedef struct
     // 起始位:0
     INT16 VMS_value_LEng_T4;
 
-    SPARE8 spare7[2];  // 保留字段
+    SPARE8 spare7[2]; // 保留字段
 
     // 标识符:VMS_value_REng_N2
     // 名  称:VMS_数据值_右发_N2
@@ -19884,7 +20526,7 @@ typedef struct
     // 起始位:0
     INT16 VMS_value_REng_N2;
 
-    SPARE8 spare8[2];  // 保留字段
+    SPARE8 spare8[2]; // 保留字段
 
     // 标识符:VMS_value_REng_T4
     // 名  称:VMS_数据值_右发_T4
@@ -19904,7 +20546,15 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 15; // 保留字段
+    // 标识符:VMS1394_RDR_STBY_TAG
+    // 名  称:VMS1394_雷达待机信号
+    // 说  明:
+    // 单  位:
+    // 起始字:0
+    // 起始位:16
+    UINT32 VMS1394_RDR_STBY_TAG : 1;
+
     // 标识符:VMS_elecPower_DCDC4
     // 名  称:VMS_供电_DCDC4
     // 说  明:
@@ -20015,7 +20665,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare2 : 12;  // 保留字段
+    UINT32 spare2 : 12; // 保留字段
     // 标识符:VMS_AT_ECO
     // 名  称:VMS_当前自动油门省油标志
     // 说  明:
@@ -20048,7 +20698,7 @@ typedef struct
     // 起始位:16
     UINT32 VMS_AT_CSS : 1;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:VMS_AT_State
     // 名  称:VMS_自动油门接通状态
     // 说  明:
@@ -20102,7 +20752,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare1 : 9;  // 保留字段
+    UINT32 spare1 : 9; // 保留字段
     // 标识符:VMS_TF_ALT_twinkle
     // 名  称:VMS_地形跟随相对高度闪烁标识
     // 说  明:
@@ -20209,7 +20859,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    UINT32 spare2 : 20;  // 保留字段
+    UINT32 spare2 : 20; // 保留字段
     // 标识符:VMS_PULLUP_FAULT
     // 名  称:VMS_防撞拉起故障状态
     // 说  明:
@@ -20242,7 +20892,7 @@ typedef struct
     // 起始位:8
     UINT32 VMS_PULLUP_ENGAGE : 1;
 
-    UINT32 spare1 : 4;  // 保留字段
+    UINT32 spare1 : 4; // 保留字段
     // 标识符:VMS_WOW_Main
     // 名  称:VMS_轮载状态_主
     // 说  明:主轮载状态
@@ -20372,7 +21022,7 @@ typedef struct
 // 信 号 组 说    明: 直接从VMS1394转发的高度表、起降引导、测控链路的辐射状态。
 typedef struct
 {
-    UINT32 spare4 : 5;  // 保留字段
+    UINT32 spare4 : 5; // 保留字段
     // 标识符:VMS1394_YKZ_SDL_DOWN_WROKSTATUS
     // 名  称:VMS1394_遥控帧_S链下行工作状态
     // 说  明:
@@ -20381,24 +21031,24 @@ typedef struct
     // 起始位:24
     UINT32 VMS1394_YKZ_SDL_DOWN_WROKSTATUS : 3;
 
-    UINT32 spare3 : 2;  // 保留字段
-    // 标识符:VMS1394_YKZ_KuDL_DOWN_WROKSTATUS
-    // 名  称:VMS1394_遥控帧_Ku链下行工作状态
+    UINT32 spare3 : 2; // 保留字段
+    // 标识符:VMS1394_YKZ_KuDL_DOWN_WROKSTATUS2
+    // 名  称:VMS1394_遥控帧_K链下行工作状态2
     // 说  明:
     // 单  位:
     // 起始字:0
     // 起始位:19
-    UINT32 VMS1394_YKZ_KuDL_DOWN_WROKSTATUS : 3;
+    UINT32 VMS1394_YKZ_KuDL_DOWN_WROKSTATUS2 : 3;
 
-    // 标识符:VMS1394_YKZ_KaDL_DOWN_WROKSTATUS
-    // 名  称:VMS1394_遥控帧_Ka链下行工作状态
+    // 标识符:VMS1394_YKZ_KaDL_DOWN_WROKSTATUS1
+    // 名  称:VMS1394_遥控帧_K链下行工作状态1
     // 说  明:
     // 单  位:
     // 起始字:0
     // 起始位:16
-    UINT32 VMS1394_YKZ_KaDL_DOWN_WROKSTATUS : 3;
+    UINT32 VMS1394_YKZ_KaDL_DOWN_WROKSTATUS1 : 3;
 
-    UINT32 spare2 : 2;  // 保留字段
+    UINT32 spare2 : 2; // 保留字段
     // 标识符:VMS1394_YKZ_LDL_DOWN_WROKSTATUS
     // 名  称:VMS1394_遥控帧_L链下行工作状态
     // 说  明:
@@ -20415,7 +21065,7 @@ typedef struct
     // 起始位:8
     UINT32 VMS1394_YKZ_CDL_DOWN_WROKSTATUS : 3;
 
-    UINT32 spare1 : 5;  // 保留字段
+    UINT32 spare1 : 5; // 保留字段
     // 标识符:VMS1394_MWE_silence_status
     // 名  称:VMS1394_毫米波静默状态
     // 说  明:
@@ -20549,7 +21199,7 @@ typedef struct
     // 起始位:0
     UINT32 IR_track_number : 16;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:range_source
     // 名  称:距离获取方式
     // 说  明:
@@ -21584,7 +22234,7 @@ typedef struct
     // 起始位:16
     UINT32 rcs_confidence : 16;
 
-    UINT32 spare1 : 4;  // 保留字段
+    UINT32 spare1 : 4; // 保留字段
     // 标识符:target_rcs_type_2GCS
     // 名  称:目标RCS类型_宽带下传
     // 说  明:目标RCS范围>19平米为大目标
@@ -21725,7 +22375,7 @@ typedef struct
     // 起始位:16
     UINT32 jamed_distance_enable_tgt_flag : 8;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
     // 标识符:guidance_tgt_flag
     // 名  称:制导目标标志
     // 说  明:
@@ -21734,7 +22384,7 @@ typedef struct
     // 起始位:0
     UINT32 guidance_tgt_flag : 8;
 
-    UINT32 spare3 : 8;  // 保留字段
+    UINT32 spare3 : 8; // 保留字段
     // 标识符:target_track_unstable_state
     // 名  称:目标跟踪不稳定状态
     // 说  明:跟踪目标上报不稳定情况，快出框架角时上报火控更改下发AOC判断状态
@@ -21820,7 +22470,7 @@ typedef struct
     // 起始位:0
     UINT32 SubSys_SW_VER;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:subsys_work_state
     // 名  称:工作状态
     // 说  明:子系统可自行上报的工作状态有：正常，自检测，降级，失效，功能停止；
@@ -22021,7 +22671,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:date_day
     // 名  称:日期_日
@@ -22064,7 +22714,7 @@ typedef struct
     // 起始位:0
     UINT32 A818_EO_CycleNo;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:A818_LineNo
     // 名  称:条带号
@@ -22087,7 +22737,7 @@ typedef struct
     // 起始位:16
     UINT16 date_year;
 
-    SPARE8 spare3[2];  // 保留字段
+    SPARE8 spare3[2]; // 保留字段
 
     // 标识符:A818_EO_ImageLineNum
     // 名  称:图像行数
@@ -22346,7 +22996,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_EO_TakeTimes;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:A818_EO_ExposureTime
     // 名  称:曝光时间
@@ -22357,7 +23007,7 @@ typedef struct
     // 起始位:0
     UINT16 A818_EO_ExposureTime;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:A818_EO_ImpotentTag
     // 名  称:重要目标标识
@@ -22476,7 +23126,7 @@ typedef struct
     // 起始位:0
     UINT32 A818_MissionInfo;
 
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:A818_CameraWorkMode
     // 名  称:相机工作模式
@@ -22510,7 +23160,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:HOTAS_T2_DEADBAND_X
     // 名  称:HOTAS_T2_死区_X方向
@@ -22521,7 +23171,7 @@ typedef struct
     // 起始位:0
     UINT8 HOTAS_T2_DEADBAND_X;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:HOTAS_T2_DEADBAND_Y
     // 名  称:HOTAS_T2_死区_Y方向
@@ -22541,7 +23191,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:HOTAS_T2_OFFSET_X
     // 名  称:HOTAS_T2_零位偏移_X方向
@@ -22552,7 +23202,7 @@ typedef struct
     // 起始位:0
     INT8 HOTAS_T2_OFFSET_X;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:HOTAS_T2_OFFSET_Y
     // 名  称:HOTAS_T2_零位偏移_Y方向
@@ -22572,7 +23222,7 @@ typedef struct
 // 信 号 组 说    明:
 typedef struct
 {
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:HOTAS_T2_OFFSET_X
     // 名  称:HOTAS_T2_零位偏移_X方向
@@ -22583,7 +23233,7 @@ typedef struct
     // 起始位:0
     INT8 HOTAS_T2_OFFSET_X;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:HOTAS_T2_OFFSET_Y
     // 名  称:HOTAS_T2_零位偏移_Y方向
@@ -22660,7 +23310,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:tgt_total_number
     // 名  称:目标总数
@@ -22687,7 +23337,7 @@ typedef struct
     // 起始位:0
     SL_CORRELATE_MATRIX_TYPE_DEF SL_correlate_matrix[5];
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:I_team_no_self
     // 名  称:本机I链编队号
@@ -22698,7 +23348,7 @@ typedef struct
     // 起始位:0
     UINT16 I_team_no_self;
 
-    SPARE32 spare3[88];  // 保留字段
+    SPARE32 spare3[88]; // 保留字段
 
 } AA_SL_SENSOR_CORRELATION;
 
@@ -22735,7 +23385,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:tgt_total_number
     // 名  称:目标总数
@@ -22789,7 +23439,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:tgt_total_number
     // 名  称:目标总数
@@ -22808,7 +23458,7 @@ typedef struct
     // 起始位:0
     AA_TOI_LIST_PARAS_TYPE_DEF AA_TOI_list_paras[4];
 
-    SPARE32 spare2[274];  // 保留字段
+    SPARE32 spare2[274]; // 保留字段
 
 } AA_TOI_LIST;
 
@@ -22873,7 +23523,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX1;
 
@@ -22938,7 +23588,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX10;
 
@@ -23003,7 +23653,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX11;
 
@@ -23068,7 +23718,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX12;
 
@@ -23133,7 +23783,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX13;
 
@@ -23198,7 +23848,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX14;
 
@@ -23263,7 +23913,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX15;
 
@@ -23328,7 +23978,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX16;
 
@@ -23393,7 +24043,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX17;
 
@@ -23458,7 +24108,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX18;
 
@@ -23523,7 +24173,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX19;
 
@@ -23588,7 +24238,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX2;
 
@@ -23653,7 +24303,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX20;
 
@@ -23718,7 +24368,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX3;
 
@@ -23783,7 +24433,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX4;
 
@@ -23848,7 +24498,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX5;
 
@@ -23913,7 +24563,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX6;
 
@@ -23978,7 +24628,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX7;
 
@@ -24043,7 +24693,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX8;
 
@@ -24108,7 +24758,7 @@ typedef struct
     // 起始位:0
     TGFX_TARGET_CORRELATION_TYPE_DEF TGFX_target_correlation[5];
 
-    SPARE32 spare1[160];  // 保留字段
+    SPARE32 spare1[160]; // 保留字段
 
 } AA_TRACK_CORRELATE_MATRIX9;
 
@@ -24145,7 +24795,7 @@ typedef struct
     // 起始位:0
     AC_FLIGHT_VECTOR_TYPE_DEF ac_flight_vector;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:primary_ins
     // 名  称:主惯导来源
     // 说  明:
@@ -24202,7 +24852,7 @@ typedef struct
     // 起始位:0
     AC_FLIGHT_VECTOR_C_TYPE_DEF ac_flight_vector_C;
 
-    SPARE32 spare2[1];  // 保留字段
+    SPARE32 spare2[1]; // 保留字段
 
 } ABSOLUTE_NAV_DATA_FUSED;
 
@@ -24263,7 +24913,7 @@ typedef struct
     // 起始位:0
     VMS_USIMKEYDATA_US_TYPE_DEF VMS_usimKeyData_US;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:VMS_control_manage_mode
     // 名  称:飞管系统控制管理模式
     // 说  明:
@@ -24280,7 +24930,7 @@ typedef struct
     // 起始位:0
     VMS_USIMKEYDATA_ENG2_TYPE_DEF VMS_usimkeyData_ENG2;
 
-    UINT32 spare3 : 8;  // 保留字段
+    UINT32 spare3 : 8; // 保留字段
     // 标识符:VMS1394_AC_Type_ID
     // 名  称:VMS1394_飞机构型
     // 说  明:
@@ -24289,7 +24939,7 @@ typedef struct
     // 起始位:8
     UINT32 VMS1394_AC_Type_ID : 16;
 
-    UINT32 spare2 : 4;  // 保留字段
+    UINT32 spare2 : 4; // 保留字段
     // 标识符:VMS_AC_ID
     // 名  称:VMS_飞机ID
     // 说  明:0 歼-20飞机01状态01-05架
@@ -24379,7 +25029,13 @@ typedef struct
     // 起始位:0
     VMS_FCSCCS_EM_STATE_TYPE_DEF VMS_FcsCcs_EM_state;
 
-    SPARE32 spare4[5];  // 保留字段
+    // 标识符:VMS1394_YKZ_DLS_STATUS
+    // 名  称:VMS1394_遥控帧_指控链路状态
+    // 说  明:
+    // 单  位:
+    // 起始字:33
+    // 起始位:0
+    VMS1394_YKZ_DLS_STATUS_TYPE_DEF VMS1394_YKZ_DLS_STATUS;
 
     // 标识符:VMS_FcsSigColection_AC_transfer
     // 名  称:VMS_飞控信号采集数据_转发
@@ -24390,7 +25046,15 @@ typedef struct
     // 起始位:0
     VMS_FCSSIGCOLECTION_AC_TRANSFER_TYPE_DEF VMS_FcsSigColection_AC_transfer;
 
-    SPARE32 spare5[24];  // 保留字段
+    // 标识符:VMS1394_YKZ_DLS_CHANNEL_PARA
+    // 名  称:VMS1394_遥控帧_指控链路波道参数
+    // 说  明:
+    // 单  位:
+    // 起始字:39
+    // 起始位:0
+    VMS1394_YKZ_DLS_CHANNEL_PARA_TYPE_DEF VMS1394_YKZ_DLS_CHANNEL_PARA;
+
+    SPARE32 spare4[9]; // 保留字段
 
     // 标识符:VMS_apParaDataBlock_Valid
     // 名  称:自动驾驶参数数据包有效性
@@ -24451,7 +25115,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    SPARE32 spare1[487];  // 保留字段
+    SPARE32 spare1[487]; // 保留字段
 
 } ARINC615A_LOAD_NORMAL_OMP;
 
@@ -24480,7 +25144,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    SPARE32 spare1[487];  // 保留字段
+    SPARE32 spare1[487]; // 保留字段
 
 } ARINC615A_LOAD_STREAM_OMP;
 
@@ -24509,7 +25173,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:tgt_total_number
     // 名  称:目标总数
@@ -24528,7 +25192,7 @@ typedef struct
     // 起始位:0
     SL_CORRELATE_MATRIX_TYPE_DEF SL_correlate_matrix[5];
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:I_team_no_self
     // 名  称:本机I链编队号
@@ -24539,7 +25203,7 @@ typedef struct
     // 起始位:0
     UINT16 I_team_no_self;
 
-    SPARE32 spare3[86];  // 保留字段
+    SPARE32 spare3[86]; // 保留字段
 
 } AS_SL_CORRELATE_MATRIX;
 
@@ -24669,7 +25333,7 @@ typedef struct
     // 起始位:0
     TGT_EL_RATE_COVARIANCE_TYPE_DEF tgt_el_rate_covariance;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:EW_tgt_no
     // 名  称:EW目标编号
@@ -24680,7 +25344,7 @@ typedef struct
     // 起始位:0
     UINT16 EW_tgt_no;
 
-    SPARE32 spare2[4];  // 保留字段
+    SPARE32 spare2[4]; // 保留字段
 
 } BURST_PARAS;
 
@@ -24709,7 +25373,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:loading_type
     // 名  称:加载类型
     // 说  明:描述文件/数据在的场景类型：
@@ -24773,7 +25437,7 @@ typedef struct
     // 起始位:0
     DATA_BLOCK_TRANS_MARK_TYPE_DEF data_block_trans_mark;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:config_item_count
     // 名  称:配置项数量
@@ -24836,7 +25500,7 @@ typedef struct
     // 起始位:0
     UINT64 activity_number_64;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:act_refused_reason
     // 名  称:拒绝请求原因
     // 说  明:仅当活动状态等于NACK的时候，该信号有效：
@@ -24923,7 +25587,7 @@ typedef struct
     // 起始位:0
     char_8 ver_number[24];
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:load_fail_reason
     // 名  称:加载失败原因
     // 说  明:
@@ -24940,7 +25604,7 @@ typedef struct
     // 起始位:0
     UINT32 load_state : 8;
 
-    UINT32 spare2 : 24;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:loading_type
     // 名  称:加载类型
     // 说  明:描述文件/数据在的场景类型：
@@ -24996,7 +25660,7 @@ typedef struct
     // 起始位:0
     INT64 video_bult_time;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:video_width
     // 名  称:视频宽度
@@ -25007,7 +25671,7 @@ typedef struct
     // 起始位:0
     UINT16 video_width;
 
-    SPARE8 spare2[2];  // 保留字段
+    SPARE8 spare2[2]; // 保留字段
 
     // 标识符:video_height
     // 名  称:视频高度
@@ -25068,7 +25732,7 @@ typedef struct
     // 起始位:0
     IMAGE_CENTER_Y_TYPE_DEF image_center_y;
 
-    UINT32 spare3 : 24;  // 保留字段
+    UINT32 spare3 : 24; // 保留字段
     // 标识符:pixel_format
     // 名  称:像素格式
     // 说  明:
@@ -25077,7 +25741,7 @@ typedef struct
     // 起始位:0
     UINT32 pixel_format : 8;
 
-    UINT32 spare4 : 24;  // 保留字段
+    UINT32 spare4 : 24; // 保留字段
     // 标识符:pixel_data_type
     // 名  称:像素数据类型
     // 说  明:
@@ -25129,7 +25793,7 @@ typedef struct
     // 起始位:0
     HOTAS_T2_CALIBRATION_PARA_B_TYPE_DEF HOTAS_T2_Calibration_Para_B;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:TDC_Rate_Control_F
     // 名  称:TDC移动速率控制_前舱
     // 说  明:
@@ -25138,7 +25802,7 @@ typedef struct
     // 起始位:0
     UINT32 TDC_Rate_Control_F : 8;
 
-    UINT32 spare2 : 24;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:TDC_Rate_Control_B
     // 名  称:TDC移动速率控制_后舱
     // 说  明:
@@ -25155,7 +25819,7 @@ typedef struct
     // 起始位:0
     HOTAS_T2_DEADBAND_TYPE_DEF HOTAS_T2_DEADBAND;
 
-    UINT32 spare3 : 24;  // 保留字段
+    UINT32 spare3 : 24; // 保留字段
     // 标识符:Conflict_TDC_Control
     // 名  称:冲突控制权_TDC
     // 说  明:
@@ -25164,7 +25828,7 @@ typedef struct
     // 起始位:0
     UINT32 Conflict_TDC_Control : 8;
 
-    UINT32 spare4 : 24;  // 保留字段
+    UINT32 spare4 : 24; // 保留字段
     // 标识符:RDR_AA_Control
     // 名  称:雷达_空空权限
     // 说  明:
@@ -25173,7 +25837,7 @@ typedef struct
     // 起始位:0
     UINT32 RDR_AA_Control : 8;
 
-    UINT32 spare5 : 24;  // 保留字段
+    UINT32 spare5 : 24; // 保留字段
     // 标识符:RDR_AS_Control
     // 名  称:雷达_空面权限
     // 说  明:
@@ -25182,7 +25846,7 @@ typedef struct
     // 起始位:0
     UINT32 RDR_AS_Control : 8;
 
-    UINT32 spare6 : 24;  // 保留字段
+    UINT32 spare6 : 24; // 保留字段
     // 标识符:SYN_MODE
     // 名  称:前后舱同步/异步模式
     // 说  明:
@@ -25191,7 +25855,7 @@ typedef struct
     // 起始位:0
     UINT32 SYN_MODE : 8;
 
-    SPARE32 spare7[5];  // 保留字段
+    SPARE32 spare7[5]; // 保留字段
 
 } HOTAS_REPORT_CALIBRATION_PARA;
 
@@ -25228,7 +25892,7 @@ typedef struct
     // 起始位:0
     DATA_BLOCK_TRANS_MARK_TYPE_DEF data_block_trans_mark;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:config_item_count
     // 名  称:配置项数量
@@ -25247,7 +25911,7 @@ typedef struct
     // 起始位:0
     HW_CONFIG_INFO_TYPE_DEF HW_config_info[6];
 
-    SPARE32 spare2[237];  // 保留字段
+    SPARE32 spare2[237]; // 保留字段
 
 } HW_CONFIG_INFO_REPORT;
 
@@ -25276,16 +25940,15 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 8;  // 保留字段
     // 标识符:ID_data_trans_flag
     // 名  称:情报数据传输标识
     // 说  明:按照顺序，第一维代表通道1，第二维代表通道2，以此类推。如果只存在一个通道，则填第一维即可。
     // 单  位:
     // 起始字:3
     // 起始位:0
-    UINT8 ID_data_trans_flag[3];
+    UINT8 ID_data_trans_flag[4];
 
-    SPARE32 spare2[6];  // 保留字段
+    SPARE32 spare1[6]; // 保留字段
 
 } ID_DATA_TRANSMIT_STATE;
 
@@ -25318,7 +25981,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:primary_secondary
     // 名  称:主备状态
     // 说  明:主备状态标志
@@ -25412,7 +26075,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:primary_secondary
     // 名  称:主备状态
     // 说  明:主备状态标志
@@ -25629,7 +26292,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_position;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:ac_pitch
     // 名  称:载机俯仰角
@@ -25802,7 +26465,7 @@ typedef struct
     // 起始位:0
     AC_GROUND_SPEED_TYPE_DEF ac_ground_speed;
 
-    SPARE32 spare3[7];  // 保留字段
+    SPARE32 spare3[7]; // 保留字段
 
 } INS1_NAV_DATA_5MS;
 
@@ -26074,7 +26737,7 @@ typedef struct
     // 起始位:0
     UINT32 INS_cmd_Aim_cmd : 8;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:GNSS_Reset_CMD
     // 名  称:接收机重启指令
     // 说  明:
@@ -26117,7 +26780,14 @@ typedef struct
     // 起始位:0
     UINT32 BDS_C_P_cmd : 8;
 
-    SPARE8 spare2[3];  // 保留字段
+    UINT32 spare2 : 16; // 保留字段
+    // 标识符:Reiceiver_Factory
+    // 名  称:接收机厂家
+    // 说  明:
+    // 单  位:
+    // 起始字:20
+    // 起始位:8
+    UINT32 Reiceiver_Factory : 8;
 
     // 标识符:num_of_satellite_bd_MIN
     // 名  称:北斗卫星数目_民码
@@ -26126,9 +26796,9 @@ typedef struct
     // LSB  :1
     // 起始字:20
     // 起始位:0
-    UINT8 num_of_satellite_bd_MIN;
+    UINT32 num_of_satellite_bd_MIN : 8;
 
-    SPARE32 spare3[4];  // 保留字段
+    SPARE32 spare3[4]; // 保留字段
 
 } INS1_OPERATIONAL_PARAS;
 
@@ -26161,7 +26831,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:primary_secondary
     // 名  称:主备状态
     // 说  明:主备状态标志
@@ -26255,7 +26925,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:primary_secondary
     // 名  称:主备状态
     // 说  明:主备状态标志
@@ -26472,7 +27142,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_position;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:ac_pitch
     // 名  称:载机俯仰角
@@ -26645,7 +27315,7 @@ typedef struct
     // 起始位:0
     AC_GROUND_SPEED_TYPE_DEF ac_ground_speed;
 
-    SPARE32 spare3[7];  // 保留字段
+    SPARE32 spare3[7]; // 保留字段
 
 } INS2_NAV_DATA_5MS;
 
@@ -26917,7 +27587,7 @@ typedef struct
     // 起始位:0
     UINT32 INS_cmd_Aim_cmd : 8;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:GNSS_Reset_CMD
     // 名  称:接收机重启指令
     // 说  明:
@@ -26960,7 +27630,14 @@ typedef struct
     // 起始位:0
     UINT32 BDS_C_P_cmd : 8;
 
-    SPARE8 spare2[3];  // 保留字段
+    UINT32 spare2 : 16; // 保留字段
+    // 标识符:Reiceiver_Factory
+    // 名  称:接收机厂家
+    // 说  明:
+    // 单  位:
+    // 起始字:20
+    // 起始位:8
+    UINT32 Reiceiver_Factory : 8;
 
     // 标识符:num_of_satellite_bd_MIN
     // 名  称:北斗卫星数目_民码
@@ -26969,9 +27646,9 @@ typedef struct
     // LSB  :1
     // 起始字:20
     // 起始位:0
-    UINT8 num_of_satellite_bd_MIN;
+    UINT32 num_of_satellite_bd_MIN : 8;
 
-    SPARE32 spare3[4];  // 保留字段
+    SPARE32 spare3[4]; // 保留字段
 
 } INS2_OPERATIONAL_PARAS;
 
@@ -27004,7 +27681,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:primary_secondary
     // 名  称:主备状态
     // 说  明:主备状态标志
@@ -27098,7 +27775,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:primary_secondary
     // 名  称:主备状态
     // 说  明:主备状态标志
@@ -27315,7 +27992,7 @@ typedef struct
     // 起始位:0
     BOOL_8 validity_position;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:ac_pitch
     // 名  称:载机俯仰角
@@ -27488,7 +28165,7 @@ typedef struct
     // 起始位:0
     AC_GROUND_SPEED_TYPE_DEF ac_ground_speed;
 
-    SPARE32 spare3[7];  // 保留字段
+    SPARE32 spare3[7]; // 保留字段
 
 } INS3_NAV_DATA_5MS;
 
@@ -27760,7 +28437,7 @@ typedef struct
     // 起始位:0
     UINT32 INS_cmd_Aim_cmd : 8;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:GNSS_Reset_CMD
     // 名  称:接收机重启指令
     // 说  明:
@@ -27803,7 +28480,14 @@ typedef struct
     // 起始位:0
     UINT32 BDS_C_P_cmd : 8;
 
-    SPARE8 spare2[3];  // 保留字段
+    UINT32 spare2 : 16; // 保留字段
+    // 标识符:Reiceiver_Factory
+    // 名  称:接收机厂家
+    // 说  明:
+    // 单  位:
+    // 起始字:20
+    // 起始位:8
+    UINT32 Reiceiver_Factory : 8;
 
     // 标识符:num_of_satellite_bd_MIN
     // 名  称:北斗卫星数目_民码
@@ -27812,9 +28496,9 @@ typedef struct
     // LSB  :1
     // 起始字:20
     // 起始位:0
-    UINT8 num_of_satellite_bd_MIN;
+    UINT32 num_of_satellite_bd_MIN : 8;
 
-    SPARE32 spare3[4];  // 保留字段
+    SPARE32 spare3[4]; // 保留字段
 
 } INS3_OPERATIONAL_PARAS;
 
@@ -27851,7 +28535,7 @@ typedef struct
     // 起始位:0
     IR_AA_SEARCH_TYPE_DEF ir_aa_search[50];
 
-    SPARE32 spare1[150];  // 保留字段
+    SPARE32 spare1[150]; // 保留字段
 
 } IR_AA_SEARCH_REPORT;
 
@@ -27888,7 +28572,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:target_acount
     // 名  称:目标数目
@@ -27934,7 +28618,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
     // 标识符:area_radius
     // 名  称:区域半径
     // 说  明:
@@ -27943,7 +28627,7 @@ typedef struct
     // 起始位:16
     UINT32 area_radius : 8;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:validity_position
     // 名  称:有效性_位置
     // 说  明:
@@ -27960,7 +28644,7 @@ typedef struct
     // 起始位:0
     POSITION_LOS_CROSS_TYPE_DEF position_los_cross;
 
-    SPARE32 spare3[14];  // 保留字段
+    SPARE32 spare3[14]; // 保留字段
 
 } IR_LOS_GROUND_ALT;
 
@@ -27997,7 +28681,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
     // 标识符:area_radius
     // 名  称:区域半径
     // 说  明:
@@ -28006,7 +28690,7 @@ typedef struct
     // 起始位:16
     UINT32 area_radius : 8;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:validity_ground_height
     // 名  称:有效性_地形高度
     // 说  明:
@@ -28032,7 +28716,7 @@ typedef struct
     // 起始位:0
     GROUND_HEIGHT_TYPE_DEF ground_height;
 
-    SPARE32 spare3[11];  // 保留字段
+    SPARE32 spare3[11]; // 保留字段
 
 } IR_LOS_MAP_GROUND_ALT;
 
@@ -28069,7 +28753,7 @@ typedef struct
     // 起始位:0
     IR_IMU_DATA_TYPE_DEF IR_IMU_data;
 
-    SPARE32 spare1[14];  // 保留字段
+    SPARE32 spare1[14]; // 保留字段
 
 } IR_NAV_DATA;
 
@@ -28158,7 +28842,7 @@ typedef struct
     // 起始位:0
     GENERAL_ACT_REQ_PARAS_TYPE_DEF general_act_req_paras;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:unique_act_req_IRS
     // 名  称:特殊活动请求_IRST
     // 说  明:
@@ -28175,7 +28859,7 @@ typedef struct
     // 起始位:0
     UNIQUE_ACT_REQ_PARAS_IRST_TYPE_DEF unique_act_req_paras_IRST;
 
-    SPARE32 spare2[19];  // 保留字段
+    SPARE32 spare2[19]; // 保留字段
 
 } IRST_ACT_REQ;
 
@@ -28221,7 +28905,7 @@ typedef struct
     // 起始位:0
     UINT64 activity_number_64;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:act_refused_reason
     // 名  称:拒绝请求原因
     // 说  明:仅当活动状态等于NACK的时候，该信号有效：
@@ -28275,7 +28959,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    SPARE8 spare1[3];  // 保留字段
+    SPARE8 spare1[3]; // 保留字段
 
     // 标识符:irst_target_acount
     // 名  称:光雷航迹目标数目
@@ -28329,7 +29013,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -28362,7 +29046,7 @@ typedef struct
     // 起始位:0
     LINK_MESSAGE_TR_TIME_TYPE_DEF link_message_tr_time;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:irst_target_acount
     // 名  称:光雷航迹目标数目
@@ -28389,7 +29073,7 @@ typedef struct
     // 起始位:0
     IRST_COOPERATION_TRACK_PARAS_TYPE_DEF irst_cooperation_track_paras[10];
 
-    SPARE32 spare3[112];  // 保留字段
+    SPARE32 spare3[112]; // 保留字段
 
 } IRST_COOPERATION_TGT_REPORT_IFDL;
 
@@ -28418,7 +29102,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -28451,7 +29135,7 @@ typedef struct
     // 起始位:0
     LINK_MESSAGE_TR_TIME_TYPE_DEF link_message_tr_time;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:irst_target_acount
     // 名  称:光雷航迹目标数目
@@ -28478,7 +29162,7 @@ typedef struct
     // 起始位:0
     IRST_COOPERATION_TRACK_PARAS_TYPE_DEF irst_cooperation_track_paras[10];
 
-    SPARE32 spare3[112];  // 保留字段
+    SPARE32 spare3[112]; // 保留字段
 
 } IRST_COOPERATION_TGT_REPORT_IFDL1;
 
@@ -28507,7 +29191,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -28540,7 +29224,7 @@ typedef struct
     // 起始位:0
     LINK_MESSAGE_TR_TIME_TYPE_DEF link_message_tr_time;
 
-    SPARE8 spare2[3];  // 保留字段
+    SPARE8 spare2[3]; // 保留字段
 
     // 标识符:irst_target_acount
     // 名  称:光雷航迹目标数目
@@ -28567,7 +29251,7 @@ typedef struct
     // 起始位:0
     IRST_COOPERATION_TRACK_PARAS_TYPE_DEF irst_cooperation_track_paras[10];
 
-    SPARE32 spare3[112];  // 保留字段
+    SPARE32 spare3[112]; // 保留字段
 
 } IRST_COOPERATION_TGT_REPORT_IFDL2;
 
@@ -28612,7 +29296,7 @@ typedef struct
     // 起始位:0
     SENSOR_LOS_PLATFORM_TYPE_DEF sensor_los_platform;
 
-    SPARE32 spare1[1];  // 保留字段
+    SPARE32 spare1[1]; // 保留字段
 
 } IRST_LOS;
 
@@ -28673,7 +29357,7 @@ typedef struct
     // 起始位:0
     UINT32 mission_main_mode : 8;
 
-    UINT32 spare1 : 30;  // 保留字段
+    UINT32 spare1 : 30; // 保留字段
     // 标识符:cool_state
     // 名  称:制冷状态
     // 说  明:
@@ -28698,16 +29382,16 @@ typedef struct
     // 起始位:0
     IRST_MODE_PARAS_TYPE_DEF irst_mode_paras;
 
-    UINT32 spare2 : 16;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:sendstate_818_eots
     // 名  称:情报数据818总线发送状态_EOTS
     // 说  明:
     // 单  位:
     // 起始字:19
     // 起始位:0
-    UINT8 sendstate_818_eots[2];
+    UINT32 sendstate_818_eots : 8;
 
-    SPARE32 spare3[1];  // 保留字段
+    SPARE32 spare3[1]; // 保留字段
 
     // 标识符:IR_image_paras
     // 名  称:IR图像参数
@@ -28716,8 +29400,6 @@ typedef struct
     // 起始字:21
     // 起始位:0
     IR_IMAGE_PARAS_TYPE_DEF IR_image_paras;
-
-    SPARE32 spare4[1];  // 保留字段
 
     // 标识符:image_volum_IR
     // 名  称:光电成像参数
@@ -28743,7 +29425,7 @@ typedef struct
     // 起始位:0
     IR_TRANSOM_PARAS_TYPE_DEF IR_Transom_paras;
 
-    UINT32 spare5 : 8;  // 保留字段
+    UINT32 spare4 : 8; // 保留字段
     // 标识符:development_company
     // 名  称:研制厂家
     // 说  明:以此来区分三个厂家
@@ -28808,7 +29490,7 @@ typedef struct
     // 起始位:0
     UINT32 IR_scan_work_state : 8;
 
-    UINT32 spare6 : 8;  // 保留字段
+    UINT32 spare5 : 8; // 保留字段
     // 标识符:IRST_Video_BAND
     // 名  称:IRST_区域监视视频带宽
     // 说  明:
@@ -28833,7 +29515,7 @@ typedef struct
     // 起始位:0
     UINT32 frozen_state : 8;
 
-    UINT32 spare7 : 28;  // 保留字段
+    UINT32 spare6 : 28; // 保留字段
     // 标识符:TGT_TRACK_ID
     // 名  称:动目标ID
     // 说  明:
@@ -28842,7 +29524,7 @@ typedef struct
     // 起始位:0
     UINT32 TGT_TRACK_ID : 4;
 
-    SPARE32 spare8[25];  // 保留字段
+    SPARE32 spare7[25]; // 保留字段
 
 } IRST_OPERATIONAL_PARAS;
 
@@ -28907,7 +29589,7 @@ typedef struct
     // 起始位:0
     BLOCK_PIXEL_PARAS_TYPE_DEF block_pixel_paras[9];
 
-    SPARE32 spare1[8];  // 保留字段
+    SPARE32 spare1[8]; // 保留字段
 
 } IRST_PIXEL_PARAS;
 
@@ -28944,7 +29626,7 @@ typedef struct
     // 起始位:0
     DATA_GENERATED_TIME_TYPE_DEF data_generated_time;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:tgt_total_number
     // 名  称:目标总数
@@ -28963,7 +29645,7 @@ typedef struct
     // 起始位:0
     IRST_TGT_DOT_CORRELATION_INFO_TYPE_DEF IRST_tgt_dot_correlation_info[10];
 
-    SPARE32 spare2[14];  // 保留字段
+    SPARE32 spare2[14]; // 保留字段
 
 } IRST_TGT_DOT_CORRELATION_DATA_REPORT;
 
@@ -28992,7 +29674,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29033,7 +29715,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_IFDL_TYPE_DEF member_PPLI_info_IFDL;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:rnav_measure_paras
     // 名  称:相对导航测量参数
@@ -29043,7 +29725,7 @@ typedef struct
     // 起始位:0
     RNAV_MEASURE_PARAS_TYPE_DEF rnav_measure_paras;
 
-    SPARE32 spare3[2];  // 保留字段
+    SPARE32 spare3[2]; // 保留字段
 
 } LINK_MEMBER_NAV_INFO_IFDL;
 
@@ -29072,7 +29754,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29113,7 +29795,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_IFDL_TYPE_DEF member_PPLI_info_IFDL;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:rnav_measure_paras
     // 名  称:相对导航测量参数
@@ -29123,7 +29805,7 @@ typedef struct
     // 起始位:0
     RNAV_MEASURE_PARAS_TYPE_DEF rnav_measure_paras;
 
-    SPARE32 spare3[2];  // 保留字段
+    SPARE32 spare3[2]; // 保留字段
 
 } LINK_MEMBER_NAV_INFO_IFDL1;
 
@@ -29152,7 +29834,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29193,7 +29875,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_IFDL_TYPE_DEF member_PPLI_info_IFDL;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:rnav_measure_paras
     // 名  称:相对导航测量参数
@@ -29203,7 +29885,7 @@ typedef struct
     // 起始位:0
     RNAV_MEASURE_PARAS_TYPE_DEF rnav_measure_paras;
 
-    SPARE32 spare3[2];  // 保留字段
+    SPARE32 spare3[2]; // 保留字段
 
 } LINK_MEMBER_NAV_INFO_IFDL2;
 
@@ -29232,7 +29914,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29273,7 +29955,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_IFDL_TYPE_DEF member_PPLI_info_IFDL;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:rnav_measure_paras
     // 名  称:相对导航测量参数
@@ -29283,7 +29965,7 @@ typedef struct
     // 起始位:0
     RNAV_MEASURE_PARAS_TYPE_DEF rnav_measure_paras;
 
-    SPARE32 spare3[2];  // 保留字段
+    SPARE32 spare3[2]; // 保留字段
 
 } LINK_MEMBER_NAV_INFO_IFDL3;
 
@@ -29312,7 +29994,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29353,7 +30035,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_IFDL_TYPE_DEF member_PPLI_info_IFDL;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:rnav_measure_paras
     // 名  称:相对导航测量参数
@@ -29363,7 +30045,7 @@ typedef struct
     // 起始位:0
     RNAV_MEASURE_PARAS_TYPE_DEF rnav_measure_paras;
 
-    SPARE32 spare3[2];  // 保留字段
+    SPARE32 spare3[2]; // 保留字段
 
 } LINK_MEMBER_NAV_INFO_IFDL4;
 
@@ -29392,7 +30074,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29433,7 +30115,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_IFDL_TYPE_DEF member_PPLI_info_IFDL;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:rnav_measure_paras
     // 名  称:相对导航测量参数
@@ -29443,7 +30125,7 @@ typedef struct
     // 起始位:0
     RNAV_MEASURE_PARAS_TYPE_DEF rnav_measure_paras;
 
-    SPARE32 spare3[2];  // 保留字段
+    SPARE32 spare3[2]; // 保留字段
 
 } LINK_MEMBER_NAV_INFO_IFDL5;
 
@@ -29472,7 +30154,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29513,7 +30195,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_IFDL_TYPE_DEF member_PPLI_info_IFDL;
 
-    SPARE32 spare2[2];  // 保留字段
+    SPARE32 spare2[2]; // 保留字段
 
     // 标识符:rnav_measure_paras
     // 名  称:相对导航测量参数
@@ -29523,7 +30205,7 @@ typedef struct
     // 起始位:0
     RNAV_MEASURE_PARAS_TYPE_DEF rnav_measure_paras;
 
-    SPARE32 spare3[2];  // 保留字段
+    SPARE32 spare3[2]; // 保留字段
 
 } LINK_MEMBER_NAV_INFO_IFDL6;
 
@@ -29552,7 +30234,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:link_message_tr_route
     // 名  称:消息收发链路
     // 说  明:
@@ -29561,7 +30243,7 @@ typedef struct
     // 起始位:0
     UINT32 link_message_tr_route : 8;
 
-    UINT32 spare3 : 16;  // 保留字段
+    UINT32 spare3 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29570,7 +30252,7 @@ typedef struct
     // 起始位:8
     UINT32 link_message_tr_flag : 8;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
 
     // 标识符:link_message_tr_time
     // 名  称:消息收发时间
@@ -29580,7 +30262,7 @@ typedef struct
     // 起始位:0
     LINK_MESSAGE_TR_TIME_TYPE_DEF link_message_tr_time;
 
-    SPARE8 spare4[2];  // 保留字段
+    SPARE8 spare4[2]; // 保留字段
 
     // 标识符:member_number
     // 名  称:成员总数
@@ -29599,7 +30281,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_TEAM_IFDL_TYPE_DEF member_PPLI_info_team_IFDL[16];
 
-    SPARE32 spare5[86];  // 保留字段
+    SPARE32 spare5[86]; // 保留字段
 
 } LINK_NET_NAV_INFO_IFDL;
 
@@ -29628,7 +30310,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:link_message_tr_route
     // 名  称:消息收发链路
     // 说  明:
@@ -29637,7 +30319,7 @@ typedef struct
     // 起始位:0
     UINT32 link_message_tr_route : 8;
 
-    UINT32 spare3 : 16;  // 保留字段
+    UINT32 spare3 : 16; // 保留字段
     // 标识符:link_message_tr_flag
     // 名  称:消息收发标识
     // 说  明:
@@ -29646,7 +30328,7 @@ typedef struct
     // 起始位:8
     UINT32 link_message_tr_flag : 8;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
 
     // 标识符:link_message_tr_time
     // 名  称:消息收发时间
@@ -29656,7 +30338,7 @@ typedef struct
     // 起始位:0
     LINK_MESSAGE_TR_TIME_TYPE_DEF link_message_tr_time;
 
-    SPARE8 spare4[2];  // 保留字段
+    SPARE8 spare4[2]; // 保留字段
 
     // 标识符:member_number
     // 名  称:成员总数
@@ -29675,7 +30357,7 @@ typedef struct
     // 起始位:0
     MEMBER_PPLI_INFO_TEAM_IFDL_TYPE_DEF member_PPLI_info_team_IFDL[16];
 
-    SPARE32 spare5[86];  // 保留字段
+    SPARE32 spare5[86]; // 保留字段
 
 } LINK_NET_NAV_INFO_IFDL1;
 
@@ -29704,7 +30386,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
     // 标识符:knob_sum_value
     // 名  称:滚轮积分值
     // 说  明:
@@ -29731,7 +30413,7 @@ typedef struct
     // 起始位:0
     INT32 delt_el_los;
 
-    SPARE32 spare2[3];  // 保留字段
+    SPARE32 spare2[3]; // 保留字段
 
 } LIST_KNOB_CMD;
 
@@ -29795,7 +30477,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:ms_sys_main_mode
     // 名  称:任务系统运行模态
     // 说  明:描述任务系统的运行模态，
@@ -29814,7 +30496,7 @@ typedef struct
     // 起始位:0
     SYS_NETWORK_STATE_OMP_TYPE_DEF sys_network_state_OMP[128];
 
-    SPARE32 spare2[102];  // 保留字段
+    SPARE32 spare2[102]; // 保留字段
 
 } LOAD_OPERATIONAL_PARAS_OMP;
 
@@ -29843,7 +30525,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:LSR_test_state
     // 名  称:激光测试状态
     // 说  明:
@@ -29876,7 +30558,7 @@ typedef struct
     // 起始位:0
     CALIBIRATE_PARAS_TEST_TYPE_DEF calibirate_paras_test;
 
-    SPARE32 spare2[4];  // 保留字段
+    SPARE32 spare2[4]; // 保留字段
 
 } LSR_CALIBRATE_PARAS;
 
@@ -29981,7 +30663,7 @@ typedef struct
     // 起始位:0
     MISSION_EVENT_TYPE_DEF mission_event;
 
-    UINT32 spare1 : 16;  // 保留字段
+    UINT32 spare1 : 16; // 保留字段
     // 标识符:is_EOF_state
     // 名  称:EOF状态标志
     // 说  明:EOF状态标志
@@ -29999,7 +30681,7 @@ typedef struct
     // 起始位:0
     UINT32 main_plan_on_off : 8;
 
-    UINT32 spare2 : 12;  // 保留字段
+    UINT32 spare2 : 12; // 保留字段
     // 标识符:VMS_AC_ID
     // 名  称:VMS_飞机ID
     // 说  明:0 歼-20飞机01状态01-05架
@@ -30023,7 +30705,7 @@ typedef struct
     // 起始位:0
     UINT32 VMS1394_AC_Type_ID : 16;
 
-    SPARE32 spare3[1];  // 保留字段
+    SPARE32 spare3[1]; // 保留字段
 
 } MISSION_EVENT_REPORT;
 
@@ -30429,7 +31111,7 @@ typedef struct
     // 起始位:0
     FAST_CLIMB_PARAS_TYPE_DEF fast_climb_paras;
 
-    SPARE32 spare1[403];  // 保留字段
+    SPARE32 spare1[403]; // 保留字段
 
 } NAV_PARAS;
 
@@ -30555,7 +31237,7 @@ typedef struct
     // 起始位:0
     UINT32 router_point_types : 8;
 
-    SPARE8 spare1;  // 保留字段
+    SPARE8 spare1; // 保留字段
 
     // 标识符:FAF_turn_direction
     // 名  称:进场定位转弯方向
@@ -30599,7 +31281,7 @@ typedef struct
     // 起始位:0
     SEL_TRUE_COURSE_TYPE_DEF sel_true_course;
 
-    UINT32 spare3 : 8;  // 保留字段
+    UINT32 spare3 : 8; // 保留字段
     // 标识符:nav_point_num
     // 名  称:导航点编号
     // 说  明:1、当前 操纵点为连续点(不为01点)，且操纵点切换方式为自动，则导航点编号为长航线内部插点顺序编号(1-40)，当前导航点即正在飞往的内部点；
@@ -30618,7 +31300,7 @@ typedef struct
     // 起始位:8
     UINT32 tacan_paras_mode : 8;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
 
     // 标识符:cap_phase
     // 名  称:战斗巡逻阶段
@@ -30653,7 +31335,7 @@ typedef struct
     // 起始位:0
     UINT32 validity_bullseye_func : 8;
 
-    SPARE8 spare4;  // 保留字段
+    SPARE8 spare4; // 保留字段
 
     // 标识符:APAT_Link
     // 名  称:自动驾驶自动油门关联状态
@@ -30690,7 +31372,7 @@ typedef struct
     // 起始位:0
     FAST_CLIMB_STATE_TYPE_DEF fast_climb_state;
 
-    SPARE32 spare5[75];  // 保留字段
+    SPARE32 spare5[75]; // 保留字段
 
 } NAV_STATE;
 
@@ -30727,7 +31409,7 @@ typedef struct
     // 起始位:0
     A818_IMAGE_COMMON_PARAS_TYPE_DEF A818_Image_common_paras;
 
-    SPARE32 spare1[3];  // 保留字段
+    SPARE32 spare1[3]; // 保留字段
 
     // 标识符:image_paras
     // 名  称:图像参数
@@ -30737,7 +31419,7 @@ typedef struct
     // 起始位:0
     IMAGE_PARAS_TYPE_DEF image_paras;
 
-    SPARE32 spare2[9];  // 保留字段
+    SPARE32 spare2[9]; // 保留字段
 
     // 标识符:image_inner_paras
     // 名  称:图像应用参数
@@ -30747,7 +31429,7 @@ typedef struct
     // 起始位:0
     IMAGE_INNER_PARAS_TYPE_DEF image_inner_paras[256];
 
-    SPARE32 spare3[134];  // 保留字段
+    SPARE32 spare3[134]; // 保留字段
 
 } NORMAL_IMAGE_818;
 
@@ -30795,7 +31477,7 @@ typedef struct
     // 起始位:0
     DATA_BLOCK_TRANS_MARK_TYPE_DEF data_block_trans_mark;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:EventData_total_list_number
     // 名  称:EventData_总条数
@@ -30806,7 +31488,7 @@ typedef struct
     // 起始位:0
     UINT16 EventData_total_list_number;
 
-    SPARE32 spare2[3];  // 保留字段
+    SPARE32 spare2[3]; // 保留字段
 
     // 标识符:EventData_Data_Item_MS_SUB
     // 名  称:EventData数据项_MS_SUB
@@ -30862,7 +31544,7 @@ typedef struct
     // 起始位:0
     DATA_BLOCK_TRANS_MARK_TYPE_DEF data_block_trans_mark;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:HMC_total_list_number
     // 名  称:HMC_总条数
@@ -30873,7 +31555,7 @@ typedef struct
     // 起始位:0
     UINT16 HMC_total_list_number;
 
-    SPARE32 spare2[3];  // 保留字段
+    SPARE32 spare2[3]; // 保留字段
 
     // 标识符:HMC_Data_Item_MS_Sub
     // 名  称:HMC数据项_任务子系统
@@ -30918,7 +31600,7 @@ typedef struct
     // 起始位:0
     RAWDATA_MSSUBSYS_IRST_TYPE_DEF RawData_MsSubSys_IRST;
 
-    SPARE32 spare1[11];  // 保留字段
+    SPARE32 spare1[11]; // 保留字段
 
 } PHM_DATA_RAW_IRST;
 
@@ -30955,7 +31637,7 @@ typedef struct
     // 起始位:0
     SUBSYS_STATE_INFO_TYPE_DEF subsys_state_info[60];
 
-    SPARE32 spare1[193];  // 保留字段
+    SPARE32 spare1[193]; // 保留字段
 
 } PHM_REPORT;
 
@@ -31003,7 +31685,7 @@ typedef struct
     // 起始位:0
     A818_IMAGE_COMMON_PARAS_TYPE_DEF A818_Image_common_paras;
 
-    SPARE32 spare1[1];  // 保留字段
+    SPARE32 spare1[1]; // 保留字段
 
     // 标识符:image_paras_transit
     // 名  称:图像参数_下传
@@ -31067,7 +31749,7 @@ typedef struct
     // 起始位:0
     A818_IMAGE_COMMON_PARAS_TYPE_DEF A818_Image_common_paras;
 
-    SPARE32 spare1[1];  // 保留字段
+    SPARE32 spare1[1]; // 保留字段
 
     // 标识符:image_paras_transit
     // 名  称:图像参数_下传
@@ -31161,7 +31843,7 @@ typedef struct
     // 起始位:0
     SLAVE_TGT_PARAS_TYPE_DEF slave_tgt_paras;
 
-    SPARE32 spare1[184];  // 保留字段
+    SPARE32 spare1[184]; // 保留字段
 
 } SLAVE_PARAS;
 
@@ -31198,7 +31880,7 @@ typedef struct
     // 起始位:0
     DATA_BLOCK_TRANS_MARK_TYPE_DEF data_block_trans_mark;
 
-    UINT32 spare2 : 16;  // 保留字段
+    UINT32 spare2 : 16; // 保留字段
     // 标识符:special_maint_data_type
     // 名  称:特殊维护参数类型
     // 说  明:
@@ -31207,7 +31889,7 @@ typedef struct
     // 起始位:8
     UINT32 special_maint_data_type : 8;
 
-    UINT32 spare1 : 8;  // 保留字段
+    UINT32 spare1 : 8; // 保留字段
 
     // 标识符:special_maint_para
     // 名  称:特殊维护参数
@@ -31252,7 +31934,7 @@ typedef struct
     // 起始位:0
     SPI_LOCATION_TYPE_DEF spi_location;
 
-    SPARE32 spare1[23];  // 保留字段
+    SPARE32 spare1[23]; // 保留字段
 
 } SPI_PARAS;
 
@@ -31324,7 +32006,7 @@ typedef struct
     // 起始位:0
     DATA_BLOCK_TRANS_MARK_TYPE_DEF data_block_trans_mark;
 
-    SPARE8 spare1[2];  // 保留字段
+    SPARE8 spare1[2]; // 保留字段
 
     // 标识符:config_item_count
     // 名  称:配置项数量
@@ -31350,7 +32032,7 @@ typedef struct
     // 起始位:0
     SW_CONFIG_INFO_TYPE_DEF SW_config_info[7];
 
-    SPARE32 spare2[3];  // 保留字段
+    SPARE32 spare2[3]; // 保留字段
 
 } SW_CONFIG_INFO_REPORT;
 
@@ -31379,7 +32061,7 @@ typedef struct
     // 起始位:0
     MSG_PUBLISHER_ID_TYPE_DEF msg_publisher_ID;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:loading_type
     // 名  称:加载类型
     // 说  明:描述文件/数据在的场景类型：
@@ -31447,7 +32129,7 @@ typedef struct
     // 起始位:0
     char_8 file_name[12];
 
-    UINT32 spare3 : 16;  // 保留字段
+    UINT32 spare3 : 16; // 保留字段
     // 标识符:load_state
     // 名  称:加载状态
     // 说  明:
@@ -31456,9 +32138,9 @@ typedef struct
     // 起始位:8
     UINT32 load_state : 8;
 
-    UINT32 spare2 : 8;  // 保留字段
+    UINT32 spare2 : 8; // 保留字段
 
-    UINT32 spare4 : 24;  // 保留字段
+    UINT32 spare4 : 24; // 保留字段
     // 标识符:translate_state
     // 名  称:传输状态
     // 说  明:
@@ -31467,7 +32149,7 @@ typedef struct
     // 起始位:0
     UINT32 translate_state : 8;
 
-    SPARE8 spare5[3];  // 保留字段
+    SPARE8 spare5[3]; // 保留字段
 
     // 标识符:translate_percent
     // 名  称:传输百分比
@@ -31478,7 +32160,7 @@ typedef struct
     // 起始位:0
     UINT8 translate_percent;
 
-    SPARE8 spare6[3];  // 保留字段
+    SPARE8 spare6[3]; // 保留字段
 
     // 标识符:load_percent
     // 名  称:加载百分比
@@ -31515,7 +32197,7 @@ typedef struct
     // 起始位:0
     UINT32 file_volume_byte;
 
-    SPARE32 spare7[1];  // 保留字段
+    SPARE32 spare7[1]; // 保留字段
 
 } SW_LOAD_STATE_REPORT_OMP;
 
@@ -31552,7 +32234,7 @@ typedef struct
     // 起始位:0
     SYS_NETWORK_STATE_TYPE_DEF sys_network_state[150];
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:ms_sys_main_mode
     // 名  称:任务系统运行模态
     // 说  明:描述任务系统的运行模态，
@@ -31563,7 +32245,7 @@ typedef struct
     // 起始位:0
     UINT32 ms_sys_main_mode : 8;
 
-    UINT32 spare2 : 24;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:ms_sw_match_result
     // 名  称:任务系统软件匹配状态
     // 说  明:
@@ -31572,7 +32254,7 @@ typedef struct
     // 起始位:0
     UINT32 ms_sw_match_result : 8;
 
-    SPARE32 spare3[41];  // 保留字段
+    SPARE32 spare3[41]; // 保留字段
 
 } SYM_OPERATIONAL_PARAS;
 
@@ -31625,7 +32307,7 @@ typedef struct
     // 起始位:0
     SYS_SECURITY_LEVEL_STATE_TYPE_DEF sys_security_level_state;
 
-    SPARE32 spare1[4];  // 保留字段
+    SPARE32 spare1[4]; // 保留字段
 
     // 标识符:subsystem_module_state
     // 名  称:子系统模块运行状态
@@ -31670,7 +32352,7 @@ typedef struct
     // 起始位:0
     TIME_CALENDAR_CONFIG_TYPE_DEF time_calendar_config;
 
-    UINT32 spare1 : 24;  // 保留字段
+    UINT32 spare1 : 24; // 保留字段
     // 标识符:time_mission_sync_type
     // 名  称:时间_任务时间授时同步方式
     // 说  明:
@@ -31679,7 +32361,7 @@ typedef struct
     // 起始位:0
     UINT32 time_mission_sync_type : 8;
 
-    UINT32 spare2 : 24;  // 保留字段
+    UINT32 spare2 : 24; // 保留字段
     // 标识符:time_stopwatch_state
     // 名  称:时间_秒表计时状态
     // 说  明:秒表计时的状态：
@@ -31959,7 +32641,7 @@ typedef struct
     // 起始位:0
     UINT32 VMS1394_MBI_COUNTER;
 
-    SPARE32 spare1[2];  // 保留字段
+    SPARE32 spare1[2]; // 保留字段
 
 } VMS1394_STOF;
 
@@ -32017,7 +32699,7 @@ typedef struct
     // 起始位:0
     UINT32 subsys_main_mode : 8;
 
-    UINT32 spare1 : 4;  // 保留字段
+    UINT32 spare1 : 4; // 保留字段
     // 标识符:AC_ID
     // 名  称:飞机ID
     // 说  明:0 歼-20飞机01状态01-05架
@@ -32116,7 +32798,7 @@ typedef struct
     // 起始位:0
     UINT32 subsys_main_mode : 8;
 
-    UINT32 spare1 : 4;  // 保留字段
+    UINT32 spare1 : 4; // 保留字段
     // 标识符:AC_ID
     // 名  称:飞机ID
     // 说  明:0 歼-20飞机01状态01-05架
